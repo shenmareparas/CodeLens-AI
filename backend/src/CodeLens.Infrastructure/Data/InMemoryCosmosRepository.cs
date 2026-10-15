@@ -34,7 +34,15 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
         return Task.FromResult(user);
     }
 
-    public Task<AuditDocument?> GetAuditAsync(string auditId, string repositoryId, CancellationToken ct = default)
+    public Task<int> DeleteAllUsersAsync(CancellationToken ct = default)
+    {
+        var count = _usersById.Count;
+        _usersById.Clear();
+        _usersByEmail.Clear();
+        return Task.FromResult(count);
+    }
+
+    public Task<AuditDocument?> GetAuditAsync(string auditId, string? repositoryId = null, CancellationToken ct = default)
     {
         _audits.TryGetValue(auditId, out var audit);
         return Task.FromResult(audit);

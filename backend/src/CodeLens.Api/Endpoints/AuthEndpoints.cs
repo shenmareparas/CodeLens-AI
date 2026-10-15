@@ -1,4 +1,5 @@
 using CodeLens.Core.DTOs;
+using CodeLens.Core.Interfaces;
 using CodeLens.Infrastructure.Auth;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -24,9 +25,10 @@ public static class AuthEndpoints
                 return Results.BadRequest(new { error = "Name, email, and password are required." });
             }
 
-            if (request.Password.Length < 8)
+            var passwordError = ValidatePasswordPolicy(request.Password);
+            if (passwordError != null)
             {
-                return Results.BadRequest(new { error = "Password must be at least 8 characters long." });
+                return Results.BadRequest(new { error = passwordError });
             }
 
             try
@@ -162,9 +164,10 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+            var passwordError = ValidatePasswordPolicy(request.Password);
+            if (passwordError != null)
             {
-                return Results.BadRequest(new { error = "Password must be at least 8 characters long." });
+                return Results.BadRequest(new { error = passwordError });
             }
 
             try
@@ -185,5 +188,52 @@ public static class AuthEndpoints
         .WithName("SetPassword")
         .WithSummary("Set a local password for the currently authenticated user")
         .RequireAuthorization();
+
+        // ── Delete All Users (Reset / Cleanup) ───────────────────────────────
+        group.MapDelete("/users", async (
+            [FromServices] ICosmosRepository repository,
+            CancellationToken ct) =>
+        {
+            var count = await repository.DeleteAllUsersAsync(ct);
+            return Results.Ok(new { message = "All users deleted successfully.", deletedCount = count });
+        })
+        .WithName("DeleteAllUsers")
+        .WithSummary("Delete all users from the database")
+        .AllowAnonymous();
+    }
+
+    private static string? ValidatePasswordPolicy(string? password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return "Password is required.";
+        }
+
+        if (password.Length < 8)
+        {
+            return "Password must be at least 8 characters long.";
+        }
+
+        if (!password.Any(char.IsUpper))
+        {
+            return "Password must contain at least one uppercase letter (A-Z).";
+        }
+
+        if (!password.Any(char.IsLower))
+        {
+            return "Password must contain at least one lowercase letter (a-z).";
+        }
+
+        if (!password.Any(char.IsDigit))
+        {
+            return "Password must contain at least one number (0-9).";
+        }
+
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+        {
+            return "Password must contain at least one special character (e.g. !@#$%^&*).";
+        }
+
+        return null;
     }
 }

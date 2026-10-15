@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { DashboardClient } from "./DashboardClient";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Analyze a GitHub repository with CodeLens AI.",
+  title: "Dashboard | CodeLens AI",
+  description: "Deterministic repository intelligence & static code analysis dashboard.",
 };
 
-// Allow blocking prerender — this page requires auth
-export const instant = false;
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session) redirect("/auth/signin");
+  if (!session) {
+    redirect("/auth/signin");
+  }
 
   return (
-    <main style={{ padding: "2rem", color: "#fff" }}>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-        Welcome, {session.user?.name?.split(" ")[0]} 👋
-      </h1>
-      <p style={{ color: "rgba(255,255,255,0.5)" }}>
-        Phase 2 will add the repository analysis form and telemetry dashboard here.
-      </p>
+    <main style={{ minHeight: "100vh", background: "var(--color-bg)", color: "var(--color-text)" }}>
+      <DashboardClient
+        userName={session.user?.name}
+        userEmail={session.user?.email}
+        backendToken={session.backendToken ?? ""}
+      />
     </main>
   );
 }

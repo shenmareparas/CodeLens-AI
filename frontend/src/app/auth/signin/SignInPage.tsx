@@ -2,83 +2,22 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { registerWithCredentials } from "@/lib/api-client";
+import { CredentialsForm } from "./CredentialsForm";
 import styles from "./SignInPage.module.css";
 
 export default function SignInPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Form fields
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
-    setError(null);
-    setIsLoading(true);
+    setGoogleError(null);
+    setIsGoogleLoading(true);
     try {
       await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
-      setError("Failed to initiate Google sign-in. Please try again.");
-      setIsLoading(false);
-    }
-  };
-
-  const handleCredentialsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!email || !password) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
-    if (activeTab === "signup" && !name) {
-      setError("Please enter your name.");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      if (activeTab === "signup") {
-        // 1. Register with backend
-        await registerWithCredentials(name, email, password);
-      }
-
-      // 2. Sign in via NextAuth Credentials provider
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError(
-          activeTab === "signup"
-            ? "Account created, but automatic sign-in failed. Please sign in."
-            : "Invalid email or password. Please try again."
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      // Redirect to dashboard
-      router.push("/dashboard");
-      router.refresh();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Authentication failed.";
-      setError(msg);
-      setIsLoading(false);
+      setGoogleError("Failed to initiate Google sign-in. Please try again.");
+      setIsGoogleLoading(false);
     }
   };
 
@@ -88,16 +27,7 @@ export default function SignInPage() {
         {/* Brand */}
         <div className={styles.brand}>
           <div className={styles.logoIcon}>
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="20" fill="url(#grad)" />
-              <path d="M12 20l5 5 11-11" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#6366f1" />
-                  <stop offset="1" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <BrandLogo />
           </div>
           <h1 className={styles.brandName}>CodeLens AI</h1>
           <p className={styles.tagline}>Repository Intelligence &amp; Architecture Auditor</p>
@@ -112,7 +42,7 @@ export default function SignInPage() {
             className={`${styles.tabBtn} ${activeTab === "signin" ? styles.tabBtnActive : ""}`}
             onClick={() => {
               setActiveTab("signin");
-              setError(null);
+              setGoogleError(null);
             }}
           >
             Sign In
@@ -124,84 +54,28 @@ export default function SignInPage() {
             className={`${styles.tabBtn} ${activeTab === "signup" ? styles.tabBtnActive : ""}`}
             onClick={() => {
               setActiveTab("signup");
-              setError(null);
+              setGoogleError(null);
             }}
           >
             Create Account
           </button>
         </div>
 
-        {/* Error message */}
-        {error && (
+        {googleError && (
           <div className={styles.errorAlert} role="alert">
             <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
-            <span>{error}</span>
+            <span>{googleError}</span>
           </div>
         )}
 
-        {/* Credentials Form */}
-        <form onSubmit={handleCredentialsSubmit} className={styles.form}>
-          {activeTab === "signup" && (
-            <div className={styles.inputGroup}>
-              <label htmlFor="user-name" className={styles.label}>Full Name</label>
-              <input
-                id="user-name"
-                type="text"
-                placeholder="Jane Developer"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={styles.input}
-                disabled={isLoading}
-                required
-              />
-            </div>
-          )}
-
-          <div className={styles.inputGroup}>
-            <label htmlFor="user-email" className={styles.label}>Email Address</label>
-            <input
-              id="user-email"
-              type="email"
-              placeholder="developer@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label htmlFor="user-password" className={styles.label}>Password</label>
-            <input
-              id="user-password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={styles.submitBtn}
-            disabled={isLoading}
-            id="auth-submit-btn"
-          >
-            {isLoading ? (
-              <span className={styles.spinner} />
-            ) : activeTab === "signin" ? (
-              "Sign In with Email"
-            ) : (
-              "Create Account"
-            )}
-          </button>
-        </form>
+        {/* Tab-driven Credentials Form */}
+        <CredentialsForm key={activeTab} activeTab={activeTab} />
 
         {/* Divider */}
         <div className={styles.divider}>
@@ -215,14 +89,14 @@ export default function SignInPage() {
           type="button"
           className={styles.googleBtn}
           onClick={handleGoogleSignIn}
-          disabled={isLoading}
+          disabled={isGoogleLoading}
           id="google-signin-btn"
         >
           <GoogleIcon />
           <span>Continue with Google</span>
         </button>
 
-        {/* Features */}
+        {/* Features list */}
         <ul className={styles.features}>
           {FEATURES.map((f) => (
             <li key={f.label} className={styles.featureItem}>
@@ -243,6 +117,21 @@ export default function SignInPage() {
       <div className={styles.bgOrb1} />
       <div className={styles.bgOrb2} />
     </div>
+  );
+}
+
+function BrandLogo() {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="20" fill="url(#brand-grad)" />
+      <path d="M12 20l5 5 11-11" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        <linearGradient id="brand-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#6366f1" />
+          <stop offset="1" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+    </svg>
   );
 }
 

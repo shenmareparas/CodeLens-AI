@@ -40,6 +40,8 @@ public sealed class TelemetryData
     public List<HotspotEntry> Hotspots { get; set; } = [];
     public List<string> DeadCode { get; set; } = [];
     public List<string> SecretAlerts { get; set; } = [];
+    public List<DependencyEntry> Dependencies { get; set; } = [];
+    public string? SymbolManifest { get; set; }
 }
 
 public sealed class HotspotEntry
@@ -48,6 +50,13 @@ public sealed class HotspotEntry
     public int Complexity { get; set; }
     public int Churn { get; set; }
     public double Score { get; set; }
+}
+
+public sealed class DependencyEntry
+{
+    public string Ecosystem { get; set; } = default!;
+    public string Package { get; set; } = default!;
+    public string Version { get; set; } = default!;
 }
 
 public sealed class AiInsights

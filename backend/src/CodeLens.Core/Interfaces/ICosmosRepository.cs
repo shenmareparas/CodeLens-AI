@@ -9,9 +9,10 @@ public interface ICosmosRepository
     Task<UserDocument?> GetUserByEmailAsync(string email, CancellationToken ct = default);
     Task<UserDocument?> GetUserByIdAsync(string id, CancellationToken ct = default);
     Task<UserDocument> UpsertUserAsync(UserDocument user, CancellationToken ct = default);
+    Task<int> DeleteAllUsersAsync(CancellationToken ct = default);
 
     // Audits
-    Task<AuditDocument?> GetAuditAsync(string auditId, string repositoryId, CancellationToken ct = default);
+    Task<AuditDocument?> GetAuditAsync(string auditId, string? repositoryId = null, CancellationToken ct = default);
     Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default);
     Task<IReadOnlyList<AuditDocument>> GetAuditsByUserAsync(string userId, CancellationToken ct = default);
 

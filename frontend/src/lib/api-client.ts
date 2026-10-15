@@ -3,7 +3,7 @@
  * All requests attach the backend JWT Bearer token from the session.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050";
 
 async function apiRequest<T>(
   path: string,
@@ -20,7 +20,18 @@ async function apiRequest<T>(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`API ${options.method ?? "GET"} ${path} failed (${res.status}): ${text}`);
+    let errorMessage = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed?.error === "string") {
+        errorMessage = parsed.error;
+      } else if (typeof parsed?.detail === "string") {
+        errorMessage = parsed.detail;
+      }
+    } catch {
+      // Not JSON, use raw text or fallback
+    }
+    throw new Error(errorMessage || `Request failed with status ${res.status}`);
   }
 
   return res.json() as Promise<T>;
@@ -104,14 +115,46 @@ export async function setAccountPassword(password: string, token: string): Promi
 
 // ── Audits ────────────────────────────────────────────────────────────────────
 
+export interface HotspotEntry {
+  file: string;
+  complexity: number;
+  churn: number;
+  score: number;
+}
+
+export interface DependencyEntry {
+  ecosystem: string;
+  package: string;
+  version: string;
+}
+
+export interface TelemetryData {
+  stars: number;
+  forks: number;
+  license?: string;
+  releaseStatus: string;
+  daysSinceLastRelease: number;
+  weeklyCommitsSparkline: number[];
+  languages: Record<string, number>;
+  hotspots: HotspotEntry[];
+  deadCode: string[];
+  secretAlerts: string[];
+  dependencies: DependencyEntry[];
+  symbolManifest?: string;
+}
+
 export interface AuditResponse {
   auditId: string;
-  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: "Pending" | "Processing" | "Completed" | "Failed";
   repoUrl: string;
   createdAt: string;
-  telemetry?: Record<string, unknown>;
+  telemetry?: TelemetryData;
   aiInsights?: Record<string, unknown>;
   dossierMarkdown?: string;
+}
+
+export async function getUserAudits(token: string): Promise<AuditResponse[]> {
+  return apiRequest<AuditResponse[]>("/api/audits", {}, token);
 }
 
 export async function startAudit(repoUrl: string, token: string): Promise<AuditResponse> {
@@ -122,15 +165,18 @@ export async function startAudit(repoUrl: string, token: string): Promise<AuditR
   );
 }
 
-export async function getAudit(auditId: string, token: string): Promise<AuditResponse> {
-  return apiRequest<AuditResponse>(`/api/audits/${auditId}`, {}, token);
+export async function getAudit(auditId: string, token: string, repositoryId?: string): Promise<AuditResponse> {
+  const query = repositoryId ? `?repositoryId=${encodeURIComponent(repositoryId)}` : "";
+  return apiRequest<AuditResponse>(`/api/audits/${auditId}${query}`, {}, token);
 }
 
 export async function getDossierDownloadUrl(
   auditId: string,
   token: string,
+  repositoryId?: string,
 ): Promise<{ url: string }> {
-  return apiRequest<{ url: string }>(`/api/audits/${auditId}/download`, {}, token);
+  const query = repositoryId ? `?repositoryId=${encodeURIComponent(repositoryId)}` : "";
+  return apiRequest<{ url: string }>(`/api/audits/${auditId}/download${query}`, {}, token);
 }
 
 // ── SSE Chat ──────────────────────────────────────────────────────────────────

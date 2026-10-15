@@ -141,38 +141,39 @@ CodeLens AI supports both **Standard Email/Password Authentication** and **Googl
 
 ### ✅ Phase 1: Foundation, Auth & Core Plumbing (COMPLETED + HYBRID AUTH UPGRADE)
 
-- [x] **Frontend (`frontend/`):** Next.js 16 + Bun initialized with Geist fonts, custom dark glassmorphism design system (`globals.css`), NextAuth v5 (`src/auth.ts`), route protection (`src/proxy.ts`), typed API & SSE client (`src/lib/api-client.ts`), Sign-In UI, and Dashboard stub[span_21](start_span)[span_21](end_span).
-- [x] **Backend (`backend/`):** 3-project `.NET 10` (`net10.0`) solution (`CodeLens.Core`, `CodeLens.Infrastructure`, `CodeLens.Api`) building with 0 warnings and 0 errors[span_22](start_span)[span_22](end_span).
-- [x] **Security & Data Plumbing:** `AuthService.cs` (Google `id_token` validation + HS256 JWT generation), `CosmosRepository.cs` (`users`, `audits`, `messages` containers), `BlobStorageService.cs` (upload + 15-min SAS URL generator), and Scalar OpenAPI UI (`/scalar/v1`)[span_23](start_span)[span_23](end_span).
+- [x] **Frontend (`frontend/`):** Next.js 16 + Bun initialized with Geist fonts, custom dark glassmorphism design system (`globals.css`), NextAuth v5 (`src/auth.ts`), route protection (`src/proxy.ts`), typed API & SSE client (`src/lib/api-client.ts`), Sign-In UI, and Dashboard.
+- [x] **Backend (`backend/`):** 3-project `.NET 10` (`net10.0`) solution (`CodeLens.Core`, `CodeLens.Infrastructure`, `CodeLens.Api`) building with 0 warnings and 0 errors. Configured on port `5050` to prevent macOS AirPlay port 5000 collisions.
+- [x] **Security & Data Plumbing:** `AuthService.cs` (Google `id_token` validation + HS256 JWT generation), `CosmosRepository.cs` (`users`, `audits`, `messages` containers), `BlobStorageService.cs` (upload + 15-min SAS URL generator), and Scalar OpenAPI UI (`/scalar/v1` on `http://localhost:5050/scalar/v1`).
 - [x] **Phase 1.5 — Hybrid Email/Password + Google Account Linking:**
-  - Extend `UserDocument` with `PasswordHash`, `GoogleSub`, and `AuthProviders`.
-  - Add `/api/auth/register`, `/api/auth/login`, and `/api/auth/link-google` in `AuthService.cs` and `AuthEndpoints.cs`.
-  - Add NextAuth `Credentials` provider in `src/auth.ts` and Sign-In / Sign-Up tabs in `src/app/auth/signin/page.tsx`.
+  - Extended `UserDocument` with `PasswordHash`, `GoogleSub`, and `AuthProviders`.
+  - Added `/api/auth/register`, `/api/auth/login`, `/api/auth/link-google`, and `/api/auth/set-password` in `AuthService.cs` and `AuthEndpoints.cs`.
+  - Implemented real-time password criteria validation (8+ chars, uppercase, lowercase, number, special symbol), visual strength meter, criteria checklist, confirm-password match validation, and eye show/hide visibility toggles in `SignInPage.tsx`, `CredentialsForm.tsx`, and `PasswordValidationComponents.tsx`.
+  - Added repository reset endpoint `DELETE /api/auth/users` for test cleanup.
 
-### 🚧 Phase 2: Deterministic Telemetry & Static Analysis Pipeline (NEXT)
+### ✅ Phase 2: Deterministic Telemetry & Static Analysis Pipeline (COMPLETED)
 
-- [ ] **Step 2.1 — Core Contracts:** Add `IGitHubTelemetryService` and `ICodeAnalysisService` interfaces along with telemetry/hotspot records in `CodeLens.Core`[span_24](start_span)[span_24](end_span).
-- [ ] **Step 2.2 — Octokit Telemetry Engine:** Implement `OctokitTelemetryService.cs` in `CodeLens.Infrastructure/GitHub/` to fetch repo metadata, 8-week commit sparklines, release cadence status, file commit churn, and the in-memory repository zipball stream[span_25](start_span)[span_25](end_span).
-- [ ] **Step 2.3 — Roslyn & Polyglot Analyzer:** Implement `RoslynAndPolyglotAnalyzer.cs` in `CodeLens.Infrastructure/Analysis/` to iterate through the `ZipArchive` stream, calculate cyclomatic complexity, compute Hotspot Risk Scores ($\text{Complexity} \times \ln(\text{Churn} + 1)$), identify dead code candidates, parse `.csproj`/`package.json` dependencies, and build the compact Symbol Manifest[span_26](start_span)[span_26](end_span).
-- [ ] **Step 2.4 — Compiled Secret Scanner:** Implement `RegexSecretScanner.cs` in `CodeLens.Infrastructure/Security/` using `.NET 10` `[GeneratedRegex]` attributes for zero-allocation credential and `.env`/`.pem` detection[span_27](start_span)[span_27](end_span).
-- [ ] **Step 2.5 — Pipeline Wiring:** Connect `POST /api/audits/analyze` in `AuditEndpoints.cs` to execute Phase 2 engines and persist deterministic metrics to `AuditDocument` in Cosmos DB[span_28](start_span)[span_28](end_span).
+- [x] **Step 2.1 — Core Contracts:** Added `IGitHubTelemetryService` and `ICodeAnalysisService` interfaces along with telemetry, hotspot, dead code, dependency, and secret alert records in `CodeLens.Core`.
+- [x] **Step 2.2 — Octokit Telemetry Engine:** Implemented `OctokitTelemetryService.cs` in `CodeLens.Infrastructure/GitHub/` to fetch repo metadata, 8-week commit sparklines, release cadence status, file commit churn, rate-limit quota budgeting, and the in-memory repository zipball stream.
+- [x] **Step 2.3 — Roslyn & Polyglot Analyzer:** Implemented `RoslynAndPolyglotAnalyzer.cs` in `CodeLens.Infrastructure/Analysis/` to iterate through the `ZipArchive` stream in memory, calculate cyclomatic complexity, compute Hotspot Risk Scores ($\text{Complexity} \times \ln(\text{Churn} + 1)$), identify dead code candidates, parse polyglot package dependencies (Bun `bun.lock`, Node `package.json`, Dart `pubspec.yaml`, .NET `.csproj`, Python `requirements.txt`, Go `go.mod`, Rust `Cargo.toml`), and build the compact Symbol Manifest. Validated on production repositories including `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
+- [x] **Step 2.4 — Compiled Secret Scanner:** Implemented `RegexSecretScanner.cs` in `CodeLens.Infrastructure/Security/` using `.NET 10` `[GeneratedRegex]` compile-time attributes for zero-allocation credential, private key, and `.env`/`.pem` detection.
+- [x] **Step 2.5 — Pipeline Wiring & Telemetry UI:** Connected `POST /api/audits/analyze` in `AuditEndpoints.cs` to execute Phase 2 engines and persist deterministic metrics to `AuditDocument` in Cosmos DB. Built `TelemetryBentoGrid.tsx`, `DependenciesCard.tsx` (with real-time ecosystem filtering and search), `HotspotTable.tsx`, and `SparklineChart.tsx` in frontend. Created 19 xUnit tests in `CodeLens.Tests` with 100% pass rate.
 
-### ⏳ Phase 3: Gemini 3.8 Flash Synthesis & Dossier Builder
+### 🚧 Phase 3: Gemini 3.8 Flash Synthesis & Dossier Builder (NEXT)
 
-- [ ] **Step 3.1 — Semantic Kernel Gemini Connector:** Implement `GeminiAnalysisService.cs` using `Microsoft.SemanticKernel` (`1.81.0`) configured with `gemini-3.8-flash`[span_29](start_span)[span_29](end_span).
-- [ ] **Step 3.2 — Structured Prompt Execution:** Parse Gemini outputs into structured sections (`ELI5Summary`, `LicenseVerdict`, `MermaidDiagram`, `ArchitecturalSmells`, `OnboardingRunbook`) with automatic Mermaid syntax sanitization[span_30](start_span)[span_30](end_span).
-- [ ] **Step 3.3 — Markdown Dossier Compiler:** Implement `MarkdownDossierBuilder.cs` to format `PROJECT_KNOWLEDGE.md`, upload via `IBlobStorageService`, and store the markdown in `AuditDocument`[span_31](start_span)[span_31](end_span).
+- [ ] **Step 3.1 — Semantic Kernel Gemini Connector:** Implement `GeminiSynthesisService.cs` using `Microsoft.SemanticKernel` (`1.81.0`) configured with `gemini-3.8-flash`.
+- [ ] **Step 3.2 — Structured Prompt Execution:** Parse Gemini outputs into structured sections (`ELI5Summary`, `LicenseVerdict`, `MermaidDiagram`, `ArchitecturalSmells`, `OnboardingRunbook`) with automatic Mermaid syntax sanitization.
+- [ ] **Step 3.3 — Markdown Dossier Compiler:** Implement `MarkdownDossierBuilder.cs` to format `PROJECT_KNOWLEDGE.md`, upload via `IBlobStorageService`, and store the markdown in `AuditDocument`.
 
 ### ⏳ Phase 4: Interactive Dashboard, Mermaid Canvas & Split-Screen Chat
 
-- [ ] **Step 4.1 — Dashboard & Telemetry UI:** Build SVG commit sparklines, release health badges, language distribution donut chart, hotspot table, and secret alert banners in Next.js 16[span_32](start_span)[span_32](end_span).
-- [ ] **Step 4.2 — Interactive Mermaid Explorer:** Build client-side `MermaidViewer.tsx` with pan, zoom, and diagram copy/export controls[span_33](start_span)[span_33](end_span).
-- [ ] **Step 4.3 — Split-Screen Dossier & Grounded Chat:** Build `/audit/[id]/page.tsx` featuring the rendered `PROJECT_KNOWLEDGE.md` preview, one-click `.md` SAS download button, and real-time SSE streaming chat sidebar connected to `POST /api/chat/{id}/stream`[span_34](start_span)[span_34](end_span).
+- [x] **Step 4.1 — Telemetry Components (Completed in Phase 2):** SVG commit sparklines, release health badges, language distribution breakdown, hotspot table, secret alert banners, and ecosystem dependency filtering (`TelemetryBentoGrid.tsx`, `DependenciesCard.tsx`, `HotspotTable.tsx`, `SparklineChart.tsx`).
+- [ ] **Step 4.2 — Interactive Mermaid Explorer:** Build client-side `MermaidViewer.tsx` with pan, zoom, and diagram copy/export controls.
+- [ ] **Step 4.3 — Split-Screen Dossier & Grounded Chat:** Build `/audit/[id]/page.tsx` featuring the rendered `PROJECT_KNOWLEDGE.md` preview, one-click `.md` SAS download button, and real-time SSE streaming chat sidebar connected to `POST /api/chat/{id}/stream`.
 
 ### ⏳ Phase 5: Cloud Provisioning & Zero-Cost Azure Deployment
 
-- [ ] **Step 5.1 — Azure Resource Provisioning:** Create Azure Cosmos DB (Free Tier enabled), Azure Blob Storage (`project-dossiers`), and Azure Container Apps environment[span_35](start_span)[span_35](end_span).
-- [ ] **Step 5.2 — CI/CD Pipelines:** Configure GitHub Actions workflows to deploy `backend/Dockerfile` to Azure Container Apps (scale-to-zero) and `frontend/` to Azure Static Web Apps[span_36](start_span)[span_36](end_span).
+- [ ] **Step 5.1 — Azure Resource Provisioning:** Create Azure Cosmos DB (Free Tier enabled), Azure Blob Storage (`project-dossiers`), and Azure Container Apps environment.
+- [ ] **Step 5.2 — CI/CD Pipelines:** Configure GitHub Actions workflows to deploy `backend/Dockerfile` to Azure Container Apps (scale-to-zero) and `frontend/` to Azure Static Web Apps.
 
 ---
 
@@ -184,6 +185,12 @@ codelens-ai/
 ├── backend/
 │   ├── CodeLens.sln                              # .NET 10 Solution
 │   ├── Dockerfile                                # Multi-stage .NET 10 container build
+│   ├── tests/
+│   │   └── CodeLens.Tests/                       # xUnit Test Suite (19 passing tests)
+│   │       ├── OctokitTelemetryTests.cs
+│   │       ├── RoslynAndPolyglotAnalyzerTests.cs
+│   │       ├── SecretScannerTests.cs
+│   │       └── UserRepositoryTests.cs
 │   └── src/
 │       ├── CodeLens.Core/
 │       │   ├── Entities/
@@ -191,7 +198,8 @@ codelens-ai/
 │       │   │   ├── AuditDocument.cs
 │       │   │   └── ChatMessageDocument.cs
 │       │   ├── DTOs/
-│       │   │   └── ApiDtos.cs
+│       │   │   ├── ApiDtos.cs
+│       │   │   └── TelemetryDtos.cs              # Hotspot, SecretAlert, FileChurn, Sparkline
 │       │   └── Interfaces/
 │       │       ├── ICosmosRepository.cs
 │       │       ├── IBlobStorageService.cs
@@ -203,7 +211,9 @@ codelens-ai/
 │       │   │   └── AuthService.cs                # Hybrid Credentials + Google + Linking
 │       │   ├── Data/
 │       │   │   ├── CosmosRepository.cs
-│       │   │   └── BlobStorageService.cs
+│       │   │   ├── InMemoryCosmosRepository.cs
+│       │   │   ├── BlobStorageService.cs
+│       │   │   └── InMemoryBlobStorageService.cs
 │       │   ├── GitHub/
 │       │   │   └── OctokitTelemetryService.cs    # Phase 2
 │       │   ├── Analysis/
@@ -215,14 +225,14 @@ codelens-ai/
 │       │       └── MarkdownDossierBuilder.cs     # Phase 3
 │       └── CodeLens.Api/
 │           ├── Endpoints/
-│           │   ├── AuthEndpoints.cs              # /register, /login, /google, /link-google
-│           │   ├── AuditEndpoints.cs
+│           │   ├── AuthEndpoints.cs              # /register, /login, /google, /set-password, /users
+│           │   ├── AuditEndpoints.cs             # /api/audits/analyze, /api/audits, /api/audits/{id}
 │           │   └── ChatEndpoints.cs
-│           ├── Program.cs
+│           ├── Program.cs                        # Port 5050, JWT, Scalar OpenAPI
 │           └── appsettings.json
 └── frontend/
     ├── package.json
-    ├── bun.lockb
+    ├── bun.lock
     ├── .env.local
     └── src/
         ├── auth.ts                               # NextAuth v5 (Google + Credentials)
@@ -232,19 +242,27 @@ codelens-ai/
         │   ├── layout.tsx
         │   ├── page.tsx
         │   ├── api/auth/[...nextauth]/route.ts
-        │   ├── auth/signin/page.tsx              # Sign-In / Sign-Up Tabs + Google Button
+        │   ├── auth/signin/
+        │   │   ├── page.tsx
+        │   │   ├── SignInPage.tsx                # Tabbed Sign-In / Sign-Up
+        │   │   ├── CredentialsForm.tsx           # Form state, validation & NextAuth
+        │   │   ├── PasswordValidationComponents.tsx # Visibility toggles, strength meter, checklist
+        │   │   ├── passwordUtils.ts              # Criteria scoring & evaluation rules
+        │   │   └── SignInPage.module.css
         │   └── dashboard/
-        │       ├── page.tsx
+        │       ├── page.tsx                      # Server entrypoint with session check
+        │       ├── DashboardClient.tsx           # Client dashboard orchestrator
         │       └── audit/[id]/page.tsx           # Phase 4 Split Workspace
-        ├── components/                           # Phase 4 UI Components
-        │   ├── TelemetryBentoGrid.tsx
-        │   ├── SparklineChart.tsx
-        │   ├── HotspotTable.tsx
-        │   ├── MermaidExplorer.tsx
-        │   ├── DossierMarkdownViewer.tsx
-        │   └── RepoChatSidebar.tsx
+        ├── components/
+        │   ├── TelemetryBentoGrid.tsx            # Bento Grid telemetry presentation
+        │   ├── SparklineChart.tsx                # SVG 8-week commit sparklines
+        │   ├── HotspotTable.tsx                  # Complexity x Churn risk table
+        │   ├── Providers.tsx                     # SessionProvider wrapper
+        │   ├── MermaidExplorer.tsx               # Phase 4 Interactive diagram
+        │   ├── DossierMarkdownViewer.tsx         # Phase 4 Markdown preview
+        │   └── RepoChatSidebar.tsx               # Phase 4 Grounded copilot
         ├── lib/
-        │   ├── api-client.ts
+        │   ├── api-client.ts                     # REST client + SSE stream reader
         │   └── auth-helpers.ts
         └── types/
             └── next-auth.d.ts

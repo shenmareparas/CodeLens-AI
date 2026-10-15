@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text;
 
+using CodeLens.Infrastructure.GitHub;
+using CodeLens.Infrastructure.Analysis;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Configuration binding ──────────────────────────────────────────────────────
@@ -15,6 +18,12 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<GoogleAuthOptions>(builder.Configuration.GetSection("Google"));
 builder.Services.Configure<CosmosDbOptions>(builder.Configuration.GetSection("CosmosDb"));
 builder.Services.Configure<BlobStorageOptions>(builder.Configuration.GetSection("BlobStorage"));
+builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection("GitHub"));
+
+// ── HTTP Client & Ingestion Engines ───────────────────────────────────────────
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IGitHubTelemetryService, OctokitTelemetryService>();
+builder.Services.AddScoped<ICodeAnalysisService, RoslynAndPolyglotAnalyzer>();
 
 // ── JWT Bearer Authentication ─────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();

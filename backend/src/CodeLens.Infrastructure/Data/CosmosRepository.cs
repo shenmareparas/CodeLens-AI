@@ -71,21 +71,67 @@ public sealed class CosmosRepository : ICosmosRepository
         return response.Resource;
     }
 
+    public async Task<int> DeleteAllUsersAsync(CancellationToken ct = default)
+    {
+        var container = GetContainer(_options.UsersContainer);
+        var query = new QueryDefinition("SELECT c.id FROM c");
+        var ids = new List<string>();
+
+        using var iterator = container.GetItemQueryIterator<UserDocument>(query);
+        while (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(ct);
+            ids.AddRange(page.Select(u => u.Id));
+        }
+
+        var deleted = 0;
+        foreach (var id in ids)
+        {
+            try
+            {
+                await container.DeleteItemAsync<UserDocument>(id, new PartitionKey(id), cancellationToken: ct);
+                deleted++;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                // Already deleted
+            }
+        }
+
+        return deleted;
+    }
+
     // ── Audits ────────────────────────────────────────────────────────────────
 
-    public async Task<AuditDocument?> GetAuditAsync(string auditId, string repositoryId, CancellationToken ct = default)
+    public async Task<AuditDocument?> GetAuditAsync(string auditId, string? repositoryId = null, CancellationToken ct = default)
     {
         var container = GetContainer(_options.AuditsContainer);
-        try
+        if (!string.IsNullOrWhiteSpace(repositoryId))
         {
-            var response = await container.ReadItemAsync<AuditDocument>(
-                auditId, new PartitionKey(repositoryId), cancellationToken: ct);
-            return response.Resource;
+            try
+            {
+                var response = await container.ReadItemAsync<AuditDocument>(
+                    auditId, new PartitionKey(repositoryId), cancellationToken: ct);
+                return response.Resource;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+        var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @auditId")
+            .WithParameter("@auditId", auditId);
+
+        using var iterator = container.GetItemQueryIterator<AuditDocument>(query);
+        while (iterator.HasMoreResults)
         {
-            return null;
+            var page = await iterator.ReadNextAsync(ct);
+            var item = page.FirstOrDefault();
+            if (item is not null) return item;
         }
+
+        return null;
     }
 
     public async Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default)
