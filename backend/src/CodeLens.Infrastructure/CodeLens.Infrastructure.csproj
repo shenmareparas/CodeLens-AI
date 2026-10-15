@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CodeLens.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeLens.Core\CodeLens.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- GitHub API -->
+    <PackageReference Include="Octokit" Version="14.0.0" />
+
+    <!-- Azure Cosmos DB -->
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.48.0" />
+
+    <!-- Azure Blob Storage -->
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.1" />
+
+    <!-- Roslyn (Code Analysis) -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+
+    <!-- Semantic Kernel + Google connector -->
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.81.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.81.0-alpha" />
+
+    <!-- JWT token generation -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.0" />
+
+    <!-- DI / Options primitives (not included in plain SDK class libraries) -->
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
+
+    <!-- Password Hashing (PBKDF2 with HMAC-SHA512) -->
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="10.0.13" />
+
+    <!-- Google APIs (id_token verification) -->
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+  </ItemGroup>
+
+</Project>
