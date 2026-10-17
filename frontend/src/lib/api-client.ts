@@ -148,6 +148,9 @@ export interface AuditResponse {
   status: "Pending" | "Processing" | "Completed" | "Failed";
   repoUrl: string;
   createdAt: string;
+  commitSha?: string;
+  isStale?: boolean;
+  latestCommitSha?: string;
   telemetry?: TelemetryData;
   aiInsights?: Record<string, unknown>;
   dossierMarkdown?: string;
@@ -157,10 +160,14 @@ export async function getUserAudits(token: string): Promise<AuditResponse[]> {
   return apiRequest<AuditResponse[]>("/api/audits", {}, token);
 }
 
-export async function startAudit(repoUrl: string, token: string): Promise<AuditResponse> {
+export async function startAudit(
+  repoUrl: string,
+  token: string,
+  forceRefresh: boolean = false,
+): Promise<AuditResponse> {
   return apiRequest<AuditResponse>(
     "/api/audits/analyze",
-    { method: "POST", body: JSON.stringify({ repoUrl }) },
+    { method: "POST", body: JSON.stringify({ repoUrl, forceRefresh }) },
     token,
   );
 }

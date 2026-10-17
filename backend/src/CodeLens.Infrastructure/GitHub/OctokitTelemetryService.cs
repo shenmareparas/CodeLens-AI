@@ -102,10 +102,14 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
         // 5. File commit churn from recent commits
         var fileChurn = await FetchFileCommitChurnAsync(owner, repo);
 
+        // 6. Latest commit SHA
+        var commitSha = await GetLatestCommitShaAsync(owner, repo, defaultBranch, ct);
+
         return new RepoTelemetryResult(
             Owner: owner,
             Repo: repo,
             DefaultBranch: defaultBranch,
+            CommitSha: commitSha,
             Stars: stars,
             Forks: forks,
             License: license,
@@ -115,6 +119,30 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
             Languages: languages,
             FileChurn: fileChurn
         );
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetLatestCommitShaAsync(
+        string owner,
+        string repo,
+        string? branch = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var commits = await _client.Repository.Commit.GetAll(
+                owner,
+                repo,
+                new CommitRequest { Sha = branch },
+                new ApiOptions { PageSize = 1, PageCount = 1 });
+
+            return commits.Count > 0 ? commits[0].Sha : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch latest commit SHA for {Owner}/{Repo} on branch {Branch}", owner, repo, branch);
+            return null;
+        }
     }
 
     /// <inheritdoc />

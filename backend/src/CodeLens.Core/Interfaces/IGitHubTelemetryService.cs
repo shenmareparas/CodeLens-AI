@@ -28,4 +28,13 @@ public interface IGitHubTelemetryService
         string repo,
         string? refOrBranch = null,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Fetches the latest commit SHA of the specified branch or default branch.
+    /// </summary>
+    Task<string?> GetLatestCommitShaAsync(
+        string owner,
+        string repo,
+        string? branch = null,
+        CancellationToken ct = default);
 }

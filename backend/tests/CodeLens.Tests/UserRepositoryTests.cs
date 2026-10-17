@@ -34,4 +34,49 @@ public class UserRepositoryTests
         Assert.Null(await repo.GetUserByEmailAsync("user1@example.com"));
         Assert.Null(await repo.GetUserByIdAsync("usr_2"));
     }
+
+    [Fact]
+    public async Task GetLatestAuditByRepoAsync_ReturnsMostRecentCompletedAuditForRepo()
+    {
+        var repo = new InMemoryCosmosRepository();
+
+        var olderAudit = new AuditDocument
+        {
+            Id = "audit_old",
+            RepositoryId = "owner_repo",
+            RepoUrl = "https://github.com/owner/repo",
+            UserId = "user1",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-2)
+        };
+
+        var newerAudit = new AuditDocument
+        {
+            Id = "audit_new",
+            RepositoryId = "owner_repo",
+            RepoUrl = "https://github.com/owner/repo",
+            UserId = "user2",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+
+        var differentRepoAudit = new AuditDocument
+        {
+            Id = "audit_diff",
+            RepositoryId = "other_repo",
+            RepoUrl = "https://github.com/other/repo",
+            UserId = "user1",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await repo.UpsertAuditAsync(olderAudit);
+        await repo.UpsertAuditAsync(newerAudit);
+        await repo.UpsertAuditAsync(differentRepoAudit);
+
+        var latest = await repo.GetLatestAuditByRepoAsync("owner_repo");
+
+        Assert.NotNull(latest);
+        Assert.Equal("audit_new", latest.Id);
+    }
 }

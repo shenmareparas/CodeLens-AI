@@ -136,14 +136,22 @@ codelens-ai/
         │   │   └── passwordUtils.ts                  # Criteria scoring & evaluation rules
         │   └── dashboard/
         │       ├── page.tsx                          # Protected server dashboard page
-        │       └── DashboardClient.tsx               # Telemetry Bento Grid & repo submission
+        │       ├── DashboardClient.tsx               # Telemetry Bento Grid & repo submission
+        │       └── audit/[id]/
+        │           ├── page.tsx                      # Split-screen audit workspace entrypoint
+        │           └── AuditWorkspaceClient.tsx      # Split workspace orchestrator (Dossier + Chat + Diagram)
         └── components/
+            ├── DashboardHeader.tsx                   # Top bar navigation & user profile
+            ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
             ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
             ├── DependenciesCard.tsx                  # Ecosystem filter tabs (Bun, Pub, npm, NuGet, PyPI), package search & badges
             ├── HotspotTable.tsx                      # Complexity x Churn risk table
             ├── SparklineChart.tsx                    # SVG 8-week commit sparklines
+            ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+            ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
+            ├── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
             └── Providers.tsx                         # NextAuth SessionProvider wrapper
-- **Dashboard Quick Samples:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight, diverse repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) for rapid in-memory streaming and verification.
+- **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) and retrieves shared audits in `<50ms` with remote commit staleness detection.
 ```
 
 ---

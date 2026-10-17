@@ -26,7 +26,7 @@ public sealed record AuthResponse(
 );
 
 /// <summary>Request body for POST /api/audits/analyze</summary>
-public sealed record AnalyzeRequest(string RepoUrl);
+public sealed record AnalyzeRequest(string RepoUrl, bool ForceRefresh = false);
 
 /// <summary>Lightweight audit summary returned by GET /api/audits/{auditId}</summary>
 public sealed record AuditSummaryResponse(
@@ -36,7 +36,10 @@ public sealed record AuditSummaryResponse(
     DateTimeOffset CreatedAt,
     object? Telemetry,
     object? AiInsights,
-    string? DossierMarkdown
+    string? DossierMarkdown,
+    string? CommitSha = null,
+    bool IsStale = false,
+    string? LatestCommitSha = null
 );
 
 /// <summary>Response for GET /api/audits/{auditId}/download</summary>

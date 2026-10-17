@@ -9,6 +9,7 @@ public sealed record RepoTelemetryResult(
     string Owner,
     string Repo,
     string DefaultBranch,
+    string? CommitSha,
     long Stars,
     long Forks,
     string? License,

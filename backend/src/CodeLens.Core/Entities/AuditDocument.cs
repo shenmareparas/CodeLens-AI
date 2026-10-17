@@ -19,6 +19,8 @@ public sealed class AuditDocument
     public string RepositoryId { get; set; } = default!;     // "owner_repo"
     public string RepoUrl { get; set; } = default!;
     public string UserId { get; set; } = default!;
+    public string? CommitSha { get; set; }
+    public string? Branch { get; set; }
     public AuditStatus Status { get; set; } = AuditStatus.Pending;
     public TelemetryData? Telemetry { get; set; }
     public AiInsights? AiInsights { get; set; }

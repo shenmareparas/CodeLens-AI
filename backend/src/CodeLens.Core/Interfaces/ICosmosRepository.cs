@@ -13,6 +13,7 @@ public interface ICosmosRepository
 
     // Audits
     Task<AuditDocument?> GetAuditAsync(string auditId, string? repositoryId = null, CancellationToken ct = default);
+    Task<AuditDocument?> GetLatestAuditByRepoAsync(string repositoryId, CancellationToken ct = default);
     Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default);
     Task<IReadOnlyList<AuditDocument>> GetAuditsByUserAsync(string userId, CancellationToken ct = default);
 

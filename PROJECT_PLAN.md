@@ -167,16 +167,16 @@ CodeLens AI supports both **Standard Email/Password Authentication** and **Googl
 - [x] **Step 3.2 — Structured Prompt Execution:** Parse Gemini outputs into structured sections (`ELI5Summary`, `LicenseVerdict`, `MermaidDiagram`, `ArchitecturalSmells`, `OnboardingRunbook`) with automatic Mermaid syntax sanitization (`MermaidSanitizer.cs`).
 - [x] **Step 3.3 — Markdown Dossier Compiler:** Implemented `MarkdownDossierBuilder.cs` strictly conforming to Section 9 template, uploading `PROJECT_KNOWLEDGE.md` via `IBlobStorageService`, and caching the markdown in `AuditDocument`.
 
-### ⏳ Phase 4: Interactive Dashboard, Mermaid Canvas & Split-Screen Chat
+### ✅ Phase 4: Interactive Dashboard, Mermaid Canvas & Split-Screen Chat (COMPLETED)
 
 - [x] **Step 4.1 — Telemetry Components (Completed in Phase 2):** SVG commit sparklines, release health badges, language distribution breakdown, hotspot table, secret alert banners, ecosystem dependency filtering (`TelemetryBentoGrid.tsx`, `DependenciesCard.tsx`, `HotspotTable.tsx`, `SparklineChart.tsx`), and quick-sample chips linking to lightweight user repos (`shenmareparas/Chess`, `expense_tracker`, etc.) in `DashboardClient.tsx`.
-- [ ] **Step 4.2 — Shared Repository Cache & Freshness Validation Engine:**
-  - **Common Repository Store:** Store audits at the shared repository level (`RepositoryId: {owner}_{repo}`) in Cosmos DB and memory rather than re-running the entire AST and Gemini pipeline for every user.
-  - **User History / Bookmarks:** Track recent repos per user with lightweight links/buttons, enabling instant (<50ms) retrieval across sessions.
-  - **Commit Staleness Detection:** Perform a fast lightweight commit head check (`GET /repos/{owner}/{repo}/commits/{branch}`) comparing the latest remote commit SHA against `AuditDocument.CommitSha`.
-  - **Outdated Audit Notice & Re-Audit Flow:** If the repository has new commits, immediately display the cached dossier and telemetry with a prominent top notice banner (`⚠️ Outdated Audit: newer commits exist on main branch`) and an interactive **"🔄 Re-analyze Latest Commits"** action button (`forceRefresh: true`) that runs the complete pipeline on demand.
-- [ ] **Step 4.3 — Interactive Mermaid Explorer:** Build client-side `MermaidViewer.tsx` with pan, zoom, and diagram copy/export controls.
-- [ ] **Step 4.4 — Split-Screen Dossier & Grounded Chat:** Build `/audit/[id]/page.tsx` featuring the rendered `PROJECT_KNOWLEDGE.md` preview, one-click `.md` SAS download button, and real-time SSE streaming chat sidebar connected to `POST /api/chat/{id}/stream`.
+- [x] **Step 4.2 — Shared Repository Cache & Freshness Validation Engine:**
+  - **Common Repository Store:** Implemented `GetLatestAuditByRepoAsync` in `CosmosRepository.cs` and `InMemoryCosmosRepository.cs` to reuse completed audits across users in `<50ms` with zero re-download/re-analysis overhead.
+  - **User History / Bookmarks:** Display user-scoped recent repository buttons for instant retrieval.
+  - **Commit Staleness Detection:** Implemented `GetLatestCommitShaAsync` in `OctokitTelemetryService.cs` comparing remote commit SHAs with `AuditDocument.CommitSha`.
+  - **Outdated Audit Notice & Re-Audit Flow:** Rendered a warning banner with `[ 🔄 Re-analyze Latest Commits ]` supporting `{ forceRefresh: true }`.
+- [x] **Step 4.3 — Interactive Mermaid Explorer:** Built client-side `MermaidViewer.tsx` with pan, zoom controls (zoom in, zoom out, reset), and clipboard copy.
+- [x] **Step 4.4 — Split-Screen Dossier & Grounded Chat:** Built `/dashboard/audit/[id]/page.tsx` and `AuditWorkspaceClient.tsx` featuring tabs for Split Workspace (`DossierViewer.tsx` + `RepoChatSidebar.tsx` streaming chat via SSE), interactive Mermaid canvas, and Telemetry Bento Grid.
 
 ### ⏳ Phase 5: Cloud Provisioning & Zero-Cost Azure Deployment
 

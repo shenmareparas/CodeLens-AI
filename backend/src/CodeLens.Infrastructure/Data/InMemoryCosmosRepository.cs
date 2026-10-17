@@ -48,6 +48,16 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
         return Task.FromResult(audit);
     }
 
+    public Task<AuditDocument?> GetLatestAuditByRepoAsync(string repositoryId, CancellationToken ct = default)
+    {
+        var latest = _audits.Values
+            .Where(a => string.Equals(a.RepositoryId, repositoryId, StringComparison.OrdinalIgnoreCase) && a.Status == AuditStatus.Completed)
+            .OrderByDescending(a => a.CreatedAt)
+            .FirstOrDefault();
+
+        return Task.FromResult(latest);
+    }
+
     public Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default)
     {
         _audits[audit.Id] = audit;

@@ -1,7 +1,7 @@
 # CodeLens AI — Project Context & Architectural Specification
 
-> **Version:** 1.3.0  
-> **Status:** Phase 1, Phase 1.5, Phase 2 & Phase 3 COMPLETED · Phase 4 NEXT  
+> **Version:** 1.4.0  
+> **Status:** Phase 1, Phase 1.5, Phase 2, Phase 3 & Phase 4 COMPLETED · Phase 5 NEXT  
 > **Target Frameworks:** .NET 10 (`net10.0`), Next.js 16 (App Router), Bun runtime, Google Gemini 3.8 Flash  
 
 ---
@@ -195,14 +195,22 @@ codelens-ai/
         │   │   └── SignInPage.module.css             # Glassmorphic component styles
         │   └── dashboard/
         │       ├── page.tsx                          # Protected server page with session check
-        │       └── DashboardClient.tsx               # Dashboard client orchestrator
+        │       ├── DashboardClient.tsx               # Dashboard client orchestrator
+        │       └── audit/[id]/
+        │           ├── page.tsx                      # Split-screen audit workspace entrypoint
+        │           └── AuditWorkspaceClient.tsx      # Split workspace orchestrator (Dossier + Chat + Diagram)
         └── components/
+            ├── DashboardHeader.tsx                   # Top bar navigation & user profile
+            ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
             ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
             ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
             ├── HotspotTable.tsx                      # Complexity x Churn risk table
             ├── SparklineChart.tsx                    # SVG commit sparkline chart
+            ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+            ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
+            ├── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
             └── Providers.tsx                         # NextAuth SessionProvider wrapper
-- **Dashboard Quick Samples:** `DashboardClient.tsx` includes quick-sample suggestion chips linking to user public repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) for rapid sub-second in-memory AST and telemetry profiling.
+- **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` includes user quick-sample chips and user recent repositories, retrieving shared repository audits in `<50ms` with commit SHA staleness detection.
 ```
 
 ---

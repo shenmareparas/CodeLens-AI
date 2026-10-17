@@ -134,6 +134,29 @@ public sealed class CosmosRepository : ICosmosRepository
         return null;
     }
 
+    public async Task<AuditDocument?> GetLatestAuditByRepoAsync(string repositoryId, CancellationToken ct = default)
+    {
+        var container = GetContainer(_options.AuditsContainer);
+        var query = new QueryDefinition(
+            "SELECT * FROM c WHERE c.repositoryId = @repoId AND c.status = 'Completed' ORDER BY c.createdAt DESC")
+            .WithParameter("@repoId", repositoryId);
+
+        var requestOptions = new QueryRequestOptions
+        {
+            PartitionKey = new PartitionKey(repositoryId),
+            MaxItemCount = 1
+        };
+
+        using var iterator = container.GetItemQueryIterator<AuditDocument>(query, requestOptions: requestOptions);
+        if (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(ct);
+            return page.FirstOrDefault();
+        }
+
+        return null;
+    }
+
     public async Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default)
     {
         var container = GetContainer(_options.AuditsContainer);

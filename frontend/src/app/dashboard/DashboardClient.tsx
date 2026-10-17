@@ -8,7 +8,8 @@ import {
   getAudit,
   type AuditResponse,
 } from "@/lib/api-client";
-import { TelemetryBentoGrid } from "@/components/TelemetryBentoGrid";
+import { DashboardHeader } from "@/components/DashboardHeader";
+import { ActiveAuditSection } from "@/components/ActiveAuditSection";
 
 interface DashboardClientProps {
   userName?: string | null;
@@ -52,7 +53,7 @@ export function DashboardClient({
       });
   }, [backendToken]);
 
-  const handleAnalyze = async (urlToAnalyze?: string) => {
+  const handleAnalyze = async (urlToAnalyze?: string, forceRefresh: boolean = false) => {
     const targetUrl = (urlToAnalyze ?? repoUrl).trim();
     if (!targetUrl) {
       setError("Please enter a valid GitHub repository URL.");
@@ -61,12 +62,20 @@ export function DashboardClient({
 
     setError(null);
     setIsLoading(true);
-    setStatusMessage("Extracting GitHub telemetry & streaming in-memory zipball...");
+    setStatusMessage(
+      forceRefresh
+        ? "Re-analyzing latest commits & generating fresh telemetry..."
+        : "Checking shared cache & streaming AST telemetry...",
+    );
 
     try {
-      const response = await startAudit(targetUrl, backendToken);
+      const response = await startAudit(targetUrl, backendToken, forceRefresh);
       setActiveAudit(response);
-      setStatusMessage("Deterministic telemetry and static analysis completed!");
+      setStatusMessage(
+        response.isStale
+          ? "Loaded existing repository audit (notice: newer commits exist on remote branch)."
+          : "Repository telemetry and architectural intelligence loaded!",
+      );
 
       // Refresh recent audits list
       const refreshed = await getUserAudits(backendToken);
@@ -97,69 +106,11 @@ export function DashboardClient({
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
       {/* ── Top Bar ───────────────────────────────────────────────────────── */}
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingBottom: "1.5rem",
-          borderBottom: "1px solid var(--color-border)",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, var(--color-primary), var(--color-accent))",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              fontSize: "1.1rem",
-            }}
-          >
-            ⚡
-          </div>
-          <div>
-            <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text)" }}>
-              CodeLens AI
-            </h1>
-            <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-              Repository Intelligence & Architecture Auditor
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div style={{ textAlign: "right", fontSize: "0.85rem" }}>
-            <div style={{ fontWeight: 600, color: "var(--color-text)" }}>
-              {userName || "Developer"}
-            </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-              {userEmail}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-            style={{
-              padding: "0.45rem 0.85rem",
-              borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border)",
-              background: "rgba(255, 255, 255, 0.04)",
-              color: "var(--color-text-muted)",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </header>
+      <DashboardHeader
+        userName={userName}
+        userEmail={userEmail}
+        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
+      />
 
       {/* ── Ingestion Form / Hero ─────────────────────────────────────────── */}
       <section
@@ -188,7 +139,7 @@ export function DashboardClient({
               marginBottom: "0.5rem",
             }}
           >
-            Phase 2: Zero-Disk Pipeline
+            Zero-Disk Telemetry & Shared Repo Cache
           </span>
           <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--color-text)" }}>
             Scan & Audit GitHub Repository
@@ -318,7 +269,7 @@ export function DashboardClient({
       {recentAudits.length > 0 && (
         <section style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Your Audit History
+            Your Recent Repositories
           </span>
           <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.25rem" }}>
             {recentAudits.map((audit) => {
@@ -354,49 +305,14 @@ export function DashboardClient({
         </section>
       )}
 
-      {/* ── Active Audit Telemetry Bento Grid ─────────────────────────────── */}
-      {activeAudit?.telemetry ? (
-        <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "0.5rem" }}>
-            <div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text)" }}>
-                {activeAudit.repoUrl.replace("https://github.com/", "")}
-              </h2>
-              <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                Audited on {new Date(activeAudit.createdAt).toLocaleString()} • Status: {activeAudit.status}
-              </p>
-            </div>
-            <a
-              href={activeAudit.repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--color-primary-light)",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.3rem",
-              }}
-            >
-              View on GitHub ↗
-            </a>
-          </div>
-
-          <TelemetryBentoGrid repoUrl={activeAudit.repoUrl} telemetry={activeAudit.telemetry} />
-        </section>
-      ) : activeAudit && !isLoading ? (
-        <div
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-            color: "var(--color-text-muted)",
-            border: "1px dashed var(--color-border)",
-            borderRadius: "var(--radius-lg)",
-          }}
-        >
-          Audit status: {activeAudit.status}. Click &quot;Analyze Repository&quot; to begin scanning.
-        </div>
-      ) : null}
+      {/* ── Active Audit Telemetry Bento Grid & Staleness Banner ───────────── */}
+      {activeAudit && (
+        <ActiveAuditSection
+          audit={activeAudit}
+          isLoading={isLoading}
+          onReAnalyze={(url) => handleAnalyze(url, true)}
+        />
+      )}
     </div>
   );
 }

@@ -32,7 +32,8 @@ public static class AuditEndpoints
                 a.CreatedAt,
                 a.Telemetry,
                 a.AiInsights,
-                a.DossierMarkdown
+                a.DossierMarkdown,
+                CommitSha: a.CommitSha
             )).ToList();
 
             return Results.Ok(summaries);
@@ -68,6 +69,53 @@ public static class AuditEndpoints
 
             var repoId = $"{owner}_{repo}";
 
+            // 2. Check for existing shared audit cache (unless forceRefresh is requested)
+            if (!request.ForceRefresh)
+            {
+                var cachedAudit = await repository.GetLatestAuditByRepoAsync(repoId, ct);
+                if (cachedAudit != null && cachedAudit.Status == AuditStatus.Completed)
+                {
+                    logger.LogInformation("Found cached audit for repository {RepoId} ({AuditId})", repoId, cachedAudit.Id);
+
+                    // Check latest remote commit SHA to detect if repository was updated
+                    var latestSha = await telemetryService.GetLatestCommitShaAsync(owner, repo, cachedAudit.Branch, ct);
+                    var isStale = !string.IsNullOrEmpty(latestSha) &&
+                                  !string.IsNullOrEmpty(cachedAudit.CommitSha) &&
+                                  !string.Equals(latestSha, cachedAudit.CommitSha, StringComparison.OrdinalIgnoreCase);
+
+                    // Create/update a user-scoped audit bookmark referencing this shared analysis
+                    var userAuditRecord = new AuditDocument
+                    {
+                        Id = $"audit_{Guid.NewGuid():N}",
+                        RepositoryId = repoId,
+                        RepoUrl = request.RepoUrl,
+                        UserId = userId,
+                        CommitSha = cachedAudit.CommitSha,
+                        Branch = cachedAudit.Branch,
+                        Status = AuditStatus.Completed,
+                        Telemetry = cachedAudit.Telemetry,
+                        AiInsights = cachedAudit.AiInsights,
+                        DossierBlobName = cachedAudit.DossierBlobName,
+                        DossierMarkdown = cachedAudit.DossierMarkdown,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CompletedAt = DateTimeOffset.UtcNow
+                    };
+                    await repository.UpsertAuditAsync(userAuditRecord, ct);
+
+                    return Results.Ok(new AuditSummaryResponse(
+                        userAuditRecord.Id,
+                        userAuditRecord.Status.ToString(),
+                        userAuditRecord.RepoUrl,
+                        cachedAudit.CreatedAt,
+                        userAuditRecord.Telemetry,
+                        userAuditRecord.AiInsights,
+                        userAuditRecord.DossierMarkdown,
+                        CommitSha: cachedAudit.CommitSha,
+                        IsStale: isStale,
+                        LatestCommitSha: latestSha));
+                }
+            }
+
             var audit = new AuditDocument
             {
                 Id = $"audit_{Guid.NewGuid():N}",
@@ -84,7 +132,7 @@ public static class AuditEndpoints
             {
                 logger.LogInformation("Starting Phase 2 telemetry & AST analysis for {Owner}/{Repo}", owner, repo);
 
-                // 2. Concurrently fetch GitHub REST telemetry and download in-memory zipball
+                // 3. Concurrently fetch GitHub REST telemetry and download in-memory zipball
                 var telemetryTask = telemetryService.GetTelemetryAsync(owner, repo, ct);
                 var zipStreamTask = telemetryService.DownloadZipballStreamAsync(owner, repo, ct: ct);
 
@@ -92,13 +140,16 @@ public static class AuditEndpoints
                 var telemetryResult = await telemetryTask;
                 using var zipStream = await zipStreamTask;
 
-                // 3. Execute zero-disk AST & polyglot complexity analysis
+                audit.Branch = telemetryResult.DefaultBranch;
+                audit.CommitSha = telemetryResult.CommitSha;
+
+                // 4. Execute zero-disk AST & polyglot complexity analysis
                 var analysisResult = await analysisService.AnalyzeRepositoryAsync(
                     zipStream,
                     telemetryResult.FileChurn,
                     ct);
 
-                // 4. Assemble TelemetryData
+                // 5. Assemble TelemetryData
                 audit.Telemetry = new TelemetryData
                 {
                     Stars = telemetryResult.Stars,
@@ -115,12 +166,12 @@ public static class AuditEndpoints
                     SymbolManifest = analysisResult.SymbolManifest
                 };
 
-                // 5. Synthesize AI architectural insights via Gemini 3.8 Flash (Phase 3)
+                // 6. Synthesize AI architectural insights via Gemini 3.8 Flash (Phase 3)
                 logger.LogInformation("Starting Phase 3 Gemini 3.8 Flash synthesis for {Owner}/{Repo}", owner, repo);
                 var aiInsights = await geminiService.SynthesizeRepositoryAsync(owner, repo, audit.Telemetry, ct);
                 audit.AiInsights = aiInsights;
 
-                // 6. Compile standardized PROJECT_KNOWLEDGE.md dossier (Phase 3)
+                // 7. Compile standardized PROJECT_KNOWLEDGE.md dossier (Phase 3)
                 var dossierMarkdown = MarkdownDossierBuilder.BuildDossierMarkdown(
                     owner,
                     repo,
@@ -130,7 +181,7 @@ public static class AuditEndpoints
                     audit.CreatedAt);
                 audit.DossierMarkdown = dossierMarkdown;
 
-                // 7. Upload dossier to Azure Blob Storage (Phase 3)
+                // 8. Upload dossier to Azure Blob Storage (Phase 3)
                 try
                 {
                     var blobName = await blobStorageService.UploadDossierAsync(repoId, dossierMarkdown, ct);
@@ -156,7 +207,10 @@ public static class AuditEndpoints
                         audit.CreatedAt,
                         audit.Telemetry,
                         audit.AiInsights,
-                        audit.DossierMarkdown));
+                        audit.DossierMarkdown,
+                        CommitSha: audit.CommitSha,
+                        IsStale: false,
+                        LatestCommitSha: audit.CommitSha));
             }
             catch (Exception ex)
             {
@@ -197,7 +251,8 @@ public static class AuditEndpoints
                 audit.CreatedAt,
                 audit.Telemetry,
                 audit.AiInsights,
-                audit.DossierMarkdown));
+                audit.DossierMarkdown,
+                CommitSha: audit.CommitSha));
         })
         .WithName("GetAudit")
         .WithSummary("Retrieve an audit by ID");
