@@ -3,6 +3,7 @@ namespace CodeLens.Api.Endpoints;
 using CodeLens.Core.DTOs;
 using CodeLens.Core.Entities;
 using CodeLens.Core.Interfaces;
+using CodeLens.Infrastructure.AI;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -45,6 +46,8 @@ public static class AuditEndpoints
             ClaimsPrincipal user,
             [FromServices] IGitHubTelemetryService telemetryService,
             [FromServices] ICodeAnalysisService analysisService,
+            [FromServices] IGeminiSynthesisService geminiService,
+            [FromServices] IBlobStorageService blobStorageService,
             [FromServices] ICosmosRepository repository,
             [FromServices] ILogger<Program> logger,
             CancellationToken ct) =>
@@ -79,7 +82,7 @@ public static class AuditEndpoints
 
             try
             {
-                logger.LogInformation("Starting Phase 2 analysis for {Owner}/{Repo}", owner, repo);
+                logger.LogInformation("Starting Phase 2 telemetry & AST analysis for {Owner}/{Repo}", owner, repo);
 
                 // 2. Concurrently fetch GitHub REST telemetry and download in-memory zipball
                 var telemetryTask = telemetryService.GetTelemetryAsync(owner, repo, ct);
@@ -112,11 +115,37 @@ public static class AuditEndpoints
                     SymbolManifest = analysisResult.SymbolManifest
                 };
 
+                // 5. Synthesize AI architectural insights via Gemini 3.8 Flash (Phase 3)
+                logger.LogInformation("Starting Phase 3 Gemini 3.8 Flash synthesis for {Owner}/{Repo}", owner, repo);
+                var aiInsights = await geminiService.SynthesizeRepositoryAsync(owner, repo, audit.Telemetry, ct);
+                audit.AiInsights = aiInsights;
+
+                // 6. Compile standardized PROJECT_KNOWLEDGE.md dossier (Phase 3)
+                var dossierMarkdown = MarkdownDossierBuilder.BuildDossierMarkdown(
+                    owner,
+                    repo,
+                    audit.Telemetry,
+                    aiInsights,
+                    telemetryResult.DefaultBranch,
+                    audit.CreatedAt);
+                audit.DossierMarkdown = dossierMarkdown;
+
+                // 7. Upload dossier to Azure Blob Storage (Phase 3)
+                try
+                {
+                    var blobName = await blobStorageService.UploadDossierAsync(repoId, dossierMarkdown, ct);
+                    audit.DossierBlobName = blobName;
+                }
+                catch (Exception blobEx)
+                {
+                    logger.LogWarning(blobEx, "Failed to upload dossier markdown to blob storage for {RepoId}", repoId);
+                }
+
                 audit.Status = AuditStatus.Completed;
                 audit.CompletedAt = DateTimeOffset.UtcNow;
                 await repository.UpsertAuditAsync(audit, ct);
 
-                logger.LogInformation("Completed Phase 2 analysis for {AuditId} ({Owner}/{Repo})", audit.Id, owner, repo);
+                logger.LogInformation("Completed Phase 3 analysis and dossier compilation for {AuditId} ({Owner}/{Repo})", audit.Id, owner, repo);
 
                 return Results.Accepted(
                     $"/api/audits/{audit.Id}",

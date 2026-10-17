@@ -10,6 +10,7 @@ using System.Text;
 
 using CodeLens.Infrastructure.GitHub;
 using CodeLens.Infrastructure.Analysis;
+using CodeLens.Infrastructure.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +20,13 @@ builder.Services.Configure<GoogleAuthOptions>(builder.Configuration.GetSection("
 builder.Services.Configure<CosmosDbOptions>(builder.Configuration.GetSection("CosmosDb"));
 builder.Services.Configure<BlobStorageOptions>(builder.Configuration.GetSection("BlobStorage"));
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection("GitHub"));
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
 
 // ── HTTP Client & Ingestion Engines ───────────────────────────────────────────
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IGitHubTelemetryService, OctokitTelemetryService>();
 builder.Services.AddScoped<ICodeAnalysisService, RoslynAndPolyglotAnalyzer>();
+builder.Services.AddScoped<IGeminiSynthesisService, GeminiSynthesisService>();
 
 // ── JWT Bearer Authentication ─────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();

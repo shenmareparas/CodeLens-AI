@@ -12,9 +12,9 @@
 
 ## 1. Executive Summary
 
-CodeLens AI ingests GitHub repositories via URL, extracts deterministic metrics using the GitHub API (`Octokit`) and the Microsoft Roslyn Compiler Platform (with polyglot support for TS/JS/Python/Go/Java), and synthesizes architectural intelligence using **Google Gemini 3.8 Flash**[span_0](start_span)[span_0](end_span).
+CodeLens AI ingests GitHub repositories via URL, extracts deterministic metrics using the GitHub API (`Octokit`) and the Microsoft Roslyn Compiler Platform (with polyglot support for TS/JS/Python/Go/Java), and synthesizes architectural intelligence using **Google Gemini 3.8 Flash**.
 
-For every analyzed repository, the system generates a portable **`PROJECT_KNOWLEDGE.md`** dossier stored in Azure Blob Storage and cached in Azure Cosmos DB[span_1](start_span)[span_1](end_span). This dossier powers a grounded, real-time Server-Sent Events (SSE) streaming chat assistant for developer onboarding and codebase Q&A[span_2](start_span)[span_2](end_span).
+For every analyzed repository, the system generates a portable **`PROJECT_KNOWLEDGE.md`** dossier stored in Azure Blob Storage and cached in Azure Cosmos DB. This dossier powers a grounded, real-time Server-Sent Events (SSE) streaming chat assistant for developer onboarding and codebase Q&A.
 
 ---
 
@@ -22,17 +22,17 @@ For every analyzed repository, the system generates a portable **`PROJECT_KNOWLE
 
 | # | Feature | Processing Engine | Output / UI Representation |
 | :--- | :--- | :--- | :--- |
-| 1 | **Commit Velocity & Activity Sparklines** | GitHub API (`Octokit`) | 8-week / 30-day SVG commit trend sparklines[span_3](start_span)[span_3](end_span) |
-| 2 | **Release Cadence & Stagnation Alert** | GitHub API (`Octokit`) | Health badge (`Healthy`, `Stable`, `Stagnant`) + days since release[span_4](start_span)[span_4](end_span) |
-| 3 | **Language & File Type Distribution** | GitHub API + Archive Scanner | Byte percentage breakdown & visual donut chart[span_5](start_span)[span_5](end_span) |
-| 4 | **Complexity Heatmap (File Hotspots)** | Roslyn / Polyglot Complexity × Git Churn | Ranked list of high-risk files (`Red`, `Amber`, `Green`)[span_6](start_span)[span_6](end_span) |
-| 5 | **Dependency & Ecosystem Inventory** | `.csproj` / `package.json` / `requirements.txt` Parser | Direct packages, target frameworks, and version inventory[span_7](start_span)[span_7](end_span) |
-| 6 | **Dead Code & Zombie File Detection** | Roslyn AST Symbol Graph + Git History | Unreferenced internal classes/methods & dormant files[span_8](start_span)[span_8](end_span) |
-| 7 | **Secret & Sensitive Data Surface** | .NET 10 `[GeneratedRegex]` Scanner | Alerts for exposed API keys, `.env`, `.pem`, or private keys[span_9](start_span)[span_9](end_span) |
-| 8 | **License & Commercial Usability** | SPDX Parser + Gemini 3.8 Flash | Plain-English legal risk verdict (Commercial use, Copyleft risk)[span_10](start_span)[span_10](end_span) |
-| 9 | **Interactive Architecture Explorer** | AST Symbol Manifest + Gemini 3.8 Flash | Pan/zoomable Mermaid.js C4 & component dependency diagram[span_11](start_span)[span_11](end_span) |
-| 10 | **"Explain Like I'm 5" (ELI5) Summary** | Gemini 3.8 Flash | 3-sentence non-technical project overview[span_12](start_span)[span_12](end_span) |
-| 11 | **Code Smells & Anti-Patterns** | Gemini 3.8 Flash | Identification of God classes, circular references, tight coupling[span_13](start_span)[span_13](end_span) |
+| 1 | **Commit Velocity & Activity Sparklines** | GitHub API (`Octokit`) | 8-week / 30-day SVG commit trend sparklines |
+| 2 | **Release Cadence & Stagnation Alert** | GitHub API (`Octokit`) | Health badge (`Healthy`, `Stable`, `Stagnant`) + days since release |
+| 3 | **Language & File Type Distribution** | GitHub API + Archive Scanner | Byte percentage breakdown & visual donut chart |
+| 4 | **Complexity Heatmap (File Hotspots)** | Roslyn / Polyglot Complexity × Git Churn | Ranked list of high-risk files (`Red`, `Amber`, `Green`) |
+| 5 | **Dependency & Ecosystem Inventory** | `.csproj` / `package.json` / `requirements.txt` Parser | Direct packages, target frameworks, and version inventory |
+| 6 | **Dead Code & Zombie File Detection** | Roslyn AST Symbol Graph + Git History | Unreferenced internal classes/methods & dormant files |
+| 7 | **Secret & Sensitive Data Surface** | .NET 10 `[GeneratedRegex]` Scanner | Alerts for exposed API keys, `.env`, `.pem`, or private keys |
+| 8 | **License & Commercial Usability** | SPDX Parser + Gemini 3.8 Flash | Plain-English legal risk verdict (Commercial use, Copyleft risk) |
+| 9 | **Interactive Architecture Explorer** | AST Symbol Manifest + Gemini 3.8 Flash | Pan/zoomable Mermaid.js C4 & component dependency diagram |
+| 10 | **"Explain Like I'm 5" (ELI5) Summary** | Gemini 3.8 Flash | 3-sentence non-technical project overview |
+| 11 | **Code Smells & Anti-Patterns** | Gemini 3.8 Flash | Identification of God classes, circular references, tight coupling |
 
 ---
 
@@ -127,13 +127,16 @@ CodeLens AI supports both **Standard Email/Password Authentication** and **Googl
 ## 5. End-to-End Ingestion, Analysis & Chat Pipeline
 
 1. **Authentication:** User signs in via Email/Password or Google OAuth on Next.js 16 (`src/auth.ts`). Next.js exchanges the credentials or Google `id_token` with the .NET 10 API for a signed HS256 backend JWT stored in `Session.backendToken`.
-2. **Ingestion Trigger:** User submits a GitHub repository URL (`https://github.com/owner/repo`) to `POST /api/audits/analyze`[span_14](start_span)[span_14](end_span).
+2. **Ingestion Trigger & Shared Cache Check:** User submits a GitHub repository URL (`https://github.com/owner/repo`) to `POST /api/audits/analyze`.
+   - **Cache Hit (Fresh):** If the repository has already been audited and the remote default branch commit SHA matches `AuditDocument.CommitSha`, return the shared audit immediately in `<50ms` with zero compute/AI overhead.
+   - **Cache Hit (Stale):** If the repository has newer commits, return the cached audit immediately with an `isStale: true` flag and latest commit metadata, allowing the frontend to render the dossier instantly alongside an outdated notice and **"🔄 Re-analyze Latest Commits"** action button.
+   - **Cache Miss / Forced Refresh:** If no audit exists or `forceRefresh: true` is passed, proceed to parallel zero-disk ingestion.
 3. **In-Memory Parallel Extraction (Zero Disk Bloat):**
-   - **Task A (`OctokitTelemetryService`):** Queries GitHub for stars, forks, license, release history, language breakdown, 8-week commit sparkline, and recent file commit churn[span_15](start_span)[span_15](end_span).
-   - **Task B (`RoslynAndPolyglotAnalyzer`):** Streams the repository's default branch as an in-memory `ZipArchive` stream[span_16](start_span)[span_16](end_span). Filters out vendor/build directories (`node_modules/`, `bin/`, `obj/`, `.git/`, `dist/`), calculates cyclomatic complexity per file, detects unreferenced symbols, parses `.csproj`/`package.json` dependencies, runs `RegexSecretScanner`, and builds a compact **Symbol Manifest**[span_17](start_span)[span_17](end_span).
-4. **AI Synthesis (`GeminiSemanticKernelService`):** Sends the Symbol Manifest and telemetry summary to **Gemini 3.8 Flash** to generate the ELI5 summary, license usability verdict, Mermaid.js architecture diagram, code smells, and onboarding runbook[span_18](start_span)[span_18](end_span).
-5. **Dossier Compilation (`MarkdownDossierBuilder`):** Combines deterministic telemetry and Gemini outputs into `PROJECT_KNOWLEDGE.md`, uploads it to Azure Blob Storage, and saves the complete `AuditDocument` in Azure Cosmos DB[span_19](start_span)[span_19](end_span).
-6. **Grounded Repo Copilot (`POST /api/chat/{id}/stream`):** Injects the cached `PROJECT_KNOWLEDGE.md` into the system prompt and streams answers token-by-token over Server-Sent Events (`text/event-stream`)[span_20](start_span)[span_20](end_span).
+   - **Task A (`OctokitTelemetryService`):** Queries GitHub for stars, forks, license, release history, language breakdown, 8-week commit sparkline, recent file commit churn, and the latest commit SHA.
+   - **Task B (`RoslynAndPolyglotAnalyzer`):** Streams the repository's default branch as an in-memory `ZipArchive` stream. Filters out vendor/build directories (`node_modules/`, `bin/`, `obj/`, `.git/`, `dist/`), calculates cyclomatic complexity per file, detects unreferenced symbols, parses `.csproj`/`package.json`/`pubspec.yaml` dependencies, runs `RegexSecretScanner`, and builds a compact **Symbol Manifest**.
+4. **AI Synthesis (`GeminiSemanticKernelService`):** Sends the Symbol Manifest and telemetry summary to **Gemini 3.8 Flash** to generate the ELI5 summary, license usability verdict, Mermaid.js architecture diagram, code smells, and onboarding runbook.
+5. **Dossier Compilation (`MarkdownDossierBuilder`):** Combines deterministic telemetry and Gemini outputs into `PROJECT_KNOWLEDGE.md`, uploads it to Azure Blob Storage, and saves the complete `AuditDocument` in Azure Cosmos DB.
+6. **Grounded Repo Copilot (`POST /api/chat/{id}/stream`):** Injects the cached `PROJECT_KNOWLEDGE.md` into the system prompt and streams answers token-by-token over Server-Sent Events (`text/event-stream`).
 
 ---
 
@@ -158,17 +161,22 @@ CodeLens AI supports both **Standard Email/Password Authentication** and **Googl
 - [x] **Step 2.4 — Compiled Secret Scanner:** Implemented `RegexSecretScanner.cs` in `CodeLens.Infrastructure/Security/` using `.NET 10` `[GeneratedRegex]` compile-time attributes for zero-allocation credential, private key, and `.env`/`.pem` detection.
 - [x] **Step 2.5 — Pipeline Wiring & Telemetry UI:** Connected `POST /api/audits/analyze` in `AuditEndpoints.cs` to execute Phase 2 engines and persist deterministic metrics to `AuditDocument` in Cosmos DB. Built `TelemetryBentoGrid.tsx`, `DependenciesCard.tsx` (with real-time ecosystem filtering and search), `HotspotTable.tsx`, and `SparklineChart.tsx` in frontend. Created 19 xUnit tests in `CodeLens.Tests` with 100% pass rate.
 
-### 🚧 Phase 3: Gemini 3.8 Flash Synthesis & Dossier Builder (NEXT)
+### ✅ Phase 3: Gemini 3.8 Flash Synthesis & Dossier Builder (COMPLETED)
 
-- [ ] **Step 3.1 — Semantic Kernel Gemini Connector:** Implement `GeminiSynthesisService.cs` using `Microsoft.SemanticKernel` (`1.81.0`) configured with `gemini-3.8-flash`.
-- [ ] **Step 3.2 — Structured Prompt Execution:** Parse Gemini outputs into structured sections (`ELI5Summary`, `LicenseVerdict`, `MermaidDiagram`, `ArchitecturalSmells`, `OnboardingRunbook`) with automatic Mermaid syntax sanitization.
-- [ ] **Step 3.3 — Markdown Dossier Compiler:** Implement `MarkdownDossierBuilder.cs` to format `PROJECT_KNOWLEDGE.md`, upload via `IBlobStorageService`, and store the markdown in `AuditDocument`.
+- [x] **Step 3.1 — Semantic Kernel Gemini Connector:** Implemented `GeminiSynthesisService.cs` using `Microsoft.SemanticKernel` (`1.81.0`) configured with `gemini-3.8-flash` and resilient heuristic fallback when offline or without API keys.
+- [x] **Step 3.2 — Structured Prompt Execution:** Parse Gemini outputs into structured sections (`ELI5Summary`, `LicenseVerdict`, `MermaidDiagram`, `ArchitecturalSmells`, `OnboardingRunbook`) with automatic Mermaid syntax sanitization (`MermaidSanitizer.cs`).
+- [x] **Step 3.3 — Markdown Dossier Compiler:** Implemented `MarkdownDossierBuilder.cs` strictly conforming to Section 9 template, uploading `PROJECT_KNOWLEDGE.md` via `IBlobStorageService`, and caching the markdown in `AuditDocument`.
 
 ### ⏳ Phase 4: Interactive Dashboard, Mermaid Canvas & Split-Screen Chat
 
-- [x] **Step 4.1 — Telemetry Components (Completed in Phase 2):** SVG commit sparklines, release health badges, language distribution breakdown, hotspot table, secret alert banners, and ecosystem dependency filtering (`TelemetryBentoGrid.tsx`, `DependenciesCard.tsx`, `HotspotTable.tsx`, `SparklineChart.tsx`).
-- [ ] **Step 4.2 — Interactive Mermaid Explorer:** Build client-side `MermaidViewer.tsx` with pan, zoom, and diagram copy/export controls.
-- [ ] **Step 4.3 — Split-Screen Dossier & Grounded Chat:** Build `/audit/[id]/page.tsx` featuring the rendered `PROJECT_KNOWLEDGE.md` preview, one-click `.md` SAS download button, and real-time SSE streaming chat sidebar connected to `POST /api/chat/{id}/stream`.
+- [x] **Step 4.1 — Telemetry Components (Completed in Phase 2):** SVG commit sparklines, release health badges, language distribution breakdown, hotspot table, secret alert banners, ecosystem dependency filtering (`TelemetryBentoGrid.tsx`, `DependenciesCard.tsx`, `HotspotTable.tsx`, `SparklineChart.tsx`), and quick-sample chips linking to lightweight user repos (`shenmareparas/Chess`, `expense_tracker`, etc.) in `DashboardClient.tsx`.
+- [ ] **Step 4.2 — Shared Repository Cache & Freshness Validation Engine:**
+  - **Common Repository Store:** Store audits at the shared repository level (`RepositoryId: {owner}_{repo}`) in Cosmos DB and memory rather than re-running the entire AST and Gemini pipeline for every user.
+  - **User History / Bookmarks:** Track recent repos per user with lightweight links/buttons, enabling instant (<50ms) retrieval across sessions.
+  - **Commit Staleness Detection:** Perform a fast lightweight commit head check (`GET /repos/{owner}/{repo}/commits/{branch}`) comparing the latest remote commit SHA against `AuditDocument.CommitSha`.
+  - **Outdated Audit Notice & Re-Audit Flow:** If the repository has new commits, immediately display the cached dossier and telemetry with a prominent top notice banner (`⚠️ Outdated Audit: newer commits exist on main branch`) and an interactive **"🔄 Re-analyze Latest Commits"** action button (`forceRefresh: true`) that runs the complete pipeline on demand.
+- [ ] **Step 4.3 — Interactive Mermaid Explorer:** Build client-side `MermaidViewer.tsx` with pan, zoom, and diagram copy/export controls.
+- [ ] **Step 4.4 — Split-Screen Dossier & Grounded Chat:** Build `/audit/[id]/page.tsx` featuring the rendered `PROJECT_KNOWLEDGE.md` preview, one-click `.md` SAS download button, and real-time SSE streaming chat sidebar connected to `POST /api/chat/{id}/stream`.
 
 ### ⏳ Phase 5: Cloud Provisioning & Zero-Cost Azure Deployment
 
@@ -278,16 +286,16 @@ codelens-ai/
 | `POST` | `/api/auth/login` | Public | `{ "email", "password" }` | `{ "token": "jwt", "user": {...} }` | Verifies email/password & issues HS256 JWT |
 | `POST` | `/api/auth/google` | Public | `{ "idToken": "string" }` | `{ "token": "jwt", "user": {...} }` | Validates Google token, auto-links matching email, & issues JWT |
 | `POST` | `/api/auth/link-google` | Bearer JWT | `{ "idToken": "string" }` | `{ "user": {...} }` | Explicitly links a Google account to the current logged-in user |
-| `POST` | `/api/audits/analyze` | Bearer JWT | `{ "repoUrl": "string" }` | `202 Accepted` + `AuditDto` | Runs Octokit + Roslyn + Gemini pipeline & saves dossier[span_37](start_span)[span_37](end_span) |
-| `GET` | `/api/audits/{id}` | Bearer JWT | *None* | `200 OK` + `AuditDocument` | Fetches full telemetry, hotspots, Mermaid diagram, and dossier[span_38](start_span)[span_38](end_span) |
-| `GET` | `/api/audits/{id}/download` | Bearer JWT | *None* | `{ "downloadUrl": "https://..." }` | Generates a 15-minute Azure Blob SAS URL for `PROJECT_KNOWLEDGE.md`[span_39](start_span)[span_39](end_span) |
-| `POST` | `/api/chat/{id}/stream` | Bearer JWT | `{ "message": "string" }` | `text/event-stream` (SSE) | Streams grounded Gemini 3.8 Flash responses using the project dossier[span_40](start_span)[span_40](end_span) |
+| `POST` | `/api/audits/analyze` | Bearer JWT | `{ "repoUrl": "string" }` | `202 Accepted` + `AuditDto` | Runs Octokit + Roslyn + Gemini pipeline & saves dossier |
+| `GET` | `/api/audits/{id}` | Bearer JWT | *None* | `200 OK` + `AuditDocument` | Fetches full telemetry, hotspots, Mermaid diagram, and dossier |
+| `GET` | `/api/audits/{id}/download` | Bearer JWT | *None* | `{ "downloadUrl": "https://..." }` | Generates a 15-minute Azure Blob SAS URL for `PROJECT_KNOWLEDGE.md` |
+| `POST` | `/api/chat/{id}/stream` | Bearer JWT | `{ "message": "string" }` | `text/event-stream` (SSE) | Streams grounded Gemini 3.8 Flash responses using the project dossier |
 
 ---
 
 ## 9. Standardized `PROJECT_KNOWLEDGE.md` Template
 
-Every completed audit generates and stores this Markdown artifact[span_41](start_span)[span_41](end_span):
+Every completed audit generates and stores this Markdown artifact:
 
 ```markdown
 # Project Knowledge Dossier: {{Owner}}/{{RepoName}}
@@ -338,11 +346,11 @@ Every completed audit generates and stores this Markdown artifact[span_41](start
 
 | Component | Azure / Google Service | Selected Tier | Free Quota Included | Monthly Cost |
 | :--- | :--- | :--- | :--- | :--- |
-| **Frontend Hosting** | Azure Static Web Apps | Free Plan | 100 GB bandwidth, Free SSL, Custom domain | **$0.00**[span_42](start_span)[span_42](end_span) |
-| **Backend API Hosting** | Azure Container Apps | Consumption Plan | 180,000 vCPU-sec, 360,000 GiB-sec, 2M requests/mo | **$0.00**[span_43](start_span)[span_43](end_span) |
-| **NoSQL Database** | Azure Cosmos DB | Lifetime Free Tier | 1,000 RU/s provisioned throughput, 25 GB storage | **$0.00**[span_44](start_span)[span_44](end_span) |
-| **AI Inference** | Google AI Studio | Free Tier (`gemini-3.8-flash`) | 15 RPM / 1,500 Requests Per Day | **$0.00**[span_45](start_span)[span_45](end_span) |
-| **Dossier Storage** | Azure Blob Storage | Standard LRS Hot | Text-only `.md` files (<100 KB per audit) | **~$0.00**[span_46](start_span)[span_46](end_span) |
+| **Frontend Hosting** | Azure Static Web Apps | Free Plan | 100 GB bandwidth, Free SSL, Custom domain | **$0.00** |
+| **Backend API Hosting** | Azure Container Apps | Consumption Plan | 180,000 vCPU-sec, 360,000 GiB-sec, 2M requests/mo | **$0.00** |
+| **NoSQL Database** | Azure Cosmos DB | Lifetime Free Tier | 1,000 RU/s provisioned throughput, 25 GB storage | **$0.00** |
+| **AI Inference** | Google AI Studio | Free Tier (`gemini-3.8-flash`) | 15 RPM / 1,500 Requests Per Day | **$0.00** |
+| **Dossier Storage** | Azure Blob Storage | Standard LRS Hot | Text-only `.md` files (<100 KB per audit) | **~$0.00** |
 | **Authentication** | Hybrid Credentials + Google OAuth 2.0 | Free Standard | Self-hosted PBKDF2 + Unlimited OAuth 2.0 flows | **$0.00** |
 
 ---
@@ -357,8 +365,8 @@ dotnet build CodeLens.sln
 dotnet run --project src/CodeLens.Api
 ```
 
-- **API Base URL:** `http://localhost:5000`[span_47](start_span)[span_47](end_span)
-- **Scalar OpenAPI Explorer:** `http://localhost:5000/scalar/v1`[span_48](start_span)[span_48](end_span)
+- **API Base URL:** `http://localhost:5000`
+- **Scalar OpenAPI Explorer:** `http://localhost:5000/scalar/v1`
 
 ### 2. Run Frontend (Next.js 16 + Bun)
 
@@ -368,5 +376,5 @@ bun install
 bun run dev
 ```
 
-- **Web App URL:** `http://localhost:3000`[span_49](start_span)[span_49](end_span)
-- **Sign-In / Sign-Up Page:** `http://localhost:3000/auth/signin`[span_50](start_span)[span_50](end_span)
+- **Web App URL:** `http://localhost:3000`
+- **Sign-In / Sign-Up Page:** `http://localhost:3000/auth/signin`

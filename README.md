@@ -20,7 +20,7 @@
 
 ## 🏗️ Architecture & Technology Stack
 
-```
+```text
                               ┌────────────────────────────────────────┐
                               │     Next.js 16 (Bun / App Router)      │
                               │     Tailwind CSS / NextAuth v5         │
@@ -77,10 +77,10 @@ codelens-ai/
 │   └── package.json
 └── backend/                            # .NET 10 Solution
     ├── CodeLens.sln
-    ├── tests/CodeLens.Tests/           # xUnit test suite (19 tests)
+    ├── tests/CodeLens.Tests/           # xUnit test suite (27 tests)
     └── src/
-        ├── CodeLens.Core/              # Domain entities, DTOs, and interface contracts
-        ├── CodeLens.Infrastructure/    # Cosmos DB, Blob, Octokit, Roslyn analysis, Secret scanner
+        ├── CodeLens.Core/              # Domain entities, DTOs, and interface contracts (IGeminiSynthesisService)
+        ├── CodeLens.Infrastructure/    # Cosmos DB, Blob, Octokit, Roslyn analysis, Secret scanner, Gemini AI Engine
         └── CodeLens.Api/               # ASP.NET Core Minimal API (port 5050) & Scalar UI
 ```
 
@@ -103,14 +103,14 @@ From the project root:
 ```bash
 cd backend
 dotnet restore CodeLens.sln
-dotnet test CodeLens.sln               # Run all 19 xUnit tests
+dotnet test CodeLens.sln               # Run all 27 xUnit tests
 dotnet run --project src/CodeLens.Api
 ```
 
 - **API Base:** `http://localhost:5050`
 - **Interactive Scalar Docs:** `http://localhost:5050/scalar/v1`
 
-> 💡 **Zero Setup Required:** If Azure connection strings are omitted, the backend automatically uses the built-in in-memory repository and blob services so you can register, log in, and test immediately.
+> 💡 **Zero Setup Required:** If Azure connection strings or Gemini API keys are omitted, the backend automatically uses the built-in in-memory repository, blob services, and heuristic synthesis fallback so you can analyze repositories, inspect telemetry, and test chat immediately.
 
 ---
 
@@ -127,6 +127,7 @@ cp .env.example .env.local
 ```
 
 Ensure `frontend/.env.local` contains:
+
 ```env
 AUTH_SECRET=your-32-byte-secret-here
 NEXTAUTH_SECRET=your-32-byte-secret-here
@@ -134,7 +135,8 @@ NEXT_PUBLIC_API_URL=http://localhost:5050
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Start the development server:
+Start the development servfer:
+
 ```bash
 bun run dev
 ```
@@ -148,7 +150,7 @@ Visit [http://localhost:3000](http://localhost:3000) or open [http://localhost:3
 - [x] **Phase 1: Foundation & Infrastructure** (.NET 10 Minimal API, Next.js 16, Scalar OpenAPI, zero-warning build)
 - [x] **Phase 1.5: Hybrid Authentication** (PBKDF2 Email/Password + Google OAuth 2.0 Auto-Linking + Real-Time Criteria Checks)
 - [x] **Phase 2: Deterministic Telemetry & Code Analysis** (In-memory zipball stream, Octokit commit sparklines, Roslyn AST complexity, compiled secret scanner, Telemetry Bento Grid)
-- [ ] **Phase 3: Gemini 3.8 Flash Synthesis** (ELI5 summary, Mermaid architecture diagrams, `PROJECT_KNOWLEDGE.md` dossier generator)
+- [x] **Phase 3: Gemini 3.8 Flash Synthesis** (ELI5 summary, Mermaid architecture diagrams, syntax sanitization engine, `PROJECT_KNOWLEDGE.md` dossier generator)
 - [ ] **Phase 4: Interactive Dashboard & SSE Copilot** (Mermaid pan/zoom canvas, split-screen dossier preview, streaming chat)
 - [ ] **Phase 5: Cloud Deployment** (Azure Container Apps scale-to-zero, Azure Static Web Apps, Cosmos DB Free Tier)
 

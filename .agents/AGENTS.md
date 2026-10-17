@@ -1,6 +1,7 @@
 # AGENTS.md — CodeLens AI Agent Rules & Context
 
 ## 1. Project Identity & Core Architecture
+
 - **Project:** CodeLens AI (Repository Intelligence, Architecture Auditor & Onboarding Copilot)
 - **Monorepo Layout:**
   - `frontend/`: Next.js 16 (App Router), Bun, TypeScript, Tailwind CSS, NextAuth v5 (Hybrid Google OAuth + Email/Password Credentials)
@@ -13,6 +14,7 @@
 ## 2. Strict Environment & Command Rules
 
 ### Frontend (`frontend/`)
+
 - **NEVER** use `npm`, `npx`, `yarn`, or `pnpm`. **ALWAYS** use **Bun** (`bun install`, `bun add`, `bun run dev`, `bun run build`).
 - **Next.js 16 Routing Convention:** Route protection is handled in `src/proxy.ts` (Next.js 16 convention). Do NOT create a legacy `src/middleware.ts` file that conflicts with `src/proxy.ts`.
 - **Hydration Safety:** Root `<body>` in `src/app/layout.tsx` uses `suppressHydrationWarning` to prevent browser extension mismatches.
@@ -20,6 +22,7 @@
 - **Diagnostics & Quality (`react-doctor`):** Before completing frontend features or committing React code, invoke the workspace skill `react-doctor` (`.agents/skills/react-doctor/SKILL.md`) to verify accessibility, bundle efficiency, and anti-patterns. Maintain a 0-warning baseline.
 
 ### Backend (`backend/`)
+
 - **Target Framework:** Strictly `.NET 10` (`net10.0`) across all `.csproj` files. Do NOT downgrade to `net8.0` or `net9.0`.
 - **Zero-Warning Policy:** `dotnet build CodeLens.sln` must succeed with **0 errors and 0 warnings**.
 - **Port Assignment:** Backend API runs on `5050` (`http://localhost:5050`) to prevent collisions with macOS AirPlay (`ControlCenter` on port 5000). Never revert to port 5000.
@@ -32,6 +35,7 @@
 ## 3. Architectural Guardrails & Coding Standards
 
 ### 3.1 Hybrid Authentication & Account Linking (`AuthService.cs` & `src/auth.ts`)
+
 - **Supported Flows:**
   1. `POST /api/auth/register` — Email/password registration using `PasswordHasher<UserDocument>` (PBKDF2 with HMAC-SHA512 + 100,000 iterations). Enforces strong password rules (8+ chars, uppercase, lowercase, digit, special symbol).
   2. `POST /api/auth/login` — Email/password login returning a signed HS256 backend JWT.
@@ -43,6 +47,7 @@
 - **Frontend Session Contract:** NextAuth v5 (`src/auth.ts`) stores the backend-issued HS256 JWT in `session.backendToken`. All API calls in `src/lib/api-client.ts` pass `Authorization: Bearer ${session.backendToken}`.
 
 ### 3.2 Zero-Disk Ingestion Pipeline (Phase 2)
+
 - **NEVER** execute `git clone` to the local filesystem.
 - Always stream the repository's default branch via Octokit's Zipball API directly into memory (`System.IO.Compression.ZipArchive`).
 - Filter out non-source and vendor directories during stream iteration: `node_modules/`, `.git/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary assets.
@@ -56,14 +61,19 @@
 - **GitHub Rate Limits & Quotas:** Unauthenticated IP quota is 60 requests/hr. Supplying `GITHUB_TOKEN` in the environment or `appsettings.Development.json` unlocks 5,000 requests/hr. `OctokitTelemetryService.cs` automatically inspects remaining rate quota to avoid exhausting unauthenticated calls.
 
 ### 3.3 Gemini 3.8 Flash & Dossier Synthesis (Phase 3)
-- **Model Identifier:** Always use `gemini-3.8-flash`.
+
+- **Model Identifier:** Always use `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
 - **Context Discipline:** Never send raw multi-megabyte source files to Gemini. Pass the compact **AST Symbol Manifest** + deterministic telemetry summary extracted during Phase 2.
-- **Dossier Artifact:** Every completed audit must compile a standardized `PROJECT_KNOWLEDGE.md` file, upload it to Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and cache the markdown string in `AuditDocument.DossierMarkdown` in Cosmos DB.
+- **Resilient Fallback Synthesis:** When `Gemini:ApiKey` / `GEMINI_API_KEY` is omitted or invalid, `GeminiSynthesisService.cs` executes a deterministic fallback synthesis engine derived from AST telemetry and package manifests, guaranteeing zero-failure local development and CI runs.
+- **Mermaid Sanitization:** All LLM-generated Mermaid diagrams are sanitized via `MermaidSanitizer.cs` to quote complex node labels containing brackets/colons/parentheses, normalize subgraph identifiers, and balance open blocks.
+- **Dossier Artifact:** Every completed audit compiles a standardized `PROJECT_KNOWLEDGE.md` file via `MarkdownDossierBuilder.cs`, uploads it to Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches the markdown in `AuditDocument.DossierMarkdown` in Cosmos DB.
 - **Streaming Endpoints (`POST /api/chat/{id}/stream`):**
   - Ground the system prompt strictly on the cached `PROJECT_KNOWLEDGE.md`.
   - Always set response headers: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `X-Accel-Buffering: no`.
+  - Streams tokens as JSON payloads (`data: {"text":"..."}\n\n`) to prevent newline-splitting issues in HTTP proxies.
 
 ### 3.4 Cosmos DB Free-Tier Efficiency & Local Dev Fallbacks
+
 - Containers in `CosmosRepository.cs`: `users`, `audits`, `messages`.
 - Always include the Partition Key in point reads and queries to keep operations under 1–2 RUs within the 1,000 RU/s lifetime free tier.
 - **In-Memory Fallbacks:** `InMemoryCosmosRepository` and `InMemoryBlobStorageService` are used automatically when Azure connection strings are omitted or placeholder, enabling zero-setup local development.
@@ -84,16 +94,17 @@ codelens-ai/
 ├── backend/
 │   ├── CodeLens.sln
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # xUnit Test Suite (19 tests)
+│   │   └── CodeLens.Tests/                           # xUnit Test Suite (27 tests)
 │   │       ├── OctokitTelemetryTests.cs
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs
 │   │       ├── SecretScannerTests.cs
-│   │       └── UserRepositoryTests.cs
+│   │       ├── UserRepositoryTests.cs
+│   │       └── GeminiSynthesisTests.cs               # Phase 3 SK, Mermaid sanitizer & dossier tests
 │   └── src/
 │       ├── CodeLens.Core/
 │       │   ├── Entities/                             # UserDocument, AuditDocument, ChatMessageDocument
 │       │   ├── DTOs/                                 # ApiDtos.cs, TelemetryDtos.cs
-│       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService
+│       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService, IGeminiSynthesisService
 │       ├── CodeLens.Infrastructure/
 │       │   ├── Auth/AuthService.cs                   # Hybrid Credentials + Google OAuth + JWT + PBKDF2
 │       │   ├── Data/CosmosRepository.cs              # Cosmos DB persistence
@@ -103,7 +114,11 @@ codelens-ai/
 │       │   ├── GitHub/OctokitTelemetryService.cs     # Commits, sparklines, releases, zipball stream, rate budgeting
 │       │   ├── Analysis/RoslynAndPolyglotAnalyzer.cs # AST, cyclomatic complexity, hotspots, dead code, dependencies
 │       │   ├── Security/RegexSecretScanner.cs        # [GeneratedRegex] secret detection
-│       │   └── AI/                                   # GeminiSynthesisService & MarkdownDossierBuilder (Phase 3)
+│       │   └── AI/                                   # Phase 3 AI Engine
+│       │       ├── GeminiOptions.cs                  # Gemini API options & model config
+│       │       ├── GeminiSynthesisService.cs         # SK connector & fallback synthesis engine
+│       │       ├── MermaidSanitizer.cs               # Diagram AST syntax cleanup & label quoting
+│       │       └── MarkdownDossierBuilder.cs         # Standardized PROJECT_KNOWLEDGE.md generator
 │       └── CodeLens.Api/
 │           ├── Endpoints/                            # AuthEndpoints, AuditEndpoints, ChatEndpoints
 │           └── Program.cs                            # Port 5050, DI, JWT Bearer, CORS, Scalar OpenAPI
@@ -111,7 +126,7 @@ codelens-ai/
     └── src/
         ├── auth.ts                                   # NextAuth v5 (Google + Credentials)
         ├── proxy.ts                                  # Next.js 16 auth route protection
-        ├── lib/api-client.ts                         # Typed REST + SSE stream client
+        ├── lib/api-client.ts                         # Typed REST + SSE stream client (JSON & raw chunk handling)
         ├── app/
         │   ├── auth/signin/
         │   │   ├── page.tsx                          # Auth entrypoint
@@ -128,13 +143,15 @@ codelens-ai/
             ├── HotspotTable.tsx                      # Complexity x Churn risk table
             ├── SparklineChart.tsx                    # SVG 8-week commit sparklines
             └── Providers.tsx                         # NextAuth SessionProvider wrapper
+- **Dashboard Quick Samples:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight, diverse repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) for rapid in-memory streaming and verification.
 ```
 
 ---
 
 ## 5. Pre-Commit Verification Checklist for Agents
+
 1. Run `dotnet build backend/CodeLens.sln` — Must output `0 Warning(s)` and `0 Error(s)`.
-2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 19/19).
+2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 27/27).
 3. Run `cd frontend && bun run build` — Must pass typechecking and route generation cleanly.
 4. Run `bunx react-doctor@latest --scope changed` — Must report 0 issues.
 5. Verify no secrets or API keys are hardcoded in `appsettings.json` or `.env.local`.

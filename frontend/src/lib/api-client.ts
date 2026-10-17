@@ -231,6 +231,15 @@ export function streamChat(
               onDone();
               return;
             }
+            try {
+              const parsed = JSON.parse(data);
+              if (typeof parsed?.text === "string") {
+                onChunk(parsed.text);
+                continue;
+              }
+            } catch {
+              // Not JSON, fall back to raw string
+            }
             onChunk(data);
           }
         }

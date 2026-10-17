@@ -17,10 +17,11 @@ interface DashboardClientProps {
 }
 
 const SAMPLE_REPOS = [
-  "https://github.com/facebook/react",
-  "https://github.com/dotnet/aspnetcore",
-  "https://github.com/fastapi/fastapi",
-  "https://github.com/tailwindlabs/tailwindcss",
+  "https://github.com/shenmareparas/Chess",
+  "https://github.com/shenmareparas/expense_tracker",
+  "https://github.com/shenmareparas/play-store-ai-review",
+  "https://github.com/shenmareparas/Portfolio_NextJS",
+  "https://github.com/shenmareparas/nexu5-music-bot",
 ];
 
 export function DashboardClient({

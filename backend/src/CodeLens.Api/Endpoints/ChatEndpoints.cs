@@ -4,6 +4,7 @@ using CodeLens.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace CodeLens.Api.Endpoints;
 
@@ -19,14 +20,20 @@ public static class ChatEndpoints
         group.MapPost("/{auditId}/stream", async (
             string auditId,
             [FromBody] ChatRequest request,
-            [FromQuery] string repositoryId,
+            [FromQuery] string? repositoryId,
             ClaimsPrincipal user,
             [FromServices] ICosmosRepository repository,
+            [FromServices] IGeminiSynthesisService geminiService,
             HttpResponse response,
             CancellationToken ct) =>
         {
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? user.FindFirstValue("sub")!;
+
+            // Retrieve audit document to extract grounded PROJECT_KNOWLEDGE.md dossier
+            var audit = await repository.GetAuditAsync(auditId, repositoryId, ct);
+            var dossierMarkdown = audit?.DossierMarkdown ??
+                "# Project Knowledge Dossier\nNo cached dossier available for this audit.";
 
             // Persist user message
             await repository.SaveMessageAsync(new ChatMessageDocument
@@ -35,22 +42,26 @@ public static class ChatEndpoints
                 AuditId = auditId,
                 Role = "user",
                 Content = request.Message,
+                Timestamp = DateTimeOffset.UtcNow
             }, ct);
 
-            // Set up SSE response
+            // Fetch prior conversation history for context
+            var history = await repository.GetMessagesForAuditAsync(auditId, ct);
+
+            // Set up SSE response headers conforming to AGENTS.md requirements
             response.ContentType = "text/event-stream";
             response.Headers.CacheControl = "no-cache";
+            response.Headers["X-Accel-Buffering"] = "no";
             response.Headers.Connection = "keep-alive";
 
-            // TODO (Phase 3): Replace stub with real Semantic Kernel / Gemini streaming
-            var stubReply = "Phase 3 will wire this up to Gemini 3.8 Flash via Semantic Kernel. " +
-                            "The dossier context will be injected as the system prompt and the answer streamed token-by-token.";
+            var fullReply = new StringBuilder();
 
-            foreach (var chunk in ChunkString(stubReply, 8))
+            await foreach (var token in geminiService.StreamChatResponseAsync(dossierMarkdown, history, request.Message, ct))
             {
-                await response.WriteAsync($"data: {chunk}\n\n", ct);
+                fullReply.Append(token);
+                var payload = JsonSerializer.Serialize(new { text = token });
+                await response.WriteAsync($"data: {payload}\n\n", ct);
                 await response.Body.FlushAsync(ct);
-                await Task.Delay(40, ct);
             }
 
             // Persist assistant reply
@@ -59,18 +70,15 @@ public static class ChatEndpoints
                 Id = $"msg_{Guid.NewGuid():N}",
                 AuditId = auditId,
                 Role = "assistant",
-                Content = stubReply,
+                Content = fullReply.ToString(),
+                Timestamp = DateTimeOffset.UtcNow
             }, ct);
 
             await response.WriteAsync("data: [DONE]\n\n", ct);
+            await response.Body.FlushAsync(ct);
         })
         .WithName("StreamChat")
         .WithSummary("Stream a grounded Gemini response via SSE");
     }
-
-    private static IEnumerable<string> ChunkString(string s, int chunkSize)
-    {
-        for (int i = 0; i < s.Length; i += chunkSize)
-            yield return s.Substring(i, Math.Min(chunkSize, s.Length - i));
-    }
 }
+

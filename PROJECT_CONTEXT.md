@@ -1,7 +1,7 @@
 # CodeLens AI — Project Context & Architectural Specification
 
-> **Version:** 1.2.0  
-> **Status:** Phase 1, Phase 1.5 & Phase 2 COMPLETED · Phase 3 IN PROGRESS  
+> **Version:** 1.3.0  
+> **Status:** Phase 1, Phase 1.5, Phase 2 & Phase 3 COMPLETED · Phase 4 NEXT  
 > **Target Frameworks:** .NET 10 (`net10.0`), Next.js 16 (App Router), Bun runtime, Google Gemini 3.8 Flash  
 
 ---
@@ -11,6 +11,7 @@
 **CodeLens AI** is an AI-powered repository intelligence, architecture auditor, and onboarding copilot. It ingests public and private GitHub repositories, calculates deterministic telemetry and AST complexity heatmaps without writing files to disk, and synthesizes comprehensive architectural knowledge dossiers (`PROJECT_KNOWLEDGE.md`) using **Google Gemini 3.8 Flash**.
 
 ### Core Value Propositions
+
 1. **Zero-Disk Ingestion:** Direct in-memory streaming of GitHub default branches via zipball streams (`ZipArchive`), eliminating multi-gigabyte disk clone overhead.
 2. **Deterministic Risk Scoring:** Mathematical hotspot identification combining cyclomatic code complexity with git commit churn:
    $$\text{Hotspot Risk} = \text{CyclomaticComplexity} \times \ln(\text{CommitChurn} + 1)$$
@@ -22,7 +23,7 @@
 
 ## 2. Technology Stack & Environment
 
-```
+```text
                                ┌────────────────────────────────────────┐
                                │     Next.js 16 (Bun / App Router)      │
                                │     Tailwind CSS / NextAuth v5         │
@@ -94,23 +95,25 @@
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 19 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning, and repository persistence.
+- **Test Suite:** 27 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
 
-### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder (Phase 3 Roadmap)
+### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder (Phase 3)
 
 - **Model:** `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
-- **Prompt Input:** Compact Symbol Manifest + deterministic telemetry (complexity hotspots, dependencies, git cadence).
+- **Prompt Input:** Compact Symbol Manifest (truncated to 8,000 characters for strict context discipline) + deterministic telemetry (complexity hotspots, dependencies, git cadence).
 - **Structured Outputs:**
   1. `ELI5Summary`: High-level purpose and core functionality in simple terms.
-  2. `LicenseVerdict`: Commercial usability and compatibility status.
+  2. `LicenseVerdict`: Commercial usability and compatibility assessment.
   3. `MermaidDiagram`: Sanitized C4/component architecture diagram.
   4. `ArchitecturalSmells`: Critical structural flaws, circular references, or bloat.
   5. `OnboardingRunbook`: Step-by-step onboarding guide for newcomers.
-- **Artifact Generation:** Compiles `PROJECT_KNOWLEDGE.md`, stores in Azure Blob Storage (`project-dossiers` container), and caches markdown in `AuditDocument.DossierMarkdown`.
+- **Mermaid Sanitization (`MermaidSanitizer.cs`):** Automatic regex-based AST sanitization stripping wrapping code fences, quoting complex bracketed labels containing parentheses/colons, normalizing subgraph identifiers, and balancing open subgraphs.
+- **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
+- **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 
 ### 3.4 Grounded Chat & Interactive Dashboard (Phase 4 Roadmap)
 
-- **Streaming Endpoint:** `POST /api/chat/{id}/stream` returning `text/event-stream`.
+- **Streaming Endpoint:** `POST /api/chat/{id}/stream` returning `text/event-stream` with JSON-encoded chunk payloads (`data: {"text":"..."}\n\n`).
 - **System Prompt Grounding:** The chat copilot system prompt is grounded directly in the audit's `PROJECT_KNOWLEDGE.md`.
 - **UI Components:**
   - `TelemetryBentoGrid.tsx`: Sparklines, language breakdown, release cadence, and quick stats.
@@ -137,16 +140,17 @@ codelens-ai/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
 │   ├── Dockerfile                                    # Multi-stage production container build
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # 19 xUnit tests
+│   │   └── CodeLens.Tests/                           # 27 xUnit tests
 │   │       ├── OctokitTelemetryTests.cs              # Sparkline, URL parsing, release tests
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs     # Complexity, Symbol Manifest, Pub & Bun tests
 │   │       ├── SecretScannerTests.cs                 # [GeneratedRegex] secret detection tests
-│   │       └── UserRepositoryTests.cs                # CRUD & user purge tests
+│   │       ├── UserRepositoryTests.cs                # CRUD & user purge tests
+│   │       └── GeminiSynthesisTests.cs               # Phase 3 SK connector, Mermaid sanitizer & dossier tests
 │   └── src/
 │       ├── CodeLens.Core/
 │       │   ├── Entities/                             # UserDocument, AuditDocument, ChatMessageDocument
 │       │   ├── DTOs/                                 # ApiDtos.cs, TelemetryDtos.cs
-│       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService
+│       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService, IGeminiSynthesisService
 │       ├── CodeLens.Infrastructure/
 │       │   ├── Auth/AuthService.cs                   # Hybrid Credentials + Google OAuth + PBKDF2
 │       │   ├── Data/CosmosRepository.cs              # Cosmos DB implementation
@@ -156,7 +160,11 @@ codelens-ai/
 │       │   ├── GitHub/OctokitTelemetryService.cs     # Octokit telemetry, zipball stream, rate budgeting
 │       │   ├── Analysis/RoslynAndPolyglotAnalyzer.cs # Zero-disk AST complexity & dependency parser
 │       │   ├── Security/RegexSecretScanner.cs        # [GeneratedRegex] zero-allocation scanner
-│       │   └── AI/                                   # GeminiSynthesisService & MarkdownDossierBuilder (Phase 3)
+│       │   └── AI/                                   # Phase 3 AI Engine
+│       │       ├── GeminiOptions.cs                  # Gemini API options & model config
+│       │       ├── GeminiSynthesisService.cs         # SK connector & fallback synthesis engine
+│       │       ├── MermaidSanitizer.cs               # Diagram AST syntax cleanup & label quoting
+│       │       └── MarkdownDossierBuilder.cs         # Standardized PROJECT_KNOWLEDGE.md generator
 │       └── CodeLens.Api/
 │           ├── Endpoints/                            # AuthEndpoints, AuditEndpoints, ChatEndpoints
 │           ├── Properties/launchSettings.json        # Port 5050 configuration
@@ -171,7 +179,7 @@ codelens-ai/
         ├── auth.ts                                   # NextAuth v5 configuration
         ├── proxy.ts                                  # Next.js 16 route protection proxy
         ├── lib/
-        │   ├── api-client.ts                         # Typed REST API & SSE client
+        │   ├── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
         │   └── auth-helpers.ts                       # Server-side auth helpers
         ├── app/
         │   ├── globals.css                           # Glassmorphism design system & CSS tokens
@@ -190,9 +198,11 @@ codelens-ai/
         │       └── DashboardClient.tsx               # Dashboard client orchestrator
         └── components/
             ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
+            ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
             ├── HotspotTable.tsx                      # Complexity x Churn risk table
             ├── SparklineChart.tsx                    # SVG commit sparkline chart
             └── Providers.tsx                         # NextAuth SessionProvider wrapper
+- **Dashboard Quick Samples:** `DashboardClient.tsx` includes quick-sample suggestion chips linking to user public repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) for rapid sub-second in-memory AST and telemetry profiling.
 ```
 
 ---
@@ -200,6 +210,7 @@ codelens-ai/
 ## 5. Development & Verification Guide
 
 ### 5.1 Local Ports & Networking
+
 - **Backend API:** `http://localhost:5050` (Configured in `launchSettings.json`). *Never use port 5000 due to macOS AirPlay collision.*
 - **Scalar OpenAPI Documentation:** `http://localhost:5050/scalar/v1`
 - **Frontend Application:** `http://localhost:3000`
@@ -211,7 +222,7 @@ codelens-ai/
 cd backend
 dotnet restore CodeLens.sln               # Restore NuGet packages
 dotnet build CodeLens.sln                 # Build (Zero warnings required)
-dotnet test CodeLens.sln                  # Run 17 xUnit tests
+dotnet test CodeLens.sln                  # Run 27 xUnit tests
 dotnet run --project src/CodeLens.Api     # Start API server on port 5050
 
 # ── Frontend Operations ─────────────────────────────────────────────
@@ -223,8 +234,9 @@ bunx react-doctor@latest --scope changed  # Verify React diagnostics
 ```
 
 ### 5.3 Quality & Guardrail Checklist
+
 - [x] Zero warnings on `dotnet build CodeLens.sln`.
-- [x] All 17 xUnit tests passing on `dotnet test CodeLens.sln`.
+- [x] All 27 xUnit tests passing on `dotnet test CodeLens.sln`.
 - [x] Clean `bun run build` with static & dynamic route compilation.
 - [x] React Doctor: 0 issues on changed files.
 - [x] Zero hardcoded secrets in source files (always use `.env.local` or gitignored `appsettings.Development.json`).
