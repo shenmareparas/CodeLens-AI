@@ -130,7 +130,7 @@ public static class AuditEndpoints
 
             try
             {
-                logger.LogInformation("Starting Phase 2 telemetry & AST analysis for {Owner}/{Repo}", owner, repo);
+                logger.LogInformation("Starting telemetry & AST analysis for {Owner}/{Repo}", owner, repo);
 
                 // 3. Concurrently fetch GitHub REST telemetry and download in-memory zipball
                 var telemetryTask = telemetryService.GetTelemetryAsync(owner, repo, ct);
@@ -166,12 +166,12 @@ public static class AuditEndpoints
                     SymbolManifest = analysisResult.SymbolManifest
                 };
 
-                // 6. Synthesize AI architectural insights via Gemini 3.8 Flash (Phase 3)
-                logger.LogInformation("Starting Phase 3 Gemini 3.8 Flash synthesis for {Owner}/{Repo}", owner, repo);
+                // 6. Synthesize AI architectural insights via Gemini 3.8 Flash
+                logger.LogInformation("Starting Gemini 3.8 Flash synthesis for {Owner}/{Repo}", owner, repo);
                 var aiInsights = await geminiService.SynthesizeRepositoryAsync(owner, repo, audit.Telemetry, ct);
                 audit.AiInsights = aiInsights;
 
-                // 7. Compile standardized PROJECT_KNOWLEDGE.md dossier (Phase 3)
+                // 7. Compile standardized PROJECT_KNOWLEDGE.md dossier
                 var dossierMarkdown = MarkdownDossierBuilder.BuildDossierMarkdown(
                     owner,
                     repo,
@@ -181,7 +181,7 @@ public static class AuditEndpoints
                     audit.CreatedAt);
                 audit.DossierMarkdown = dossierMarkdown;
 
-                // 8. Upload dossier to Azure Blob Storage (Phase 3)
+                // 8. Upload dossier to Azure Blob Storage
                 try
                 {
                     var blobName = await blobStorageService.UploadDossierAsync(repoId, dossierMarkdown, ct);
@@ -196,7 +196,7 @@ public static class AuditEndpoints
                 audit.CompletedAt = DateTimeOffset.UtcNow;
                 await repository.UpsertAuditAsync(audit, ct);
 
-                logger.LogInformation("Completed Phase 3 analysis and dossier compilation for {AuditId} ({Owner}/{Repo})", audit.Id, owner, repo);
+                logger.LogInformation("Completed analysis and dossier compilation for {AuditId} ({Owner}/{Repo})", audit.Id, owner, repo);
 
                 return Results.Accepted(
                     $"/api/audits/{audit.Id}",

@@ -128,7 +128,7 @@ export function AuditWorkspaceClient({
               )}
             </div>
             <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-              Phase 4 Interactive Workspace • Dossier & Grounded Copilot
+              Interactive Workspace • Dossier & Grounded Copilot
             </p>
           </div>
         </div>

@@ -1,8 +1,6 @@
 # CodeLens AI — Project Context & Architectural Specification
 
-> **Version:** 1.4.0  
-> **Status:** Phase 1, Phase 1.5, Phase 2, Phase 3 & Phase 4 COMPLETED · Phase 5 NEXT  
-> **Target Frameworks:** .NET 10 (`net10.0`), Next.js 16 (App Router), Bun runtime, Google Gemini 3.8 Flash  
+> **Frameworks:** .NET 10 (`net10.0`), Next.js 16 (App Router), Bun runtime, Google Gemini 3.8 Flash  
 
 ---
 
@@ -65,7 +63,7 @@
 
 ## 3. Subsystem Specifications
 
-### 3.1 Authentication & Account Linking (Phase 1 & 1.5)
+### 3.1 Authentication & Account Linking
 
 - **Password Security:** Passwords hashed with `Microsoft.AspNetCore.Identity.PasswordHasher<UserDocument>` using PBKDF2 with HMAC-SHA512 and 100,000 iterations.
 - **Complexity Policy:** Enforces 8+ characters, at least one uppercase (`A-Z`), one lowercase (`a-z`), one digit (`0-9`), and one special character (`!@#$%^&*...`).
@@ -77,7 +75,7 @@
 - **OAuth Account Linking:** When authenticating via Google OAuth (`POST /api/auth/google`), the backend validates the Google `id_token` cryptographically via `Google.Apis.Auth`. If an existing user matches the verified email, it automatically links `GoogleSub` and appends `"google"` to `AuthProviders`.
 - **Session Bridge:** NextAuth v5 stores the backend-issued HS256 JWT in `session.backendToken`. The frontend `api-client.ts` automatically attaches `Authorization: Bearer ${session.backendToken}` to all backend calls.
 
-### 3.2 Zero-Disk Telemetry & Static Analysis Pipeline (Phase 2)
+### 3.2 Zero-Disk Telemetry & Static Analysis Pipeline
 
 - **In-Memory Streaming:** Calls `GET /repos/{owner}/{repo}/zipball` to receive the default branch archive stream. Opens a `System.IO.Compression.ZipArchive` in memory and processes file contents on the fly.
 - **Directory Exclusion:** Filters out non-source directories: `node_modules/`, `.git/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary file types.
@@ -95,9 +93,9 @@
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 27 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
+- **Test Suite:** 28 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
 
-### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder (Phase 3)
+### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
 - **Model:** `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
 - **Prompt Input:** Compact Symbol Manifest (truncated to 8,000 characters for strict context discipline) + deterministic telemetry (complexity hotspots, dependencies, git cadence).
@@ -111,17 +109,30 @@
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 
-### 3.4 Grounded Chat & Interactive Dashboard (Phase 4 Roadmap)
+### 3.4 Grounded Chat, Interactive Dashboard & Shared Repo Cache
 
 - **Streaming Endpoint:** `POST /api/chat/{id}/stream` returning `text/event-stream` with JSON-encoded chunk payloads (`data: {"text":"..."}\n\n`).
 - **System Prompt Grounding:** The chat copilot system prompt is grounded directly in the audit's `PROJECT_KNOWLEDGE.md`.
+- **Shared Repository Cache & Staleness:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis.
 - **UI Components:**
   - `TelemetryBentoGrid.tsx`: Sparklines, language breakdown, release cadence, and quick stats.
   - `DependenciesCard.tsx`: Ecosystem pill filters (`All`, `Bun`, `Pub`, `npm`, `NuGet`, `PyPI`, `Cargo`), color tags, and live package search.
   - `HotspotTable.tsx`: Ranked complexity vs churn hotspots with risk badges.
   - `SparklineChart.tsx`: 8-week commit activity visualization.
-  - `MermaidViewer.tsx` (Phase 4): Pan, zoom, and SVG export.
-  - Split-screen workspace preview.
+  - `MermaidViewer.tsx`: Pan, zoom, and SVG export.
+  - `DossierViewer.tsx`: Formatted Markdown dossier preview with SAS download.
+  - `RepoChatSidebar.tsx`: Grounded copilot chat with streaming tokens.
+  - `AuditWorkspaceClient.tsx`: Split-screen interactive workspace at `/dashboard/audit/[id]`.
+
+### 3.5 Cloud Infrastructure & CI/CD Deployment
+
+- **Infrastructure as Code:** Azure Bicep templates in `infra/main.bicep` and `infra/main.parameters.json`.
+- **Zero-Cost Profile:**
+  - Azure Container Apps (`ca-codelens-api`) with scale-to-zero compute (`minReplicas: 0`, `maxReplicas: 1`, 0.25 vCPU, 0.5 Gi memory).
+  - Azure Static Web Apps (`swa-codelens`) on Free SKU for Next.js frontend.
+  - Azure Cosmos DB NoSQL Lifetime Free Tier (1,000 RU/s, 25 GB storage).
+  - Azure Blob Storage (`stcodelens...`) with container `project-dossiers` for dossier markdown and 15-minute SAS tokens.
+- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running test suites, building Docker images to GHCR, and deploying to Azure.
 
 ---
 
@@ -129,23 +140,30 @@
 
 ```text
 codelens-ai/
-├── PROJECT_PLAN.md                                   # Comprehensive roadmap and milestone tracker
-├── PROJECT_CONTEXT.md                                # Authoritative project context & architecture spec
 ├── README.md                                         # Quickstart and overview
+├── .github/
+│   └── workflows/
+│       ├── deploy-backend.yml                        # GitHub Actions: .NET 10 build, test, Docker & ACA deploy
+│       └── deploy-frontend.yml                       # GitHub Actions: Bun Next.js 16 build & SWA deploy
+├── infra/
+│   ├── main.bicep                                    # Zero-cost Azure Bicep template (ACA, SWA, Cosmos, Blob)
+│   └── main.parameters.json                          # Deployment parameter configurations
 ├── .agents/
 │   ├── AGENTS.md                                     # AI coding agent rules and operational constraints
+│   ├── PROJECT_CONTEXT.md                            # Authoritative project context & architecture spec
+│   ├── PROJECT_PLAN.md                               # Comprehensive roadmap and technical specification
 │   └── skills/
 │       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
 ├── backend/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
-│   ├── Dockerfile                                    # Multi-stage production container build
+│   ├── Dockerfile                                    # Multi-stage production container build (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # 27 xUnit tests
+│   │   └── CodeLens.Tests/                           # 28 xUnit tests
 │   │       ├── OctokitTelemetryTests.cs              # Sparkline, URL parsing, release tests
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs     # Complexity, Symbol Manifest, Pub & Bun tests
 │   │       ├── SecretScannerTests.cs                 # [GeneratedRegex] secret detection tests
-│   │       ├── UserRepositoryTests.cs                # CRUD & user purge tests
-│   │       └── GeminiSynthesisTests.cs               # Phase 3 SK connector, Mermaid sanitizer & dossier tests
+│   │       ├── UserRepositoryTests.cs                # CRUD, cache & user purge tests
+│   │       └── GeminiSynthesisTests.cs               # SK connector, Mermaid sanitizer & dossier tests
 │   └── src/
 │       ├── CodeLens.Core/
 │       │   ├── Entities/                             # UserDocument, AuditDocument, ChatMessageDocument
@@ -160,7 +178,7 @@ codelens-ai/
 │       │   ├── GitHub/OctokitTelemetryService.cs     # Octokit telemetry, zipball stream, rate budgeting
 │       │   ├── Analysis/RoslynAndPolyglotAnalyzer.cs # Zero-disk AST complexity & dependency parser
 │       │   ├── Security/RegexSecretScanner.cs        # [GeneratedRegex] zero-allocation scanner
-│       │   └── AI/                                   # Phase 3 AI Engine
+│       │   └── AI/                                   # Gemini AI Engine
 │       │       ├── GeminiOptions.cs                  # Gemini API options & model config
 │       │       ├── GeminiSynthesisService.cs         # SK connector & fallback synthesis engine
 │       │       ├── MermaidSanitizer.cs               # Diagram AST syntax cleanup & label quoting
@@ -230,7 +248,7 @@ codelens-ai/
 cd backend
 dotnet restore CodeLens.sln               # Restore NuGet packages
 dotnet build CodeLens.sln                 # Build (Zero warnings required)
-dotnet test CodeLens.sln                  # Run 27 xUnit tests
+dotnet test CodeLens.sln                  # Run 28 xUnit tests
 dotnet run --project src/CodeLens.Api     # Start API server on port 5050
 
 # ── Frontend Operations ─────────────────────────────────────────────
@@ -244,7 +262,7 @@ bunx react-doctor@latest --scope changed  # Verify React diagnostics
 ### 5.3 Quality & Guardrail Checklist
 
 - [x] Zero warnings on `dotnet build CodeLens.sln`.
-- [x] All 27 xUnit tests passing on `dotnet test CodeLens.sln`.
+- [x] All 28 xUnit tests passing on `dotnet test CodeLens.sln`.
 - [x] Clean `bun run build` with static & dynamic route compilation.
 - [x] React Doctor: 0 issues on changed files.
 - [x] Zero hardcoded secrets in source files (always use `.env.local` or gitignored `appsettings.Development.json`).

@@ -46,7 +46,7 @@
 - **Frontend Password UX:** Password forms in `frontend/src/app/auth/signin/` feature interactive eye show/hide visibility toggles, real-time password criteria validation badges, dynamic strength meters, and confirm-password matching.
 - **Frontend Session Contract:** NextAuth v5 (`src/auth.ts`) stores the backend-issued HS256 JWT in `session.backendToken`. All API calls in `src/lib/api-client.ts` pass `Authorization: Bearer ${session.backendToken}`.
 
-### 3.2 Zero-Disk Ingestion Pipeline (Phase 2)
+### 3.2 Zero-Disk Ingestion Pipeline
 
 - **NEVER** execute `git clone` to the local filesystem.
 - Always stream the repository's default branch via Octokit's Zipball API directly into memory (`System.IO.Compression.ZipArchive`).
@@ -60,10 +60,10 @@
 - **Secret Scanning:** Use `.NET 10` compile-time `[GeneratedRegex]` attributes inside `RegexSecretScanner.cs` for zero-allocation pattern matching.
 - **GitHub Rate Limits & Quotas:** Unauthenticated IP quota is 60 requests/hr. Supplying `GITHUB_TOKEN` in the environment or `appsettings.Development.json` unlocks 5,000 requests/hr. `OctokitTelemetryService.cs` automatically inspects remaining rate quota to avoid exhausting unauthenticated calls.
 
-### 3.3 Gemini 3.8 Flash & Dossier Synthesis (Phase 3)
+### 3.3 Gemini 3.8 Flash & Dossier Synthesis
 
 - **Model Identifier:** Always use `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
-- **Context Discipline:** Never send raw multi-megabyte source files to Gemini. Pass the compact **AST Symbol Manifest** + deterministic telemetry summary extracted during Phase 2.
+- **Context Discipline:** Never send raw multi-megabyte source files to Gemini. Pass the compact **AST Symbol Manifest** + deterministic telemetry summary extracted during static analysis.
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` / `GEMINI_API_KEY` is omitted or invalid, `GeminiSynthesisService.cs` executes a deterministic fallback synthesis engine derived from AST telemetry and package manifests, guaranteeing zero-failure local development and CI runs.
 - **Mermaid Sanitization:** All LLM-generated Mermaid diagrams are sanitized via `MermaidSanitizer.cs` to quote complex node labels containing brackets/colons/parentheses, normalize subgraph identifiers, and balance open blocks.
 - **Dossier Artifact:** Every completed audit compiles a standardized `PROJECT_KNOWLEDGE.md` file via `MarkdownDossierBuilder.cs`, uploads it to Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches the markdown in `AuditDocument.DossierMarkdown` in Cosmos DB.
@@ -78,28 +78,58 @@
 - Always include the Partition Key in point reads and queries to keep operations under 1–2 RUs within the 1,000 RU/s lifetime free tier.
 - **In-Memory Fallbacks:** `InMemoryCosmosRepository` and `InMemoryBlobStorageService` are used automatically when Azure connection strings are omitted or placeholder, enabling zero-setup local development.
 
+### 3.5 Interactive Workspace & Shared Repository Cache
+
+- **Shared Repository Cache:** `POST /api/audit` checks `ICosmosRepository.GetLatestAuditByRepoAsync(repoId)` to return cached audit telemetry and synthesized dossiers in `<50ms` without redundant re-analysis.
+- **Commit Staleness Detection:** Automatically queries GitHub remote default branch latest commit SHA via `IGitHubTelemetryService.GetLatestCommitShaAsync`. If newer commits are detected on the remote branch, flags `isStale: true` and displays an outdated notice banner in the UI with a 1-click `[ 🔄 Re-analyze Latest Commits ]` trigger (`forceRefresh: true`).
+- **Interactive Split-Screen Workspace (`/dashboard/audit/[id]`):**
+  - **MermaidViewer (`MermaidViewer.tsx`):** Client-side SVG rendering with pan, interactive zoom controls (`-`, reset, `+`), and copy SVG button.
+  - **DossierViewer (`DossierViewer.tsx`):** Formatted GitHub-flavored markdown preview of `PROJECT_KNOWLEDGE.md` with direct SAS blob download link.
+  - **RepoChatSidebar (`RepoChatSidebar.tsx`):** Context-grounded SSE chat copilot (`/api/chat/{id}/stream`) with suggested prompt chips and real-time token rendering.
+  - **Tab Switcher:** Flexible workspace views (Split Workspace, Telemetry Bento, Mermaid Diagram, Knowledge Dossier).
+
+### 3.6 Zero-Cost Cloud Provisioning & CI/CD
+
+- **Bicep Infrastructure as Code (`infra/`):**
+  - Declarative templates in `infra/main.bicep` and `infra/main.parameters.json`.
+  - **Cosmos DB Free Tier:** Configured with `enableFreeTier: true` (1,000 RU/s lifetime free throughput, 25 GB storage).
+  - **Azure Container Apps:** Deploys backend API in container app `ca-codelens-api` under Consumption workload profile with `minReplicas: 0` (scale-to-zero) and `maxReplicas: 1` (0.25 vCPU, 0.5 Gi memory) for zero idle compute billing.
+  - **Azure Static Web Apps:** Hosts Next.js frontend on Free SKU with global edge caching and automatic SSL.
+  - **Azure Blob Storage:** General Purpose v2 storage account (`stcodelens...`) with container `project-dossiers` for dossier markdown and SAS tokens.
+- **GitHub Actions Workflows (`.github/workflows/`):**
+  - `deploy-backend.yml`: Automatically builds .NET 10 solution, runs 28/28 xUnit tests, packages Docker container image to GitHub Container Registry (GHCR), and deploys to Azure Container Apps.
+  - `deploy-frontend.yml`: Executes Bun Next.js 16 build and deploys to Azure Static Web Apps.
+
 ---
 
 ## 4. Key File Map
 
 ```text
 codelens-ai/
-├── PROJECT_PLAN.md                                   # Master specification & roadmap
-├── PROJECT_CONTEXT.md                                # Comprehensive architectural single-source-of-truth
 ├── README.md                                         # Quickstart, setup, and overview
+├── .github/
+│   └── workflows/
+│       ├── deploy-backend.yml                        # CI/CD: .NET 10 build, xUnit test, Docker GHCR & ACA deploy
+│       └── deploy-frontend.yml                       # CI/CD: Bun Next.js 16 build & SWA deploy
+├── infra/
+│   ├── main.bicep                                    # Zero-cost Azure Bicep template (ACA, SWA, Cosmos, Blob)
+│   └── main.parameters.json                          # Parameter configurations for Azure environment
 ├── .agents/
 │   ├── AGENTS.md                                     # AI coding agent instructions & guardrails
+│   ├── PROJECT_CONTEXT.md                            # Comprehensive architectural single-source-of-truth
+│   ├── PROJECT_PLAN.md                               # Master specification & roadmap
 │   └── skills/
 │       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
 ├── backend/
 │   ├── CodeLens.sln
+│   ├── Dockerfile                                    # Multi-stage .NET 10 container image (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # xUnit Test Suite (27 tests)
+│   │   └── CodeLens.Tests/                           # xUnit Test Suite (28 tests)
 │   │       ├── OctokitTelemetryTests.cs
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs
 │   │       ├── SecretScannerTests.cs
 │   │       ├── UserRepositoryTests.cs
-│   │       └── GeminiSynthesisTests.cs               # Phase 3 SK, Mermaid sanitizer & dossier tests
+│   │       └── GeminiSynthesisTests.cs               # SK, Mermaid sanitizer & dossier tests
 │   └── src/
 │       ├── CodeLens.Core/
 │       │   ├── Entities/                             # UserDocument, AuditDocument, ChatMessageDocument
@@ -114,7 +144,7 @@ codelens-ai/
 │       │   ├── GitHub/OctokitTelemetryService.cs     # Commits, sparklines, releases, zipball stream, rate budgeting
 │       │   ├── Analysis/RoslynAndPolyglotAnalyzer.cs # AST, cyclomatic complexity, hotspots, dead code, dependencies
 │       │   ├── Security/RegexSecretScanner.cs        # [GeneratedRegex] secret detection
-│       │   └── AI/                                   # Phase 3 AI Engine
+│       │   └── AI/                                   # Gemini AI Engine
 │       │       ├── GeminiOptions.cs                  # Gemini API options & model config
 │       │       ├── GeminiSynthesisService.cs         # SK connector & fallback synthesis engine
 │       │       ├── MermaidSanitizer.cs               # Diagram AST syntax cleanup & label quoting
@@ -159,7 +189,7 @@ codelens-ai/
 ## 5. Pre-Commit Verification Checklist for Agents
 
 1. Run `dotnet build backend/CodeLens.sln` — Must output `0 Warning(s)` and `0 Error(s)`.
-2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 27/27).
+2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 28/28).
 3. Run `cd frontend && bun run build` — Must pass typechecking and route generation cleanly.
 4. Run `bunx react-doctor@latest --scope changed` — Must report 0 issues.
 5. Verify no secrets or API keys are hardcoded in `appsettings.json` or `.env.local`.
