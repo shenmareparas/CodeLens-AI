@@ -209,10 +209,7 @@ codelens-ai/
         │   │   └── SignInPage.module.css             # Glassmorphic component styles
         │   └── dashboard/
         │       ├── page.tsx                          # Protected server page with session check
-        │       ├── DashboardClient.tsx               # Dashboard client orchestrator
-        │       └── audit/[id]/
-        │           ├── page.tsx                      # Split-screen audit workspace entrypoint
-        │           └── AuditWorkspaceClient.tsx      # Split workspace orchestrator (Dossier + Chat + Diagram)
+        │       └── DashboardClient.tsx               # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
         └── components/
             ├── DashboardHeader.tsx                   # Top bar navigation & user profile
             ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container

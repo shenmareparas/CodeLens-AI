@@ -177,10 +177,7 @@ codelens-ai/
         │   │   └── passwordUtils.ts                  # Criteria scoring & evaluation rules
         │   └── dashboard/
         │       ├── page.tsx                          # Protected server dashboard page
-        │       ├── DashboardClient.tsx               # Telemetry Bento Grid & repo submission
-        │       └── audit/[id]/
-        │           ├── page.tsx                      # Split-screen audit workspace entrypoint
-        │           └── AuditWorkspaceClient.tsx      # Split workspace orchestrator (Dossier + Chat + Diagram)
+        │       └── DashboardClient.tsx               # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
         └── components/
             ├── DashboardHeader.tsx                   # Top bar navigation & user profile
             ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container

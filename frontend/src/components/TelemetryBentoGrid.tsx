@@ -6,11 +6,11 @@ import { HotspotTable } from "./HotspotTable";
 import { DependenciesCard } from "./DependenciesCard";
 
 interface TelemetryBentoGridProps {
-  repoUrl: string;
+  repoUrl?: string;
   telemetry: TelemetryData;
 }
 
-export function TelemetryBentoGrid({ repoUrl, telemetry }: TelemetryBentoGridProps) {
+export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
   const getCadenceColor = (status: string) => {
     const s = status.toLowerCase();
     if (s.includes("healthy") || s.includes("active")) return { bg: "rgba(34, 197, 94, 0.15)", text: "#4ade80", border: "rgba(34, 197, 94, 0.3)" };

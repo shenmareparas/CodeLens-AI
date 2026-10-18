@@ -6,14 +6,13 @@ import remarkGfm from "remark-gfm";
 
 interface DossierViewerProps {
   markdown: string;
-  auditId: string;
+  auditId?: string;
   onDownloadSas?: () => Promise<void>;
   isDownloading?: boolean;
 }
 
 export function DossierViewer({
   markdown,
-  auditId,
   onDownloadSas,
   isDownloading = false,
 }: DossierViewerProps) {

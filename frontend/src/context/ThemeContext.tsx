@@ -20,8 +20,21 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") return "system";
+    const saved = localStorage.getItem("codelens-theme") as ThemeMode | null;
+    return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+  });
+
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
+    if (typeof window === "undefined") return "dark";
+    const saved = localStorage.getItem("codelens-theme") as ThemeMode | null;
+    const mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    if (mode === "system") {
+      return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    }
+    return mode;
+  });
 
   const applyTheme = (mode: ThemeMode) => {
     let effective: ResolvedTheme = "dark";
@@ -36,10 +49,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem("codelens-theme") as ThemeMode | null;
-    const initialMode: ThemeMode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
-    setThemeState(initialMode);
-    applyTheme(initialMode);
+    document.documentElement.setAttribute("data-theme", resolvedTheme);
 
     // Listen for system theme changes if mode is 'system'
     const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
@@ -54,7 +64,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     mediaQuery.addEventListener("change", handleSystemChange);
     return () => mediaQuery.removeEventListener("change", handleSystemChange);
-  }, []);
+  }, [resolvedTheme]);
 
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);

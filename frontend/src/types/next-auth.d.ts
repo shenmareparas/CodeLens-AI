@@ -1,4 +1,4 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import type { DefaultSession } from "next-auth";
 
 // Augment the Session type to include backendToken and user metadata
 declare module "next-auth" {

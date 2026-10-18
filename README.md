@@ -81,9 +81,7 @@ codelens-ai/
 │   │   │   ├── globals.css             # Glassmorphism design system & token definitions
 │   │   │   ├── auth/signin/            # Tabbed Sign-In / Create Account UI
 │   │   │   └── dashboard/              # Protected dashboard & repository submission
-│   │   │       ├── DashboardClient.tsx # Bento Grid telemetry presentation & sample chips
-│   │   │       └── audit/[id]/         # Split-screen interactive workspace
-│   │   │           └── AuditWorkspaceClient.tsx
+│   │   │       └── DashboardClient.tsx # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
 │   │   ├── components/                 # Presentation & telemetry components
 │   │   │   ├── DashboardHeader.tsx     # Top bar navigation & user profile
 │   │   │   ├── ActiveAuditSection.tsx  # Active audit summary, stale banner & Bento container
@@ -192,7 +190,9 @@ az deployment group create \
 ### 2. Automated GitHub Actions CI/CD
 
 Pushing to `main` automatically triggers:
+
 - [`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml): Runs all 29 xUnit tests, builds Docker container, publishes to GitHub Container Registry (`ghcr.io`), and deploys to Azure Container Apps.
+
 - [`.github/workflows/deploy-frontend.yml`](.github/workflows/deploy-frontend.yml): Builds Next.js 16 with Bun and deploys to Azure Static Web Apps.
 
 ---

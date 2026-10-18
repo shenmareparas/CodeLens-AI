@@ -42,19 +42,22 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, onClose }: Re
     setError(null);
     setInput("");
 
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: `user-${crypto.randomUUID()}`,
       role: "user",
       content: query,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: formattedTime,
     };
 
-    const assistantMessageId = `assistant-${Date.now()}`;
+    const assistantMessageId = `assistant-${crypto.randomUUID()}`;
     const initialAssistantMessage: ChatMessage = {
       id: assistantMessageId,
       role: "assistant",
       content: "",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: formattedTime,
     };
 
     setMessages((prev) => [...prev, userMessage, initialAssistantMessage]);
