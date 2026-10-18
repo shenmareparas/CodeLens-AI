@@ -92,14 +92,38 @@ else
 
 builder.Services.AddScoped<AuthService>();
 
-// ── CORS (allow frontend dev server) ──────────────────────────────────────────
+// ── CORS (allow frontend dev server and production domains) ────────────────
 builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
 {
-    policy.WithOrigins(
-        builder.Configuration["AllowedOrigins"] ?? "http://localhost:3000")
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+    var rawAllowedOrigins = builder.Configuration["AllowedOrigins"];
+    if (string.IsNullOrWhiteSpace(rawAllowedOrigins) || rawAllowedOrigins == "*")
+    {
+        policy.SetIsOriginAllowed(_ => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    }
+    else
+    {
+        var origins = rawAllowedOrigins
+            .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        policy.WithOrigins(origins)
+            .SetIsOriginAllowed(origin =>
+            {
+                if (origins.Contains(origin, StringComparer.OrdinalIgnoreCase)) return true;
+                // Automatically permit Azure Static Web Apps domains and localhost
+                if (origin.EndsWith(".azurestaticapps.net", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                return false;
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    }
 }));
 
 // ── OpenAPI / Scalar ──────────────────────────────────────────────────────────

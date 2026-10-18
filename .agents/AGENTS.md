@@ -29,6 +29,7 @@
 - **Target Framework:** Strictly `.NET 10` (`net10.0`) across all `.csproj` files. Do NOT downgrade to `net8.0` or `net9.0`.
 - **Zero-Warning Policy:** `dotnet build CodeLens.sln` must succeed with **0 errors and 0 warnings**.
 - **Port Assignment:** Backend API runs on `5050` (`http://localhost:5050`) to prevent collisions with macOS AirPlay (`ControlCenter` on port 5000). Never revert to port 5000.
+- **CORS Policy:** Automatically permits Azure Static Web Apps domains (`*.azurestaticapps.net`), localhost origins (`http://localhost:*`), and origins defined in `AllowedOrigins` with credentials enabled.
 - **ID Generation:** Use standard alphanumeric GUID formatting (`Guid.NewGuid().ToString("N")`). Do NOT introduce external `Ulid` packages.
 - **API Documentation:** Uses Scalar OpenAPI UI at `/scalar/v1` (`http://localhost:5050/scalar/v1`). Do NOT replace Scalar with Swashbuckle.
 - **Unit Testing:** Maintain and run xUnit tests in `tests/CodeLens.Tests/` via `dotnet test backend/CodeLens.sln`.
