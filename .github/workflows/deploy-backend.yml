@@ -101,3 +101,6 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP || 'rg-codelens-prod' }}
           imageToDeploy: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           targetPort: 5050
+          registryUrl: ${{ env.REGISTRY }}
+          registryUsername: ${{ github.actor }}
+          registryPassword: ${{ secrets.GITHUB_TOKEN }}
