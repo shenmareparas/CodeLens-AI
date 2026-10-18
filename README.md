@@ -8,15 +8,16 @@
 ## 🌟 Highlights & Capabilities
 
 - 📊 **Commit Velocity & Sparklines:** Tracks commit cadence and repository activity over time via GitHub Octokit.
-- 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots.
-- 📦 **Polyglot Dependency Intelligence:** Parses Bun (`bun.lock`), Node.js (`package.json`), Dart/Flutter (`pubspec.yaml`), .NET (`.csproj`), Python (`requirements.txt`), Go (`go.mod`), and Rust (`Cargo.toml`) with interactive real-time ecosystem filtering.
-- 🌳 **Architecture Explorer & Mermaid Canvas:** Generates interactive Mermaid.js C4 and component dependency diagrams with client-side pan, zoom controls, and SVG clipboard export.
+- 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots (automatically ignoring `.agents/` and configuration tooling).
+- 📦 **Polyglot Dependency Intelligence:** Parses Bun (`bun.lock`), Node.js (`package.json`), Dart/Flutter (`pubspec.yaml`), .NET (`.csproj`), Python (`requirements.txt`), Go (`go.mod`), and Rust (`Cargo.toml`) with interactive real-time ecosystem filtering and search.
+- 🌳 **Architecture Explorer & Touchpad Gestures:** Generates interactive Mermaid.js C4 and component dependency diagrams with trackpad pinch-to-zoom, two-finger pan, dynamic size-aware zoom limits, viewport pan clamping (preventing diagrams from escaping off-screen), a 1-click view reset button, and SVG export.
 - 🧹 **Dead Code & Zombie Files:** Pinpoints unreferenced internal symbols and dormant legacy files.
-- 🛡️ **Zero-Allocation Secret Scanner:** Scans for exposed API keys, private keys, `.pem`, and environment secrets using compiled .NET 10 `[GeneratedRegex]`.
+- 🛡️ **Zero-Allocation Secret Scanner:** Scans for exposed API keys, private keys, `.pem`, and environment secrets using compiled .NET 10 `[GeneratedRegex]`, with smart filtering for benign `.env.example` templates.
 - 🔐 **Hybrid Authentication:** Supports both standard email/password (PBKDF2 with HMAC-SHA512 + 100,000 iterations) and Google OAuth 2.0 with automatic account linking.
-- ⚡ **Shared Repo Cache & Commit Staleness Detection:** Instantly retrieves previously analyzed repositories in `<50ms`. Automatically compares cached commit SHAs against the GitHub remote default branch to flag outdated audits and offer 1-click re-analysis.
-- 🖥️ **Split-Screen Interactive Workspace (`/dashboard/audit/[id]`):** Side-by-side architecture diagram canvas, GitHub-flavored Markdown dossier viewer with SAS token download, and grounded streaming copilot.
-- 🤖 **Grounded Contextual Chat:** Real-time Server-Sent Events (SSE) chat copilot answering codebase questions grounded strictly in a synthesized `PROJECT_KNOWLEDGE.md` dossier.
+- ⚡ **Shared Repo Cache & 1-Click Re-Analysis:** Instantly retrieves previously analyzed repositories in `<50ms`. Automatically compares cached commit SHAs against the GitHub remote default branch to flag outdated audits with 1-click re-analysis (`forceRefresh: true`).
+- 🖥️ **Unified All-in-One Dashboard:** Everything on the main dashboard — Telemetry Bento Grid, Architecture Diagram canvas, and Knowledge Dossier viewer.
+- 🤖 **Context-Grounded Floating AI Drawer:** Slide-over AI copilot accessible from a floating bottom-right launcher button or top header, grounded strictly in the synthesized `PROJECT_KNOWLEDGE.md` dossier via real-time SSE streaming.
+- 🌓 **Proper Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, and high-contrast form controls.
 - ☁️ **Zero-Cost Azure Cloud Infrastructure:** Fully automated Infrastructure as Code via Azure Bicep (`infra/main.bicep`) featuring Cosmos DB Lifetime Free Tier (1,000 RU/s, 25 GB), Azure Container Apps with scale-to-zero billing, Azure Static Web Apps, and GitHub Actions CI/CD.
 
 ---
@@ -44,10 +45,10 @@
 
 | Layer | Technologies | Details |
 | :--- | :--- | :--- |
-| **Frontend** | Next.js 16, Bun, TypeScript, NextAuth v5 | Dark glassmorphism token design system, `src/proxy.ts` route protection |
-| **Workspace UI** | Mermaid.js, React Markdown, Lucide Icons | Client-side pan/zoom diagram canvas, Markdown dossier viewer, SSE chat sidebar |
+| **Frontend** | Next.js 16, Bun, TypeScript, NextAuth v5 | Light/Dark/System theme system, `src/proxy.ts` route protection |
+| **Workspace UI** | Mermaid.js, React Markdown, Lucide Icons | Trackpad gestures, size-aware zoom, Markdown dossier viewer, AI chat drawer |
 | **Backend** | .NET 10 (`net10.0`), C# 13, ASP.NET Core | Minimal APIs, Scalar OpenAPI, PBKDF2 cryptography, port 5050 |
-| **Analysis** | Roslyn C# Compiler, Polyglot AST, Octokit | In-memory zipball parsing, complexity & hotspot calculation, commit staleness |
+| **Analysis** | Roslyn C# Compiler, Polyglot AST, Octokit | In-memory zipball parsing, complexity & hotspot calculation (ignoring `.agents/`), commit staleness |
 | **AI Synthesis** | Microsoft Semantic Kernel (`1.81.0`), Gemini | Google AI Studio `gemini-3.8-flash` integration & fallback engine |
 | **Data & Cloud** | Azure Cosmos DB, Azure Blob Storage | Fallback in-memory providers for local development; Bicep IaC for Azure |
 | **DevOps & CI/CD** | GitHub Actions, Docker, Azure Bicep | Scale-to-zero ACA container deployment, GHCR images, SWA deployment |
@@ -192,22 +193,23 @@ az deployment group create \
 ### 2. Automated GitHub Actions CI/CD
 
 Pushing to `main` automatically triggers:
-- [`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml): Runs all 28 xUnit tests, builds Docker container, publishes to GitHub Container Registry (`ghcr.io`), and deploys to Azure Container Apps.
+- [`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml): Runs all 29 xUnit tests, builds Docker container, publishes to GitHub Container Registry (`ghcr.io`), and deploys to Azure Container Apps.
 - [`.github/workflows/deploy-frontend.yml`](.github/workflows/deploy-frontend.yml): Builds Next.js 16 with Bun and deploys to Azure Static Web Apps.
 
 ---
 
 ## 🧩 Implemented Core Capabilities
 
-- [x] **Foundation & Infrastructure:** ASP.NET Core .NET 10 Minimal API, Next.js 16 App Router, Scalar OpenAPI UI, zero-warning build.
-- [x] **Hybrid Authentication:** PBKDF2 Email/Password cryptography, Google OAuth 2.0 auto-linking, real-time criteria checks, dynamic strength meter, and show/hide toggles.
-- [x] **Deterministic Telemetry & Static Analysis:** Zero-disk in-memory zipball streaming, Octokit commit sparklines, Roslyn AST cyclomatic complexity, hotspot calculation, polyglot package parsing, compiled regex secret scanner, and Telemetry Bento Grid.
+- [x] **Foundation & Infrastructure:** ASP.NET Core .NET 10 Minimal API, Next.js 16 App Router, Scalar OpenAPI UI, zero-warning build, 29 passing xUnit tests.
+- [x] **Hybrid Authentication:** PBKDF2 Email/Password cryptography, Google OAuth 2.0 auto-linking, real-time criteria checks, dynamic strength meter, show/hide toggles, and dedicated auth page theme toggling.
+- [x] **Deterministic Telemetry & Static Analysis:** Zero-disk in-memory zipball streaming, Octokit commit sparklines, Roslyn AST cyclomatic complexity, hotspot calculation (with `.agents/` exclusion), polyglot package parsing, compiled regex secret scanner (with `.env.example` filtering), and Telemetry Bento Grid.
 - [x] **Gemini 3.8 Flash Dossier Synthesis:** Semantic Kernel connector, structured outputs (ELI5, License, Architecture Smells, Runbook), Mermaid diagram syntax sanitization, and standardized `PROJECT_KNOWLEDGE.md` compilation with Azure Blob SAS tokens.
-- [x] **Interactive Dashboard & Copilot Workspace:** Split-screen workspace at `/dashboard/audit/[id]`, interactive pan/zoom Mermaid canvas, GFM Markdown dossier viewer, real-time SSE streaming copilot chat, shared repository cache (`<50ms`), and remote commit staleness detection.
+- [x] **Unified Interactive Dashboard & Floating AI Drawer:** All-in-one home dashboard with tabs for Bento Grid, Mermaid Diagram, and Knowledge Dossier. Slide-over AI copilot drawer with streaming SSE responses. Trackpad gestures (pinch-to-zoom, two-finger pan) with dynamic diagram-aware zoom bounds.
+- [x] **Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, instant anti-flash pre-hydration script, dynamic SVG diagram color palette adaptation, and high-contrast form controls and typography.
 - [x] **Zero-Cost Cloud Deployment & CI/CD:** Azure Container Apps scale-to-zero compute, Azure Static Web Apps, Cosmos DB Lifetime Free Tier, Azure Bicep IaC (`infra/main.bicep`), and automated GitHub Actions workflows.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

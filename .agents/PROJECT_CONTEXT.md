@@ -78,9 +78,10 @@
 ### 3.2 Zero-Disk Telemetry & Static Analysis Pipeline
 
 - **In-Memory Streaming:** Calls `GET /repos/{owner}/{repo}/zipball` to receive the default branch archive stream. Opens a `System.IO.Compression.ZipArchive` in memory and processes file contents on the fly.
-- **Directory Exclusion:** Filters out non-source directories: `node_modules/`, `.git/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary file types.
+- **Directory Exclusion:** Filters out non-source directories and tooling: `node_modules/`, `.git/`, `.agents/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary file types.
 - **Hotspot Risk Formula:**
   $$\text{RiskScore} = \text{Math.Round}(\text{CyclomaticComplexity} \times \ln(\text{ChurnCount} + 1), 2)$$
+  - Files under `.agents/` or configuration tooling directories are explicitly ignored to avoid polluting codebase complexity heatmaps.
 - **Dead Code Detection:** Identifies unreferenced symbols, internal helper classes, and orphan files with zero inbound dependencies.
 - **Dependency Parser:** Extracts package dependencies from `bun.lock` / `package.json` (Bun, npm), `pubspec.yaml` (Pub, Pub dev, Pub override), `.csproj` / `Directory.Build.props` (NuGet), `requirements.txt` (PyPI), `go.mod` (Go Modules), and `Cargo.toml` (Cargo).
 - **Compiled Secret Scanner (`RegexSecretScanner.cs`):** Uses compile-time `.NET 10` `[GeneratedRegex]` attributes for zero-allocation scanning of:
@@ -88,12 +89,13 @@
   - GitHub personal access tokens (`ghp_[0-9a-zA-Z]{36}`, `github_pat_...`)
   - Generic private keys (`-----BEGIN PRIVATE KEY-----`, `-----BEGIN RSA PRIVATE KEY-----`)
   - Connection strings and `.env` passwords
+  - *Benign Template Filtering:* Dummy placeholder keys in `.env.example`, `.env.sample`, and `.env.template` are skipped to prevent false-positive security warnings.
 - **GitHub Rate Limit Quota Management:**
   - Unauthenticated IP rate limit is 60 requests/hr.
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 28 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
+- **Test Suite:** 29 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
 
 ### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
@@ -109,20 +111,13 @@
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 
-### 3.4 Grounded Chat, Interactive Dashboard & Shared Repo Cache
+### 3.4 Unified Dashboard, Floating AI Drawer & Theme System
 
-- **Streaming Endpoint:** `POST /api/chat/{id}/stream` returning `text/event-stream` with JSON-encoded chunk payloads (`data: {"text":"..."}\n\n`).
-- **System Prompt Grounding:** The chat copilot system prompt is grounded directly in the audit's `PROJECT_KNOWLEDGE.md`.
-- **Shared Repository Cache & Staleness:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis.
-- **UI Components:**
-  - `TelemetryBentoGrid.tsx`: Sparklines, language breakdown, release cadence, and quick stats.
-  - `DependenciesCard.tsx`: Ecosystem pill filters (`All`, `Bun`, `Pub`, `npm`, `NuGet`, `PyPI`, `Cargo`), color tags, and live package search.
-  - `HotspotTable.tsx`: Ranked complexity vs churn hotspots with risk badges.
-  - `SparklineChart.tsx`: 8-week commit activity visualization.
-  - `MermaidViewer.tsx`: Pan, zoom, and SVG export.
-  - `DossierViewer.tsx`: Formatted Markdown dossier preview with SAS download.
-  - `RepoChatSidebar.tsx`: Grounded copilot chat with streaming tokens.
-  - `AuditWorkspaceClient.tsx`: Split-screen interactive workspace at `/dashboard/audit/[id]`.
+- **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`).
+- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`).
+- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
+- **Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `layout.tsx`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens.
+- **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis (`forceRefresh: true`).
 
 ### 3.5 Cloud Infrastructure & CI/CD Deployment
 
@@ -248,7 +243,7 @@ codelens-ai/
 cd backend
 dotnet restore CodeLens.sln               # Restore NuGet packages
 dotnet build CodeLens.sln                 # Build (Zero warnings required)
-dotnet test CodeLens.sln                  # Run 28 xUnit tests
+dotnet test CodeLens.sln                  # Run 29 xUnit tests
 dotnet run --project src/CodeLens.Api     # Start API server on port 5050
 
 # ── Frontend Operations ─────────────────────────────────────────────
@@ -262,8 +257,8 @@ bunx react-doctor@latest --scope changed  # Verify React diagnostics
 ### 5.3 Quality & Guardrail Checklist
 
 - [x] Zero warnings on `dotnet build CodeLens.sln`.
-- [x] All 28 xUnit tests passing on `dotnet test CodeLens.sln`.
+- [x] All 29 xUnit tests passing on `dotnet test CodeLens.sln`.
 - [x] Clean `bun run build` with static & dynamic route compilation.
-- [x] React Doctor: 0 issues on changed files.
+- [x] React Doctor baseline maintained.
 - [x] Zero hardcoded secrets in source files (always use `.env.local` or gitignored `appsettings.Development.json`).
 - [x] No `git clone` to local disk — all repo ingestion must remain zero-disk in-memory streams.

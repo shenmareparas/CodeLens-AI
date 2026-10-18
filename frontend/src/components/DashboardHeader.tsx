@@ -1,4 +1,4 @@
-"use client";
+import { useTheme } from "@/context/ThemeContext";
 
 interface DashboardHeaderProps {
   userName?: string | null;
@@ -7,6 +7,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ userName, userEmail, onSignOut }: DashboardHeaderProps) {
+  const { theme, resolvedTheme, cycleTheme } = useTheme();
+
   return (
     <header
       style={{
@@ -31,6 +33,7 @@ export function DashboardHeader({ userName, userEmail, onSignOut }: DashboardHea
             justifyContent: "center",
             fontWeight: 800,
             fontSize: "1.1rem",
+            color: "#fff",
           }}
         >
           ⚡
@@ -45,7 +48,35 @@ export function DashboardHeader({ userName, userEmail, onSignOut }: DashboardHea
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {/* Theme Toggle Button (Light / Dark / System) */}
+        <button
+          type="button"
+          onClick={cycleTheme}
+          title={`Current theme: ${theme} (resolved: ${resolvedTheme}). Click to cycle: System → Dark → Light.`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.45rem 0.8rem",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface)",
+            color: "var(--color-text)",
+            cursor: "pointer",
+            fontSize: "0.82rem",
+            fontWeight: 500,
+            transition: "var(--transition-fast)",
+          }}
+        >
+          <span>
+            {theme === "system" ? "💻" : theme === "dark" ? "🌙" : "☀️"}
+          </span>
+          <span style={{ textTransform: "capitalize" }}>
+            {theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light"}
+          </span>
+        </button>
+
         <div style={{ textAlign: "right", fontSize: "0.85rem" }}>
           <div style={{ fontWeight: 600, color: "var(--color-text)" }}>
             {userName || "Developer"}
@@ -54,6 +85,7 @@ export function DashboardHeader({ userName, userEmail, onSignOut }: DashboardHea
             {userEmail}
           </div>
         </div>
+
         <button
           type="button"
           onClick={onSignOut}
@@ -61,10 +93,11 @@ export function DashboardHeader({ userName, userEmail, onSignOut }: DashboardHea
             padding: "0.45rem 0.85rem",
             borderRadius: "var(--radius-sm)",
             border: "1px solid var(--color-border)",
-            background: "rgba(255, 255, 255, 0.04)",
+            background: "var(--color-surface)",
             color: "var(--color-text-muted)",
             cursor: "pointer",
             fontSize: "0.8rem",
+            transition: "var(--transition-fast)",
           }}
         >
           Sign Out

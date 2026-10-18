@@ -95,10 +95,18 @@ public static partial class RegexSecretScanner
             alerts.Add($"Exposed GitHub Token in {relativePath}: {MaskSecret(match.Value)}");
         }
 
-        // 4. Private Key Blocks
+        // 4. Private Key Blocks (suppress for .example / .sample / .template files unless non-placeholder content is present)
         if (PrivateKeyBlockRegex().IsMatch(content))
         {
-            alerts.Add($"Exposed Private Key header block in {relativePath}");
+            var isExampleFile = fileName.EndsWith(".example", StringComparison.OrdinalIgnoreCase) ||
+                                fileName.EndsWith(".sample", StringComparison.OrdinalIgnoreCase) ||
+                                fileName.EndsWith(".template", StringComparison.OrdinalIgnoreCase) ||
+                                fileName.StartsWith(".env.example", StringComparison.OrdinalIgnoreCase);
+
+            if (!isExampleFile || (!IsLikelyPlaceholder(content) && content.Contains("MIIE", StringComparison.OrdinalIgnoreCase)))
+            {
+                alerts.Add($"Exposed Private Key header block in {relativePath}");
+            }
         }
 
         // 5. Slack Tokens

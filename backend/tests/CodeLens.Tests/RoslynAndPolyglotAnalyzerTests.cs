@@ -94,6 +94,13 @@ public class RoslynAndPolyglotAnalyzerTests
             {
                 writer.WriteLine("module.exports = {};");
             }
+
+            // 5. Ignored file in .agents
+            var agentEntry = archive.CreateEntry("repo-main-12345/.agents/skills/react-doctor/SKILL.md");
+            using (var writer = new StreamWriter(agentEntry.Open(), Encoding.UTF8))
+            {
+                writer.WriteLine("# React Doctor Skill\nif (a && b) { return c; }");
+            }
         }
 
         memoryStream.Position = 0;

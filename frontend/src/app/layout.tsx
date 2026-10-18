@@ -25,7 +25,27 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var mode = localStorage.getItem('codelens-theme') || 'system';
+                  var effective = 'dark';
+                  if (mode === 'system') {
+                    effective = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                  } else {
+                    effective = mode;
+                  }
+                  document.documentElement.setAttribute('data-theme', effective);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         {/* Session is handled by the proxy and fetched client-side as needed */}
         <Providers>{children}</Providers>

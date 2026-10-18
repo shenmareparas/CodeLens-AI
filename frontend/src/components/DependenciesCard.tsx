@@ -147,7 +147,7 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
           <p
             style={{
               fontSize: "0.75rem",
-              color: "rgba(255, 255, 255, 0.4)",
+              color: "var(--color-text-muted)",
               margin: "0.15rem 0 0",
             }}
           >
@@ -165,12 +165,12 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
-              padding: "0.3rem 0.65rem",
+              padding: "0.35rem 0.65rem",
               fontSize: "0.75rem",
               borderRadius: "6px",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              color: "#fff",
+              background: "var(--color-input-bg)",
+              border: "1px solid var(--color-input-border)",
+              color: "var(--color-input-text)",
               outline: "none",
               fontFamily: "inherit",
               width: "150px",
@@ -202,13 +202,13 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
               borderRadius: "99px",
               border:
                 selectedEcosystem === "ALL"
-                  ? "1px solid #6366f1"
-                  : "1px solid rgba(255, 255, 255, 0.08)",
+                  ? "1px solid var(--color-primary)"
+                  : "1px solid var(--color-border)",
               background:
                 selectedEcosystem === "ALL"
-                  ? "rgba(99, 102, 241, 0.25)"
-                  : "rgba(255, 255, 255, 0.03)",
-              color: selectedEcosystem === "ALL" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                  ? "var(--color-primary)"
+                  : "var(--color-surface)",
+              color: selectedEcosystem === "ALL" ? "#fff" : "var(--color-text-muted)",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -233,11 +233,11 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
                   borderRadius: "99px",
                   border: isSelected
                     ? `1px solid ${badgeStyle.border}`
-                    : "1px solid rgba(255, 255, 255, 0.08)",
+                    : "1px solid var(--color-border)",
                   background: isSelected
                     ? badgeStyle.bg
-                    : "rgba(255, 255, 255, 0.03)",
-                  color: isSelected ? badgeStyle.text : "rgba(255, 255, 255, 0.6)",
+                    : "var(--color-surface)",
+                  color: isSelected ? badgeStyle.text : "var(--color-text-muted)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                 }}

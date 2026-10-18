@@ -7,18 +7,36 @@
 }
 
 :root {
-  /* Palette */
+  /* Palette (Dark Default) */
   --color-bg: #09090b;
   --color-surface: rgba(255, 255, 255, 0.03);
+  --color-surface-hover: rgba(255, 255, 255, 0.06);
   --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
   --color-text: #f4f4f5;
-  --color-text-muted: rgba(255, 255, 255, 0.45);
+  --color-text-muted: rgba(255, 255, 255, 0.55);
   --color-primary: #6366f1;
   --color-primary-light: #818cf8;
   --color-accent: #8b5cf6;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
+
+  /* Inputs & Form Controls */
+  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-border: rgba(255, 255, 255, 0.12);
+  --color-input-text: #ffffff;
+  --color-input-placeholder: rgba(255, 255, 255, 0.4);
+
+  /* Code & Panels */
+  --color-code-bg: rgba(0, 0, 0, 0.5);
+  --color-badge-bg: rgba(255, 255, 255, 0.05);
+  --color-header-bg: rgba(0, 0, 0, 0.3);
+  --color-drawer-bg: #0f0f12;
+  --color-drawer-border: #27272a;
+  --color-chat-bubble-assistant: #18181b;
+  --color-chat-bubble-user: #4f46e5;
+  --color-chat-text: #f4f4f5;
 
   /* Typography */
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
@@ -39,8 +57,49 @@
   --transition-base: 0.25s ease;
 }
 
+[data-theme="light"] {
+  /* Palette (Light Mode - Enhanced Contrast) */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  --color-border: #cbd5e1;
+  --color-border-subtle: #e2e8f0;
+  --color-text: #020617;
+  --color-text-muted: #475569;
+  --color-primary: #4338ca;
+  --color-primary-light: #3730a3;
+  --color-accent: #6d28d9;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+
+  /* Inputs & Form Controls */
+  --color-input-bg: #ffffff;
+  --color-input-border: #94a3b8;
+  --color-input-text: #020617;
+  --color-input-placeholder: #64748b;
+
+  /* Code & Panels */
+  --color-code-bg: #e2e8f0;
+  --color-badge-bg: #e2e8f0;
+  --color-header-bg: #f1f5f9;
+  --color-drawer-bg: #ffffff;
+  --color-drawer-border: #cbd5e1;
+  --color-chat-bubble-assistant: #f1f5f9;
+  --color-chat-bubble-user: #4338ca;
+  --color-chat-text: #020617;
+
+  /* Shadows */
+  --shadow-glow: 0 0 30px rgba(79, 70, 229, 0.12);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
 html {
   color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
@@ -61,11 +120,32 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-border);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-text-muted);
+}
+
+/* Form Inputs Global */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-input-placeholder);
+  opacity: 1;
+}
+
+input,
+textarea,
+select {
+  color: var(--color-input-text);
+  background: var(--color-input-bg);
+  border-color: var(--color-input-border);
+}
+
+/* Code & Pre Blocks */
+pre,
+code {
+  font-family: var(--font-mono);
 }
 
 /* Focus */
@@ -102,4 +182,15 @@ a:hover {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

@@ -56,7 +56,8 @@ public sealed partial class RoslynAndPolyglotAnalyzer : ICodeAnalysisService
         "out/",
         "coverage/",
         ".gradle/",
-        "packages/"
+        "packages/",
+        ".agents/"
     };
 
     private static readonly HashSet<string> ExcludedBinaryExtensions = new(StringComparer.OrdinalIgnoreCase)

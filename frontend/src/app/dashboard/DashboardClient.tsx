@@ -10,6 +10,7 @@ import {
 } from "@/lib/api-client";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ActiveAuditSection } from "@/components/ActiveAuditSection";
+import { RepoChatSidebar } from "@/components/RepoChatSidebar";
 
 interface DashboardClientProps {
   userName?: string | null;
@@ -37,6 +38,7 @@ export function DashboardClient({
 
   const [activeAudit, setActiveAudit] = useState<AuditResponse | null>(null);
   const [recentAudits, setRecentAudits] = useState<AuditResponse[]>([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Load previous audits on mount
   useEffect(() => {
@@ -115,7 +117,7 @@ export function DashboardClient({
       {/* ── Ingestion Form / Hero ─────────────────────────────────────────── */}
       <section
         style={{
-          background: "linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)",
+          background: "var(--color-surface)",
           border: "1px solid var(--color-border)",
           borderRadius: "var(--radius-xl)",
           padding: "2rem",
@@ -133,7 +135,7 @@ export function DashboardClient({
               borderRadius: "99px",
               background: "rgba(99, 102, 241, 0.15)",
               border: "1px solid rgba(99, 102, 241, 0.3)",
-              color: "var(--color-primary-light)",
+              color: "var(--color-primary)",
               fontSize: "0.75rem",
               fontWeight: 600,
               marginBottom: "0.5rem",
@@ -165,43 +167,69 @@ export function DashboardClient({
             style={{
               flex: "1 1 320px",
               padding: "0.75rem 1rem",
-              background: "rgba(0, 0, 0, 0.4)",
-              border: "1px solid var(--color-border)",
+              background: "var(--color-input-bg)",
+              border: "1px solid var(--color-input-border)",
               borderRadius: "var(--radius-md)",
-              color: "#fff",
+              color: "var(--color-input-text)",
               fontSize: "0.95rem",
               fontFamily: "var(--font-mono)",
               outline: "none",
             }}
           />
-          <button
-            type="submit"
-            disabled={isLoading || !repoUrl.trim()}
-            style={{
-              padding: "0.75rem 1.5rem",
-              borderRadius: "var(--radius-md)",
-              border: "none",
-              background: isLoading ? "rgba(99, 102, 241, 0.5)" : "var(--color-primary)",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: "0.95rem",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
-            {isLoading ? (
-              <>
-                <span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>🔄</span>
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <span>⚡</span> Analyze Repository
-              </>
-            )}
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <button
+              type="submit"
+              disabled={isLoading || !repoUrl.trim()}
+              style={{
+                padding: "0.75rem 1.5rem",
+                borderRadius: "var(--radius-md)",
+                border: "none",
+                background: isLoading ? "rgba(99, 102, 241, 0.5)" : "var(--color-primary)",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                transition: "var(--transition-fast)",
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>🔄</span>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <span>⚡</span> Analyze Repository
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isLoading || !repoUrl.trim()}
+              onClick={() => handleAnalyze(repoUrl, true)}
+              title="Bypass shared cache and re-analyze the repository from scratch"
+              style={{
+                padding: "0.75rem 1.25rem",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                cursor: isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                transition: "var(--transition-fast)",
+              }}
+            >
+              <span style={{ display: "inline-block" }}>🔄</span>
+              <span>Re-analyze</span>
+            </button>
+          </div>
         </form>
 
         {/* Quick Sample Links */}
@@ -220,11 +248,12 @@ export function DashboardClient({
                 padding: "0.2rem 0.55rem",
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--color-border)",
-                background: "rgba(255, 255, 255, 0.03)",
-                color: "var(--color-primary-light)",
+                background: "var(--color-surface)",
+                color: "var(--color-primary)",
                 cursor: "pointer",
                 fontSize: "0.75rem",
                 fontFamily: "var(--font-mono)",
+                fontWeight: 500,
               }}
             >
               {sample.replace("https://github.com/", "")}
@@ -285,8 +314,8 @@ export function DashboardClient({
                     borderRadius: "99px",
                     border: "1px solid",
                     borderColor: isSelected ? "var(--color-primary)" : "var(--color-border)",
-                    background: isSelected ? "rgba(99, 102, 241, 0.2)" : "rgba(255, 255, 255, 0.02)",
-                    color: isSelected ? "#fff" : "var(--color-text-muted)",
+                    background: isSelected ? "var(--color-primary)" : "var(--color-surface)",
+                    color: isSelected ? "#ffffff" : "var(--color-text)",
                     fontSize: "0.8rem",
                     fontFamily: "var(--font-mono)",
                     cursor: "pointer",
@@ -294,6 +323,7 @@ export function DashboardClient({
                     display: "flex",
                     alignItems: "center",
                     gap: "0.4rem",
+                    transition: "var(--transition-fast)",
                   }}
                 >
                   <span>📦</span>
@@ -305,12 +335,95 @@ export function DashboardClient({
         </section>
       )}
 
-      {/* ── Active Audit Telemetry Bento Grid & Staleness Banner ───────────── */}
+      {/* ── Active Audit Telemetry Bento Grid, Dossier, Diagram & Staleness Banner ───── */}
       {activeAudit && (
         <ActiveAuditSection
           audit={activeAudit}
+          backendToken={backendToken}
           isLoading={isLoading}
           onReAnalyze={(url) => handleAnalyze(url, true)}
+          onOpenChat={() => setIsChatOpen(true)}
+        />
+      )}
+
+      {/* ── Floating Ask AI Button (Bottom Right Corner) ─────────────────── */}
+      {activeAudit && !isChatOpen && (
+        <button
+          type="button"
+          onClick={() => setIsChatOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: "2rem",
+            right: "2rem",
+            zIndex: 40,
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            padding: "0.85rem 1.35rem",
+            borderRadius: "9999px",
+            background: "linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%)",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "0.95rem",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
+            cursor: "pointer",
+            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0) scale(1)";
+          }}
+        >
+          <span style={{ fontSize: "1.2rem" }}>✨</span>
+          <span>Ask AI</span>
+        </button>
+      )}
+
+      {/* ── Slide-over Right Side Panel (Drawer) ───────────────────────────── */}
+      {activeAudit && isChatOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "min(520px, 92vw)",
+            height: "100vh",
+            zIndex: 50,
+            background: "var(--color-drawer-bg)",
+            boxShadow: "-12px 0 36px rgba(0, 0, 0, 0.4)",
+            borderLeft: "1px solid var(--color-drawer-border)",
+            display: "flex",
+            flexDirection: "column",
+            animation: "slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <RepoChatSidebar
+            auditId={activeAudit.auditId}
+            backendToken={backendToken}
+            repoName={activeAudit.repoUrl.replace("https://github.com/", "")}
+            onClose={() => setIsChatOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* Backdrop overlay for drawer */}
+      {activeAudit && isChatOpen && (
+        <button
+          type="button"
+          aria-label="Close AI Chat Drawer"
+          onClick={() => setIsChatOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 45,
+            background: "rgba(0, 0, 0, 0.65)",
+            border: "none",
+            cursor: "default",
+          }}
         />
       )}
     </div>

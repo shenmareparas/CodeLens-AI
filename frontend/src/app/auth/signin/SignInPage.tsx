@@ -2,10 +2,12 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 import { CredentialsForm } from "./CredentialsForm";
 import styles from "./SignInPage.module.css";
 
 export default function SignInPage() {
+  const { theme, cycleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -21,8 +23,37 @@ export default function SignInPage() {
     }
   };
 
+  const themeIcon = theme === "system" ? "💻" : theme === "dark" ? "🌙" : "☀️";
+  const themeLabel = theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light";
+
   return (
     <div className={styles.container}>
+      {/* Top right theme toggle */}
+      <div style={{ position: "absolute", top: "1.25rem", right: "1.25rem", zIndex: 20 }}>
+        <button
+          type="button"
+          onClick={cycleTheme}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.35rem 0.75rem",
+            borderRadius: "9999px",
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            color: "var(--color-text)",
+            fontSize: "0.8rem",
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+          }}
+          title={`Theme: ${themeLabel} (Click to toggle)`}
+        >
+          <span>{themeIcon}</span>
+          <span>{themeLabel}</span>
+        </button>
+      </div>
+
       <div className={styles.card}>
         {/* Brand */}
         <div className={styles.brand}>

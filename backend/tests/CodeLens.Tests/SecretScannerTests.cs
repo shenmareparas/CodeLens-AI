@@ -53,4 +53,13 @@ public class SecretScannerTests
 
         Assert.Empty(alerts);
     }
+
+    [Fact]
+    public void ScanFile_IgnoresPlaceholderPrivateKeyInExampleFile()
+    {
+        var content = "PRIVATE_KEY=\"-----BEGIN PRIVATE KEY-----\\nyour-placeholder-key-here\\n-----END PRIVATE KEY-----\"";
+        var alerts = RegexSecretScanner.ScanFile(".env.example", content);
+
+        Assert.Empty(alerts);
+    }
 }

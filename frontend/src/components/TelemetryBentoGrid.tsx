@@ -272,11 +272,11 @@ export function TelemetryBentoGrid({ repoUrl, telemetry }: TelemetryBentoGridPro
                   key={idx}
                   style={{
                     padding: "0.45rem 0.65rem",
-                    background: "rgba(255, 255, 255, 0.02)",
+                    background: "var(--color-badge-bg)",
                     borderRadius: "var(--radius-sm)",
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.75rem",
-                    color: "var(--color-text-muted)",
+                    color: "var(--color-text)",
                   }}
                 >
                   {dc}
@@ -293,12 +293,11 @@ export function TelemetryBentoGrid({ repoUrl, telemetry }: TelemetryBentoGridPro
 // ── Shared Styling Tokens ───────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.03)",
+  background: "var(--color-surface)",
   border: "1px solid var(--color-border)",
   borderRadius: "var(--radius-lg)",
   padding: "1.25rem",
   boxShadow: "var(--shadow-card)",
-  backdropFilter: "blur(12px)",
 };
 
 const cardHeaderStyle: React.CSSProperties = {

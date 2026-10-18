@@ -14,6 +14,7 @@ interface RepoChatSidebarProps {
   auditId: string;
   backendToken: string;
   repoName: string;
+  onClose?: () => void;
 }
 
 const PRESET_QUESTIONS = [
@@ -23,7 +24,7 @@ const PRESET_QUESTIONS = [
   "Explain the entry points and major data flows.",
 ];
 
-export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSidebarProps) {
+export function RepoChatSidebar({ auditId, backendToken, repoName, onClose }: RepoChatSidebarProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -86,8 +87,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
     <div
       style={{
         borderRadius: "var(--radius-lg)",
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
+        background: "var(--color-drawer-bg)",
+        border: "1px solid var(--color-drawer-border)",
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -98,8 +99,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
       <div
         style={{
           padding: "0.85rem 1.25rem",
-          borderBottom: "1px solid var(--color-border)",
-          background: "rgba(0, 0, 0, 0.3)",
+          borderBottom: "1px solid var(--color-drawer-border)",
+          background: "var(--color-header-bg)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -109,7 +110,7 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
           <span style={{ fontSize: "1.1rem" }}>🤖</span>
           <div>
             <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-text)" }}>
-              Repo Onboarding Copilot
+              Repo AI
             </div>
             <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}>
               Grounded strictly in {repoName} dossier
@@ -117,22 +118,47 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
           </div>
         </div>
 
-        {isStreaming && (
-          <span
-            style={{
-              fontSize: "0.7rem",
-              padding: "0.15rem 0.5rem",
-              borderRadius: "99px",
-              background: "rgba(99, 102, 241, 0.2)",
-              color: "var(--color-primary-light)",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.3rem",
-            }}
-          >
-            <span style={{ animation: "pulse 1.5s infinite" }}>●</span> Streaming
-          </span>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          {isStreaming && (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                padding: "0.15rem 0.5rem",
+                borderRadius: "99px",
+                background: "rgba(99, 102, 241, 0.15)",
+                color: "var(--color-primary-light)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.3rem",
+              }}
+            >
+              <span style={{ animation: "pulse 1.5s infinite" }}>●</span> Streaming
+            </span>
+          )}
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close Chat Panel"
+              style={{
+                background: "var(--color-surface-hover)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-sm)",
+                color: "var(--color-text-muted)",
+                cursor: "pointer",
+                padding: "0.25rem 0.55rem",
+                fontSize: "0.85rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "var(--transition-fast)",
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Messages List ────────────────────────────────────────────────── */}
@@ -164,7 +190,7 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.5rem" }}>
-              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
                 Suggested Prompts
               </span>
               {PRESET_QUESTIONS.map((question) => (
@@ -173,15 +199,23 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
                   type="button"
                   onClick={() => handleSend(question)}
                   style={{
-                    padding: "0.45rem 0.75rem",
+                    padding: "0.55rem 0.85rem",
                     borderRadius: "var(--radius-sm)",
-                    background: "rgba(255, 255, 255, 0.03)",
+                    background: "var(--color-surface)",
                     border: "1px solid var(--color-border)",
                     color: "var(--color-primary-light)",
                     fontSize: "0.78rem",
                     textAlign: "left",
                     cursor: "pointer",
                     transition: "var(--transition-fast)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--color-surface-hover)";
+                    e.currentTarget.style.borderColor = "var(--color-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "var(--color-surface)";
+                    e.currentTarget.style.borderColor = "var(--color-border)";
                   }}
                 >
                   💬 {question}
@@ -204,13 +238,13 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
               >
                 <div
                   style={{
-                    padding: "0.65rem 0.95rem",
+                    padding: "0.7rem 1rem",
                     borderRadius: "var(--radius-md)",
-                    background: isUser ? "var(--color-primary)" : "rgba(255, 255, 255, 0.05)",
-                    border: isUser ? "none" : "1px solid var(--color-border)",
-                    color: isUser ? "#fff" : "var(--color-text)",
+                    background: isUser ? "var(--color-chat-bubble-user)" : "var(--color-chat-bubble-assistant)",
+                    border: isUser ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                    color: isUser ? "#ffffff" : "var(--color-text)",
                     fontSize: "0.85rem",
-                    lineHeight: "1.5",
+                    lineHeight: "1.55",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
                   }}
@@ -221,7 +255,7 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
                   style={{
                     fontSize: "0.68rem",
                     color: "var(--color-text-muted)",
-                    marginTop: "0.2rem",
+                    marginTop: "0.25rem",
                     alignSelf: isUser ? "flex-end" : "flex-start",
                   }}
                 >
@@ -240,10 +274,10 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
           style={{
             margin: "0 1rem 0.5rem",
             padding: "0.5rem 0.75rem",
-            background: "rgba(239, 68, 68, 0.15)",
+            background: "rgba(239, 68, 68, 0.12)",
             border: "1px solid rgba(239, 68, 68, 0.3)",
             borderRadius: "var(--radius-sm)",
-            color: "#f87171",
+            color: "#ef4444",
             fontSize: "0.78rem",
           }}
         >
@@ -260,7 +294,7 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
         style={{
           padding: "0.75rem 1rem",
           borderTop: "1px solid var(--color-border)",
-          background: "rgba(0, 0, 0, 0.25)",
+          background: "var(--color-header-bg)",
           display: "flex",
           gap: "0.5rem",
         }}
@@ -274,10 +308,10 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
           style={{
             flex: 1,
             padding: "0.6rem 0.85rem",
-            background: "rgba(0, 0, 0, 0.4)",
-            border: "1px solid var(--color-border)",
+            background: "var(--color-input-bg)",
+            border: "1px solid var(--color-input-border)",
             borderRadius: "var(--radius-sm)",
-            color: "#fff",
+            color: "var(--color-input-text)",
             fontSize: "0.85rem",
             outline: "none",
           }}
@@ -288,8 +322,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
           style={{
             padding: "0.6rem 1rem",
             borderRadius: "var(--radius-sm)",
-            background: isStreaming || !input.trim() ? "rgba(255, 255, 255, 0.05)" : "var(--color-primary)",
-            color: isStreaming || !input.trim() ? "var(--color-text-muted)" : "#fff",
+            background: isStreaming || !input.trim() ? "var(--color-surface-hover)" : "var(--color-primary)",
+            color: isStreaming || !input.trim() ? "var(--color-text-muted)" : "#ffffff",
             border: "none",
             fontWeight: 600,
             cursor: isStreaming || !input.trim() ? "not-allowed" : "pointer",
@@ -297,6 +331,7 @@ export function RepoChatSidebar({ auditId, backendToken, repoName }: RepoChatSid
             display: "flex",
             alignItems: "center",
             gap: "0.3rem",
+            transition: "var(--transition-fast)",
           }}
         >
           <span>Send</span>

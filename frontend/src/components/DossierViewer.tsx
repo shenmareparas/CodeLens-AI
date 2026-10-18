@@ -49,7 +49,7 @@ export function DossierViewer({
           alignItems: "center",
           padding: "0.75rem 1.25rem",
           borderBottom: "1px solid var(--color-border)",
-          background: "rgba(0, 0, 0, 0.3)",
+          background: "var(--color-header-bg)",
           flexWrap: "wrap",
           gap: "0.5rem",
         }}
@@ -140,7 +140,7 @@ export function DossierViewer({
                   fontWeight: 700,
                   marginTop: "1rem",
                   marginBottom: "0.75rem",
-                  color: "#fff",
+                  color: "var(--color-text)",
                   borderBottom: "1px solid var(--color-border)",
                   paddingBottom: "0.4rem",
                 }}
@@ -154,7 +154,7 @@ export function DossierViewer({
                   fontWeight: 600,
                   marginTop: "1.5rem",
                   marginBottom: "0.5rem",
-                  color: "#f4f4f5",
+                  color: "var(--color-text)",
                 }}
                 {...props}
               />
@@ -166,25 +166,26 @@ export function DossierViewer({
                   fontWeight: 600,
                   marginTop: "1.2rem",
                   marginBottom: "0.4rem",
-                  color: "var(--color-primary-light)",
+                  color: "var(--color-primary)",
                 }}
                 {...props}
               />
             ),
             p: ({ ...props }) => (
-              <p style={{ marginBottom: "0.85rem", color: "rgba(255, 255, 255, 0.85)" }} {...props} />
+              <p style={{ marginBottom: "0.85rem", color: "var(--color-text)" }} {...props} />
             ),
             code: ({ className, children, ...props }) => {
               const isInline = !className;
               return isInline ? (
                 <code
                   style={{
-                    background: "rgba(255, 255, 255, 0.08)",
+                    background: "var(--color-badge-bg)",
+                    border: "1px solid var(--color-border)",
                     padding: "0.15rem 0.4rem",
                     borderRadius: "4px",
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.82rem",
-                    color: "var(--color-primary-light)",
+                    color: "var(--color-primary)",
                   }}
                   {...props}
                 >
@@ -193,7 +194,7 @@ export function DossierViewer({
               ) : (
                 <pre
                   style={{
-                    background: "rgba(0, 0, 0, 0.4)",
+                    background: "var(--color-code-bg)",
                     border: "1px solid var(--color-border)",
                     padding: "1rem",
                     borderRadius: "var(--radius-sm)",
@@ -201,6 +202,7 @@ export function DossierViewer({
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.82rem",
                     margin: "0.75rem 0",
+                    color: "var(--color-text)",
                   }}
                 >
                   <code>{children}</code>
@@ -237,7 +239,7 @@ export function DossierViewer({
                 style={{
                   padding: "0.5rem 0.75rem",
                   borderBottom: "1px solid var(--color-border)",
-                  background: "rgba(255, 255, 255, 0.04)",
+                  background: "var(--color-surface)",
                   textAlign: "left",
                   fontWeight: 600,
                   color: "var(--color-text)",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAudit, getDossierDownloadUrl, type AuditResponse } from "@/lib/api-client";
+import { getAudit, getDossierDownloadUrl, startAudit, type AuditResponse } from "@/lib/api-client";
 import { MermaidViewer } from "@/components/MermaidViewer";
 import { DossierViewer } from "@/components/DossierViewer";
 import { RepoChatSidebar } from "@/components/RepoChatSidebar";
@@ -14,7 +14,7 @@ interface AuditWorkspaceClientProps {
   userName?: string | null;
 }
 
-type TabType = "workspace" | "telemetry" | "diagram" | "dossier";
+type TabType = "dossier" | "telemetry" | "diagram";
 
 export function AuditWorkspaceClient({
   auditId,
@@ -22,8 +22,10 @@ export function AuditWorkspaceClient({
   userName,
 }: AuditWorkspaceClientProps) {
   const [audit, setAudit] = useState<AuditResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>("workspace");
+  const [activeTab, setActiveTab] = useState<TabType>("dossier");
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReAnalyzing, setIsReAnalyzing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,11 +46,30 @@ export function AuditWorkspaceClient({
       });
   }, [auditId, backendToken]);
 
+  const handleReAnalyze = async () => {
+    if (!audit?.repoUrl || !backendToken) return;
+    try {
+      setIsReAnalyzing(true);
+      setError(null);
+      const updatedAudit = await startAudit(audit.repoUrl, backendToken, true);
+      const full = await getAudit(updatedAudit.auditId, backendToken);
+      setAudit(full);
+      if (updatedAudit.auditId !== auditId) {
+        window.history.replaceState(null, "", `/dashboard/audit/${updatedAudit.auditId}`);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to re-analyze repository.";
+      setError(msg);
+    } finally {
+      setIsReAnalyzing(false);
+    }
+  };
+
   const handleDownloadSas = async () => {
     if (!auditId || !backendToken) return;
     try {
       setIsDownloading(true);
-      const { url } = await getDossierDownloadUrl(auditId, backendToken);
+      const { url } = await getDossierDownloadUrl(audit?.auditId || auditId, backendToken);
       window.open(url, "_blank");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to generate download URL";
@@ -72,6 +93,7 @@ export function AuditWorkspaceClient({
         flexDirection: "column",
         gap: "1.25rem",
         minHeight: "100vh",
+        position: "relative",
       }}
     >
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
@@ -128,61 +150,108 @@ export function AuditWorkspaceClient({
               )}
             </div>
             <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-              Interactive Workspace • Dossier & Grounded Copilot
+              Repository Intelligence & Knowledge Dossier
             </p>
           </div>
         </div>
 
-        {/* View Mode Tabs */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            background: "rgba(255, 255, 255, 0.03)",
-            padding: "0.2rem",
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            gap: "0.25rem",
-          }}
-        >
-          {(
-            [
-              { id: "workspace", label: "Split Workspace", icon: "⚡" },
-              { id: "telemetry", label: "Telemetry Bento", icon: "📊" },
-              { id: "diagram", label: "Mermaid Diagram", icon: "🗺️" },
-              { id: "dossier", label: "Knowledge Dossier", icon: "📄" },
-            ] as const
-          ).map((tab) => {
-            const isCurrent = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: "0.35rem 0.75rem",
-                  borderRadius: "var(--radius-sm)",
-                  border: "none",
-                  background: isCurrent ? "var(--color-primary)" : "transparent",
-                  color: isCurrent ? "#fff" : "var(--color-text-muted)",
-                  fontWeight: isCurrent ? 600 : 400,
-                  fontSize: "0.78rem",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  transition: "var(--transition-fast)",
-                }}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* Actions & View Mode Tabs */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            disabled={isReAnalyzing || isLoading || !audit?.repoUrl}
+            onClick={handleReAnalyze}
+            title="Re-analyze repository from scratch and update telemetry, diagrams & dossier"
+            style={{
+              padding: "0.35rem 0.75rem",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--color-border)",
+              background: "rgba(255, 255, 255, 0.05)",
+              color: "var(--color-text)",
+              fontWeight: 600,
+              fontSize: "0.78rem",
+              cursor: isReAnalyzing || isLoading ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              transition: "var(--transition-fast)",
+            }}
+          >
+            <span style={{ display: "inline-block", animation: isReAnalyzing ? "spin 1s linear infinite" : "none" }}>🔄</span>
+            <span>{isReAnalyzing ? "Re-analyzing..." : "Re-analyze Repo"}</span>
+          </button>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "rgba(255, 255, 255, 0.03)",
+              padding: "0.2rem",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--color-border)",
+              gap: "0.25rem",
+            }}
+          >
+            {(
+              [
+                { id: "dossier", label: "Knowledge Dossier", icon: "📄" },
+                { id: "telemetry", label: "Telemetry Bento", icon: "📊" },
+                { id: "diagram", label: "Architecture Diagram", icon: "🗺️" },
+              ] as const
+            ).map((tab) => {
+              const isCurrent = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: isCurrent ? "var(--color-primary)" : "transparent",
+                    color: isCurrent ? "#fff" : "var(--color-text-muted)",
+                    fontWeight: isCurrent ? 600 : 400,
+                    fontSize: "0.78rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    transition: "var(--transition-fast)",
+                  }}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsChatOpen((prev) => !prev)}
+            style={{
+              padding: "0.35rem 0.85rem",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid rgba(99, 102, 241, 0.4)",
+              background: isChatOpen ? "var(--color-primary)" : "rgba(99, 102, 241, 0.15)",
+              color: isChatOpen ? "#fff" : "var(--color-primary-light)",
+              fontWeight: 600,
+              fontSize: "0.78rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              transition: "var(--transition-fast)",
+            }}
+          >
+            <span>💬</span>
+            <span>{isChatOpen ? "Hide Copilot" : "Ask AI Copilot"}</span>
+          </button>
         </div>
       </header>
 
-      {/* ── Content Area ──────────────────────────────────────────────────── */}
+      {/* ── Main Full-Width Content Area ────────────────────────────────────── */}
       {isLoading ? (
         <div
           style={{
@@ -213,49 +282,29 @@ export function AuditWorkspaceClient({
         </div>
       ) : audit ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {/* TAB: Split Workspace (Dossier Preview + Repo Chat) */}
-          {activeTab === "workspace" && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))",
-                gap: "1.25rem",
-                minHeight: "750px",
-                flex: 1,
-              }}
-            >
-              <div style={{ height: "750px" }}>
-                {audit.dossierMarkdown ? (
-                  <DossierViewer
-                    markdown={audit.dossierMarkdown}
-                    auditId={audit.auditId}
-                    onDownloadSas={handleDownloadSas}
-                    isDownloading={isDownloading}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: "1px dashed var(--color-border)",
-                      borderRadius: "var(--radius-lg)",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    Dossier markdown not available.
-                  </div>
-                )}
-              </div>
-
-              <div style={{ height: "750px" }}>
-                <RepoChatSidebar
+          {/* TAB: Full Knowledge Dossier (Default) */}
+          {activeTab === "dossier" && (
+            <div style={{ minHeight: "750px", flex: 1 }}>
+              {audit.dossierMarkdown ? (
+                <DossierViewer
+                  markdown={audit.dossierMarkdown}
                   auditId={audit.auditId}
-                  backendToken={backendToken}
-                  repoName={repoName}
+                  onDownloadSas={handleDownloadSas}
+                  isDownloading={isDownloading}
                 />
-              </div>
+              ) : (
+                <div
+                  style={{
+                    padding: "3rem",
+                    textAlign: "center",
+                    border: "1px dashed var(--color-border)",
+                    borderRadius: "var(--radius-lg)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  Dossier markdown not available for this repository.
+                </div>
+              )}
             </div>
           )}
 
@@ -266,7 +315,7 @@ export function AuditWorkspaceClient({
             </div>
           )}
 
-          {/* TAB: Interactive Mermaid Diagram */}
+          {/* TAB: Architecture Diagram */}
           {activeTab === "diagram" && (
             <div style={{ padding: "0.5rem 0" }}>
               {mermaidChart ? (
@@ -289,20 +338,90 @@ export function AuditWorkspaceClient({
               )}
             </div>
           )}
-
-          {/* TAB: Standalone Knowledge Dossier */}
-          {activeTab === "dossier" && audit.dossierMarkdown && (
-            <div style={{ height: "800px" }}>
-              <DossierViewer
-                markdown={audit.dossierMarkdown}
-                auditId={audit.auditId}
-                onDownloadSas={handleDownloadSas}
-                isDownloading={isDownloading}
-              />
-            </div>
-          )}
         </div>
       ) : null}
+
+      {/* ── Floating Ask AI Button (Bottom Right Corner) ──────────────────── */}
+      {audit && !isChatOpen && (
+        <button
+          type="button"
+          onClick={() => setIsChatOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: "2rem",
+            right: "2rem",
+            zIndex: 40,
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            padding: "0.85rem 1.35rem",
+            borderRadius: "9999px",
+            background: "linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%)",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "0.95rem",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
+            cursor: "pointer",
+            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0) scale(1)";
+          }}
+        >
+          <span style={{ fontSize: "1.2rem" }}>✨</span>
+          <span>Ask AI Copilot</span>
+        </button>
+      )}
+
+      {/* ── Slide-over Right Side Panel (Drawer) ───────────────────────────── */}
+      {audit && isChatOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "min(520px, 92vw)",
+            height: "100vh",
+            zIndex: 50,
+            background: "var(--color-surface)",
+            boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.6)",
+            borderLeft: "1px solid var(--color-border)",
+            display: "flex",
+            flexDirection: "column",
+            animation: "slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <RepoChatSidebar
+            auditId={audit.auditId}
+            backendToken={backendToken}
+            repoName={repoName}
+            onClose={() => setIsChatOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* Backdrop overlay for drawer on smaller viewports */}
+      {audit && isChatOpen && (
+        <button
+          type="button"
+          aria-label="Close AI Chat Drawer"
+          onClick={() => setIsChatOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 45,
+            background: "rgba(0, 0, 0, 0.4)",
+            backdropFilter: "blur(2px)",
+            border: "none",
+            cursor: "default",
+          }}
+        />
+      )}
     </div>
   );
 }

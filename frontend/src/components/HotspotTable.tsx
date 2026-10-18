@@ -55,10 +55,10 @@ export function HotspotTable({ hotspots }: HotspotTableProps) {
           style={{
             flex: "1 1 200px",
             padding: "0.5rem 0.85rem",
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid var(--color-border)",
+            background: "var(--color-input-bg)",
+            border: "1px solid var(--color-input-border)",
             borderRadius: "var(--radius-sm)",
-            color: "#fff",
+            color: "var(--color-input-text)",
             fontSize: "0.85rem",
             outline: "none",
           }}
@@ -92,7 +92,7 @@ export function HotspotTable({ hotspots }: HotspotTableProps) {
       <div style={{ overflowX: "auto", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
           <thead>
-            <tr style={{ background: "rgba(255, 255, 255, 0.03)", borderBottom: "1px solid var(--color-border)" }}>
+            <tr style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
               <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 500 }}>Rank</th>
               <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 500 }}>File Path</th>
               <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 500, textAlign: "right" }}>Complexity</th>
@@ -115,8 +115,8 @@ export function HotspotTable({ hotspots }: HotspotTableProps) {
                   <tr
                     key={hotspot.file}
                     style={{
-                      borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
-                      background: idx % 2 === 0 ? "transparent" : "rgba(255, 255, 255, 0.01)",
+                      borderBottom: "1px solid var(--color-border-subtle)",
+                      background: idx % 2 === 0 ? "transparent" : "var(--color-surface-hover)",
                     }}
                   >
                     <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", width: "50px" }}>

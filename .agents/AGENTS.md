@@ -50,14 +50,17 @@
 
 - **NEVER** execute `git clone` to the local filesystem.
 - Always stream the repository's default branch via Octokit's Zipball API directly into memory (`System.IO.Compression.ZipArchive`).
-- Filter out non-source and vendor directories during stream iteration: `node_modules/`, `.git/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary assets.
+- Filter out non-source, tooling, and vendor directories during stream iteration: `node_modules/`, `.git/`, `.agents/`, `bin/`, `obj/`, `dist/`, `.next/`, `vendor/`, and binary assets.
 - **Hotspot Formula:** Calculate file hotspot risk scores deterministically as:
   `RiskScore = Math.Round(CyclomaticComplexity * Math.Log(ChurnCount + 1), 2)`
+  - Files under `.agents/` or configuration tooling directories are explicitly ignored to avoid polluting codebase complexity heatmaps.
 - **Polyglot Dependency Manifest Parsing:**
   - **Bun & Node.js:** Parses `bun.lock` (Bun 1.2+ text lockfile with trailing commas) and `package.json`. If `bun.lock`, `bun.lockb`, `bunfig.toml`, or `packageManager: "bun@..."` is detected, packages are labeled under `Bun` and `Bun (dev)`; otherwise defaults to `npm` and `npm (dev)`.
   - **Dart & Flutter:** Parses `pubspec.yaml` with indentation tracking to capture `dependencies:` (`Pub`), `dev_dependencies:` (`Pub (dev)`), and `dependency_overrides:` (`Pub (override)`), resolving nested sub-properties (`sdk: flutter`, `git:`, `path:`, `version:`) into package version metadata.
   - **.NET, Python, Go & Rust:** Parses `.csproj` / `Directory.Build.props` (`NuGet`), `requirements.txt` (`PyPI`), `go.mod` (`Go Modules`), and `Cargo.toml` (`Cargo`).
-- **Secret Scanning:** Use `.NET 10` compile-time `[GeneratedRegex]` attributes inside `RegexSecretScanner.cs` for zero-allocation pattern matching.
+- **Secret Scanning & Benign Template Filtering:**
+  - Use `.NET 10` compile-time `[GeneratedRegex]` attributes inside `RegexSecretScanner.cs` for zero-allocation pattern matching.
+  - `.env.example`, `.env.sample`, and `.env.template` files containing dummy placeholder keys (e.g. `your-...`, `example`, `000000`) are intelligently ignored to eliminate false-positive security surface alerts.
 - **GitHub Rate Limits & Quotas:** Unauthenticated IP quota is 60 requests/hr. Supplying `GITHUB_TOKEN` in the environment or `appsettings.Development.json` unlocks 5,000 requests/hr. `OctokitTelemetryService.cs` automatically inspects remaining rate quota to avoid exhausting unauthenticated calls.
 
 ### 3.3 Gemini 3.8 Flash & Dossier Synthesis
@@ -78,15 +81,22 @@
 - Always include the Partition Key in point reads and queries to keep operations under 1–2 RUs within the 1,000 RU/s lifetime free tier.
 - **In-Memory Fallbacks:** `InMemoryCosmosRepository` and `InMemoryBlobStorageService` are used automatically when Azure connection strings are omitted or placeholder, enabling zero-setup local development.
 
-### 3.5 Interactive Workspace & Shared Repository Cache
+### 3.5 Unified Interactive Dashboard, Floating AI Drawer & Theme System
 
-- **Shared Repository Cache:** `POST /api/audit` checks `ICosmosRepository.GetLatestAuditByRepoAsync(repoId)` to return cached audit telemetry and synthesized dossiers in `<50ms` without redundant re-analysis.
-- **Commit Staleness Detection:** Automatically queries GitHub remote default branch latest commit SHA via `IGitHubTelemetryService.GetLatestCommitShaAsync`. If newer commits are detected on the remote branch, flags `isStale: true` and displays an outdated notice banner in the UI with a 1-click `[ 🔄 Re-analyze Latest Commits ]` trigger (`forceRefresh: true`).
-- **Interactive Split-Screen Workspace (`/dashboard/audit/[id]`):**
-  - **MermaidViewer (`MermaidViewer.tsx`):** Client-side SVG rendering with pan, interactive zoom controls (`-`, reset, `+`), and copy SVG button.
-  - **DossierViewer (`DossierViewer.tsx`):** Formatted GitHub-flavored markdown preview of `PROJECT_KNOWLEDGE.md` with direct SAS blob download link.
-  - **RepoChatSidebar (`RepoChatSidebar.tsx`):** Context-grounded SSE chat copilot (`/api/chat/{id}/stream`) with suggested prompt chips and real-time token rendering.
-  - **Tab Switcher:** Flexible workspace views (Split Workspace, Telemetry Bento, Mermaid Diagram, Knowledge Dossier).
+- **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`). Navigation is streamlined via view tabs (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`) on the home screen.
+- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips and real-time streaming tokens.
+- **Trackpad Gestures, Dynamic Zoom & Pan Clamping:**
+  - `MermaidViewer.tsx` supports native trackpad pinch-to-zoom (`ctrlKey + wheel` / `gesturestart` / `gesturechange`) and two-finger panning.
+  - Dynamic zoom limits calculated based on SVG diagram bounds prevent over-zooming out into invisibility or over-zooming in beyond legibility.
+  - Viewport pan clamping (`clampPan`) prevents the diagram from moving fully out of the container screen during mouse drag or two-finger trackpad panning.
+  - Quick `[ ↺ Reset ]` action button restores the diagram view to default auto-fit scale and `(0, 0)` pan coordinates.
+- **Theme Architecture (Light / Dark / System):**
+  - `ThemeContext.tsx` handles `light`, `dark`, and `system` modes, dynamically listening to OS color scheme changes (`matchMedia`).
+  - Pre-hydration anti-flash script in `layout.tsx` reads `localStorage` before paint to eliminate light/dark flickering.
+  - Adaptive CSS variables in `globals.css` provide high contrast for input boxes, placeholders, headings, code blocks, and scrollbars in both dark and light modes.
+  - Sign-in page (`SignInPage.tsx`) provides an accessible header theme cycle button allowing instant preview in any mode.
+  - Mermaid diagrams automatically re-render with adapted dark/light color palettes upon theme change.
+- **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` checks `ICosmosRepository.GetLatestAuditByRepoAsync(repoId)` to return cached audit telemetry and synthesized dossiers in `<50ms`. Remote commit SHA staleness detection flags outdated audits and provides a 1-click `[ 🔄 Re-analyze Latest Commits ]` trigger (`forceRefresh: true`).
 
 ### 3.6 Zero-Cost Cloud Provisioning & CI/CD
 
@@ -189,7 +199,7 @@ codelens-ai/
 ## 5. Pre-Commit Verification Checklist for Agents
 
 1. Run `dotnet build backend/CodeLens.sln` — Must output `0 Warning(s)` and `0 Error(s)`.
-2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 28/28).
+2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 29/29).
 3. Run `cd frontend && bun run build` — Must pass typechecking and route generation cleanly.
-4. Run `bunx react-doctor@latest --scope changed` — Must report 0 issues.
+4. Run `bunx react-doctor@latest --scope changed` — Verify diagnostics baseline.
 5. Verify no secrets or API keys are hardcoded in `appsettings.json` or `.env.local`.
