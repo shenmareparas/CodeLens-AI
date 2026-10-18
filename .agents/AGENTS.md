@@ -17,7 +17,9 @@
 
 - **NEVER** use `npm`, `npx`, `yarn`, or `pnpm`. **ALWAYS** use **Bun** (`bun install`, `bun add`, `bun run dev`, `bun run build`).
 - **Framework & Router:** React 19 SPA powered by Vite and React Router DOM (`v7`).
-- **Route Protection:** Handled via `<ProtectedRoute>` in `src/App.tsx`, verifying authentication state in `AuthContext.tsx`.
+- **Route Protection & 404:** Handled via `<ProtectedRoute>` in `src/App.tsx`, verifying authentication state in `AuthContext.tsx`. Catch-all route `*` renders `NotFoundPage.tsx` with theme integration, quick navigation links, and contextual redirect.
+- **Vite Config Convention:** Use ESM-native `import.meta.dirname` for path resolution (`path.resolve(import.meta.dirname, "./src")`) inside `vite.config.ts`, not `__dirname`.
+- **API Client Normalization:** `src/lib/api-client.ts` sanitizes `API_BASE` (`RAW_API_BASE.trim().replace(/\/+$/, "")`) to protect against trailing whitespace or carriage returns from CI environment variables.
 - **Hydration & Anti-Flash Safety:** Pre-hydration theme script runs directly inside `frontend/index.html` to eliminate theme flashing.
 - **Verification Command:** Always run `bun run build` inside `frontend/` to verify TypeScript and static bundle compilation before finishing a task.
 - **Diagnostics & Quality (`react-doctor`):** Before completing frontend features or committing React code, invoke the workspace skill `react-doctor` (`.agents/skills/react-doctor/SKILL.md`) to verify accessibility, bundle efficiency, and anti-patterns. Maintain a 0-warning baseline.
@@ -182,6 +184,8 @@ codelens-ai/
         │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
         │   ├── passwordUtils.ts                      # Criteria scoring & evaluation rules
         │   ├── SignInPage.module.css                 # Glassmorphic component styles
+        │   ├── NotFoundPage.tsx                      # 404 error page with theme cycle & contextual navigation
+        │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
         │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)

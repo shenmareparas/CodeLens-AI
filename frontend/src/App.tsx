@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import HomePage from "@/pages/HomePage";
 import SignInPage from "@/pages/SignInPage";
 import DashboardPage from "@/pages/DashboardPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,7 +37,7 @@ export function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

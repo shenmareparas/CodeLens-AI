@@ -3,10 +3,12 @@
  * All requests attach the backend JWT Bearer token from the session.
  */
 
-const API_BASE =
+const RAW_API_BASE =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_URL) ||
   "http://localhost:5050";
+
+const API_BASE = RAW_API_BASE.trim().replace(/\/+$/, "");
 
 async function apiRequest<T>(
   path: string,

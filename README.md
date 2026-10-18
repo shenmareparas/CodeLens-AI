@@ -8,6 +8,7 @@
 ## 🌟 Highlights & Capabilities
 
 - 🌐 **Modern Landing Page & Seamless Onboarding:** Immersive glassmorphic product showcase at `/` introducing features, telemetry capabilities, and architecture highlights, seamlessly routing through authentication to the protected workspace.
+- 🚫 **Resilient 404 Not Found Handling:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links.
 - 🎨 **State-of-the-Art Typography & Aesthetics:** Curated Google Fonts typography stack featuring **Plus Jakarta Sans** for prominent headings, **Inter** for readable body content, and **JetBrains Mono** for AST metrics, code tokens, and file paths.
 - 📊 **Commit Velocity & Sparklines:** Tracks commit cadence and repository activity over time via GitHub Octokit.
 - 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots (automatically ignoring `.agents/` and configuration tooling).
@@ -47,7 +48,7 @@
 
 | Layer | Technologies | Details |
 | :--- | :--- | :--- |
-| **Frontend** | React 19, Vite, Bun, TypeScript, React Router | Ultra-fast client-side SPA, Light/Dark/System theme system, client JWT auth |
+| **Frontend** | React 19, Vite, Bun, TypeScript, React Router | Ultra-fast client-side SPA, Light/Dark/System theme system, client JWT auth, dedicated 404 page |
 | **Workspace UI** | Mermaid.js, React Markdown, Lucide Icons | Trackpad gestures, size-aware zoom, Markdown dossier viewer, AI chat drawer |
 | **Backend** | .NET 10 (`net10.0`), C# 13, ASP.NET Core | Minimal APIs, Scalar OpenAPI, PBKDF2 cryptography, port 5050 |
 | **Analysis** | Roslyn C# Compiler, Polyglot AST, Octokit | In-memory zipball parsing, complexity & hotspot calculation (ignoring `.agents/`), commit staleness |
@@ -65,7 +66,7 @@ codelens-ai/
 ├── .github/
 │   └── workflows/
 │       ├── deploy-backend.yml          # GitHub Actions: .NET 10 build, test, Docker & ACA deploy
-│       └── deploy-frontend.yml         # GitHub Actions: Bun Next.js 16 build & SWA deploy
+│       └── deploy-frontend.yml         # GitHub Actions: Bun Vite React build & SWA deploy
 ├── infra/
 │   ├── main.bicep                      # Zero-cost Azure Bicep template (ACA, SWA, Cosmos, Blob)
 │   └── main.parameters.json            # Deployment parameter configurations
@@ -75,11 +76,11 @@ codelens-ai/
 │   └── skills/                         # Agent diagnostic skills (e.g. react-doctor)
 ├── frontend/                           # React 19 SPA (Vite + Bun)
 │   ├── index.html                      # SPA entry point with anti-flash script
-│   ├── vite.config.ts                  # Vite configuration & path aliases
+│   ├── vite.config.ts                  # Vite ESM configuration (`import.meta.dirname`) & path aliases
 │   ├── staticwebapp.config.json        # Azure SWA client routing rewrite rules
 │   ├── src/
 │   │   ├── main.tsx                    # Root React DOM entrypoint
-│   │   ├── App.tsx                     # React Router routes & ProtectedRoute guard
+│   │   ├── App.tsx                     # React Router routes, ProtectedRoute & NotFoundPage catch-all
 │   │   ├── context/
 │   │   │   ├── AuthContext.tsx         # Client JWT authentication provider
 │   │   │   └── ThemeContext.tsx        # Light/Dark/System theme provider
@@ -90,6 +91,8 @@ codelens-ai/
 │   │   │   ├── CredentialsForm.tsx     # Form state, validation & submission logic
 │   │   │   ├── PasswordValidationComponents.tsx  # Eye toggles, strength meter, checklist badges
 │   │   │   ├── passwordUtils.ts        # Pure scoring rules & validation helpers
+│   │   │   ├── NotFoundPage.tsx        # Glassmorphic 404 error page with action shortcuts
+│   │   │   ├── NotFoundPage.module.css # 404 styles, badges, and layout
 │   │   │   └── DashboardPage.tsx       # Protected dashboard page
 │   │   ├── components/                 # Presentation & telemetry components
 │   │   │   ├── DashboardClient.tsx     # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)

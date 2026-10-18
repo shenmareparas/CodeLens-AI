@@ -113,6 +113,7 @@
 ### 3.4 Modern Landing Page, Unified Dashboard & Theme System
 
 - **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
+- **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`).
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`).
 - **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`).
 - **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
@@ -204,6 +205,8 @@ codelens-ai/
         │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
         │   ├── passwordUtils.ts                      # Pure scoring rules & validation helpers
         │   ├── SignInPage.module.css                 # Glassmorphic component styles
+        │   ├── NotFoundPage.tsx                      # 404 error page with theme cycle & contextual navigation
+        │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
         │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
