@@ -1,0 +1,179 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity var(--transition-fast);
+}
+
+.brandLink:hover {
+  opacity: 0.9;
+}
+
+.brandLogo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  color: #fff;
+}
+
+.brandTitle {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.brandBadge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  font-weight: 600;
+}
+
+.brandTagline {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.actionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* User Profile Badge */
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: var(--font-display);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 0.825rem;
+  color: var(--color-text);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sign Out Button */
+.signOutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--transition-fast);
+}
+
+.signOutBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--color-danger);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.signOutBtn:active {
+  transform: translateY(0);
+}
+
+.signOutIcon {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--transition-fast);
+}
+
+.signOutBtn:hover .signOutIcon {
+  transform: translateX(2px);
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actionsGroup {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}

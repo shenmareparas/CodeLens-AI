@@ -198,9 +198,9 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
 
         {telemetry.secretAlerts.length > 0 && (
           <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.75rem" }}>
-            {telemetry.secretAlerts.map((alert, idx) => (
+            {telemetry.secretAlerts.map((alert) => (
               <li
-                key={idx}
+                key={alert}
                 style={{
                   padding: "0.5rem 0.75rem",
                   background: "rgba(239, 68, 68, 0.1)",
@@ -267,9 +267,9 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
             </div>
           ) : (
             <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              {telemetry.deadCode.map((dc, idx) => (
+              {telemetry.deadCode.map((dc) => (
                 <div
-                  key={idx}
+                  key={dc}
                   style={{
                     padding: "0.45rem 0.65rem",
                     background: "var(--color-badge-bg)",

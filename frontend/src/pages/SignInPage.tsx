@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useTheme } from "@/context/ThemeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CredentialsForm } from "./CredentialsForm";
 import styles from "./SignInPage.module.css";
 
 export function SignInPage() {
-  const { theme, cycleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-
-  const themeIcon = theme === "system" ? "💻" : theme === "dark" ? "🌙" : "☀️";
-  const themeLabel = theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light";
 
   return (
     <div className={styles.container}>
@@ -54,31 +50,7 @@ export function SignInPage() {
           <span>Back to Home</span>
         </Link>
 
-        <button
-          type="button"
-          onClick={cycleTheme}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.45rem",
-            padding: "0.4rem 0.85rem",
-            borderRadius: "9999px",
-            background: "var(--color-surface)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text)",
-            fontSize: "0.8125rem",
-            fontWeight: 500,
-            cursor: "pointer",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.15)",
-            transition: "all 0.2s ease",
-          }}
-          title={`Theme: ${themeLabel} (Click to toggle)`}
-        >
-          <span>{themeIcon}</span>
-          <span>{themeLabel}</span>
-        </button>
+        <ThemeToggle />
       </div>
 
       <div className={styles.card}>
@@ -130,24 +102,9 @@ export function SignInPage() {
           </button>
         </div>
 
-        {/* Credentials Form */}
-        <CredentialsForm activeTab={activeTab} />
+        {/* Credentials Form (keyed by activeTab to clear validation errors and transient inputs on tab switch) */}
+        <CredentialsForm key={activeTab} activeTab={activeTab} />
 
-        {/* Feature Highlights */}
-        <ul className={styles.features}>
-          <li className={styles.featureItem}>
-            <span className={styles.featureDot} />
-            <span>Zero-disk AST static analysis & complexity hotspots</span>
-          </li>
-          <li className={styles.featureItem}>
-            <span className={styles.featureDot} />
-            <span>Gemini 3.8 Flash technical architecture dossiers</span>
-          </li>
-          <li className={styles.featureItem}>
-            <span className={styles.featureDot} />
-            <span>Interactive C4 Mermaid diagrams & real-time repo chat</span>
-          </li>
-        </ul>
 
         {/* Legal & privacy guarantee */}
         <p className={styles.legal}>

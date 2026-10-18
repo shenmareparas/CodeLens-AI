@@ -9,6 +9,7 @@ export function DashboardPage() {
       <DashboardClient
         userName={user?.name}
         userEmail={user?.email}
+        userAvatar={user?.avatarUrl}
         backendToken={backendToken ?? ""}
         onLogout={logout}
       />

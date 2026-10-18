@@ -8,8 +8,11 @@
 ## 🌟 Highlights & Capabilities
 
 - 🌐 **Modern Landing Page & Seamless Onboarding:** Immersive glassmorphic product showcase at `/` introducing features, telemetry capabilities, and architecture highlights, seamlessly routing through authentication to the protected workspace.
-- 🚫 **Resilient 404 Not Found Handling:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links.
+- 🚫 **Resilient 404 Not Found Handling & Azure SWA Rewrites:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links, reinforced by Azure Static Web Apps `staticwebapp.config.json` navigation fallback.
 - 🎨 **State-of-the-Art Typography & Aesthetics:** Curated Google Fonts typography stack featuring **Plus Jakarta Sans** for prominent headings, **Inter** for readable body content, and **JetBrains Mono** for AST metrics, code tokens, and file paths.
+- 🌓 **Proper Light / Dark / System Theme & Glassmorphic Switcher:** Unified 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, high-contrast form controls, and an animated glassmorphic quick-switch control.
+- 👤 **Modern Profile Avatar & Authenticated Header:** Dashboard header featuring user initials/avatar pill, user email, and an interactive danger-accented signout action with smooth transitions.
+- ⚡ **Vercel Best Practices & Route-Level Code Splitting:** `React.lazy()` and `<Suspense>` boundaries split heavy diagram renderers (`MermaidViewer` ~92 kB, `DossierViewer` ~159 kB) and route pages, reducing initial bundle weight from ~644 kB to ~265 kB. Pure state updaters, hoisted regular expressions, and abort-controller SSE cleanups prevent memory leaks and unnecessary rerenders.
 - 📊 **Commit Velocity & Sparklines:** Tracks commit cadence and repository activity over time via GitHub Octokit.
 - 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots (automatically ignoring `.agents/` and configuration tooling).
 - 📦 **Polyglot Dependency Intelligence:** Parses Bun (`bun.lock`), Node.js (`package.json`), Dart/Flutter (`pubspec.yaml`), .NET (`.csproj`), Python (`requirements.txt`), Go (`go.mod`), and Rust (`Cargo.toml`) with interactive real-time ecosystem filtering and search.
@@ -73,42 +76,50 @@ codelens-ai/
 ├── .agents/
 │   ├── AGENTS.md                       # AI coding agent rules & guardrails
 │   ├── PROJECT_CONTEXT.md              # Comprehensive architectural specification
-│   └── skills/                         # Agent diagnostic skills (e.g. react-doctor)
+│   └── skills/                         # Agent engineering & quality skills
+│       ├── react-doctor/               # React architecture, lint & bundle diagnostics skill
+│       └── vercel-react-best-practices/# Vercel React & Next.js performance optimization skill
 ├── frontend/                           # React 19 SPA (Vite + Bun)
 │   ├── index.html                      # SPA entry point with anti-flash script
 │   ├── vite.config.ts                  # Vite ESM configuration (`import.meta.dirname`) & path aliases
 │   ├── staticwebapp.config.json        # Azure SWA client routing rewrite rules
+│   ├── public/
+│   │   └── staticwebapp.config.json    # Azure SWA navigation fallback deployed to dist/
 │   ├── src/
 │   │   ├── main.tsx                    # Root React DOM entrypoint
-│   │   ├── App.tsx                     # React Router routes, ProtectedRoute & NotFoundPage catch-all
+│   │   ├── App.tsx                     # React Router routes, ProtectedRoute & NotFoundPage catch-all (code-split)
 │   │   ├── context/
 │   │   │   ├── AuthContext.tsx         # Client JWT authentication provider
-│   │   │   └── ThemeContext.tsx        # Light/Dark/System theme provider
+│   │   │   └── ThemeContext.tsx        # Pure Light/Dark/System theme provider with memoized context
 │   │   ├── pages/
 │   │   │   ├── HomePage.tsx            # Modern Product Landing Page with hero, features & CTA
 │   │   │   ├── HomePage.module.css     # Glassmorphic landing styles & animations
 │   │   │   ├── SignInPage.tsx          # Tabbed Sign-In / Create Account UI with back-to-home
 │   │   │   ├── CredentialsForm.tsx     # Form state, validation & submission logic
 │   │   │   ├── PasswordValidationComponents.tsx  # Eye toggles, strength meter, checklist badges
-│   │   │   ├── passwordUtils.ts        # Pure scoring rules & validation helpers
+│   │   │   ├── passwordUtils.ts        # Pure scoring rules & validation helpers (hoisted regexes)
 │   │   │   ├── NotFoundPage.tsx        # Glassmorphic 404 error page with action shortcuts
 │   │   │   ├── NotFoundPage.module.css # 404 styles, badges, and layout
 │   │   │   └── DashboardPage.tsx       # Protected dashboard page
 │   │   ├── components/                 # Presentation & telemetry components
+│   │   │   ├── BrandLogo.tsx           # Reusable SVG brand mark component
+│   │   │   ├── ThemeToggle.tsx         # Glassmorphic 3-mode theme toggle button
+│   │   │   ├── ThemeToggle.module.css  # Animated theme toggle styles
 │   │   │   ├── DashboardClient.tsx     # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
-│   │   │   ├── DashboardHeader.tsx     # Top bar navigation, home breadcrumbs & user profile
-│   │   │   ├── ActiveAuditSection.tsx  # Active audit summary, stale banner & Bento container
+│   │   │   ├── DashboardHeader.tsx     # Top bar navigation, user profile avatar pill & danger signout button
+│   │   │   ├── DashboardHeader.module.css # Header layout, avatar & signout styles
+│   │   │   ├── ActiveAuditSection.tsx  # Active audit summary, stale banner, lazy-loaded Mermaid & Dossier
 │   │   │   ├── TelemetryBentoGrid.tsx  # Metrics Bento Grid layout
 │   │   │   ├── DependenciesCard.tsx    # Ecosystem filter tabs (Bun, Pub, npm, NuGet, PyPI), search & badges
-│   │   │   ├── HotspotTable.tsx        # Complexity x Churn risk table
+│   │   │   ├── HotspotTable.tsx        # Complexity x Churn risk table (memoized sorting & filter)
 │   │   │   ├── SparklineChart.tsx      # SVG 8-week commit sparklines
-│   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy
+│   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
 │   │   │   ├── DossierViewer.tsx       # Formatted Markdown dossier preview with SAS download
-│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot sidebar
+│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot sidebar with cleanup controller
 │   │   ├── styles/
 │   │   │   └── globals.css             # Glassmorphism design system & token definitions (Plus Jakarta Sans, Inter, JetBrains Mono)
 │   │   └── lib/
-│   │       └── api-client.ts           # Typed API client + SSE stream reader
+│   │       └── api-client.ts           # Typed API client (sanitized API_BASE) + SSE stream reader
 │   └── package.json
 └── backend/                            # .NET 10 Solution
     ├── CodeLens.sln

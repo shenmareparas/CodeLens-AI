@@ -132,7 +132,8 @@ codelens-ai/
 │   ├── AGENTS.md                                     # AI coding agent instructions & guardrails
 │   ├── PROJECT_CONTEXT.md                            # Comprehensive architectural single-source-of-truth
 │   └── skills/
-│       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
+│       ├── react-doctor/                             # React architecture, lint & bundle diagnostics skill
+│       └── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
 ├── backend/
 │   ├── CodeLens.sln
 │   ├── Dockerfile                                    # Multi-stage .NET 10 container image (port 5050)
@@ -171,38 +172,44 @@ codelens-ai/
     ├── vite.config.ts
     ├── index.html                                    # SPA entrypoint with anti-flash theme script
     ├── staticwebapp.config.json                      # Azure SWA navigation fallback & headers
+    ├── public/
+    │   └── staticwebapp.config.json                  # Azure SWA navigation fallback deployed to dist/
     └── src/
         ├── main.tsx                                  # React DOM entrypoint
-        ├── App.tsx                                   # React Router DOM + ProtectedRoute
+        ├── App.tsx                                   # React Router DOM + ProtectedRoute + code splitting
         ├── context/
         │   ├── AuthContext.tsx                       # JWT authentication context
-        │   └── ThemeContext.tsx                      # Light/Dark/System theme context
+        │   └── ThemeContext.tsx                      # Pure Light/Dark/System theme context with memoized value
         ├── pages/
         │   ├── HomePage.tsx                          # Modern Product Landing Page with hero, features & CTA
         │   ├── HomePage.module.css                   # Glassmorphic landing styles & animations
         │   ├── SignInPage.tsx                        # Tabbed presentation container with back-to-home
         │   ├── CredentialsForm.tsx                   # Form state, validation & submission logic
         │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
-        │   ├── passwordUtils.ts                      # Criteria scoring & evaluation rules
+        │   ├── passwordUtils.ts                      # Criteria scoring & evaluation rules (hoisted regexes)
         │   ├── SignInPage.module.css                 # Glassmorphic component styles
         │   ├── NotFoundPage.tsx                      # 404 error page with theme cycle & contextual navigation
         │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
+        │   ├── BrandLogo.tsx                         # Reusable vector brand logo mark
+        │   ├── ThemeToggle.tsx                       # Universal glassmorphic theme toggle button
+        │   ├── ThemeToggle.module.css                # Animated theme toggle styles
         │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
-        │   ├── DashboardHeader.tsx                   # Top bar navigation, home breadcrumbs & user profile
-        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
-        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
+        │   ├── DashboardHeader.tsx                   # Top bar navigation, user profile avatar & sign out
+        │   ├── DashboardHeader.module.css            # Header layout, avatar & signout styles
+        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & lazy-loaded view tabs
+        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
-        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table
+        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
         │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
-        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with abort cleanup
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/
-            └── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
+            └── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE)
 ```
 
 - **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) and retrieves shared audits in `<50ms` with remote commit staleness detection.

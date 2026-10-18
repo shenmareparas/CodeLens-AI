@@ -36,50 +36,53 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return mode;
   });
 
-  const applyTheme = (mode: ThemeMode) => {
+  // Sync resolved theme to document attribute and handle system preference changes
+  useEffect(() => {
     let effective: ResolvedTheme = "dark";
-    if (mode === "system") {
+    if (theme === "system") {
       const isLight = window.matchMedia("(prefers-color-scheme: light)").matches;
       effective = isLight ? "light" : "dark";
     } else {
-      effective = mode;
+      effective = theme;
     }
     setResolvedTheme(effective);
     document.documentElement.setAttribute("data-theme", effective);
-  };
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", resolvedTheme);
-
-    // Listen for system theme changes if mode is 'system'
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
-    const handleSystemChange = (e: MediaQueryListEvent) => {
-      const currentSaved = localStorage.getItem("codelens-theme");
-      if (!currentSaved || currentSaved === "system") {
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
+      const handleSystemChange = (e: MediaQueryListEvent) => {
         const nextEffective = e.matches ? "light" : "dark";
         setResolvedTheme(nextEffective);
         document.documentElement.setAttribute("data-theme", nextEffective);
-      }
-    };
+      };
 
-    mediaQuery.addEventListener("change", handleSystemChange);
-    return () => mediaQuery.removeEventListener("change", handleSystemChange);
-  }, [resolvedTheme]);
+      mediaQuery.addEventListener("change", handleSystemChange);
+      return () => mediaQuery.removeEventListener("change", handleSystemChange);
+    }
+  }, [theme]);
 
-  const setTheme = (newTheme: ThemeMode) => {
+  // Persist user theme selection
+  useEffect(() => {
+    localStorage.setItem("codelens-theme", theme);
+  }, [theme]);
+
+  const setTheme = React.useCallback((newTheme: ThemeMode) => {
     setThemeState(newTheme);
-    localStorage.setItem("codelens-theme", newTheme);
-    applyTheme(newTheme);
-  };
+  }, []);
 
-  const cycleTheme = () => {
-    const nextMode: ThemeMode =
-      theme === "system" ? "dark" : theme === "dark" ? "light" : "system";
-    setTheme(nextMode);
-  };
+  const cycleTheme = React.useCallback(() => {
+    setThemeState((current) =>
+      current === "system" ? "dark" : current === "dark" ? "light" : "system"
+    );
+  }, []);
+
+  const contextValue = React.useMemo(
+    () => ({ theme, resolvedTheme, setTheme, cycleTheme }),
+    [theme, resolvedTheme, setTheme, cycleTheme]
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, cycleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

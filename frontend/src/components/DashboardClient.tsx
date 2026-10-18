@@ -14,6 +14,7 @@ import { RepoChatSidebar } from "@/components/RepoChatSidebar";
 interface DashboardClientProps {
   userName?: string | null;
   userEmail?: string | null;
+  userAvatar?: string | null;
   backendToken: string;
   onLogout?: () => void;
 }
@@ -29,6 +30,7 @@ const SAMPLE_REPOS = [
 export function DashboardClient({
   userName,
   userEmail,
+  userAvatar,
   backendToken,
   onLogout,
 }: DashboardClientProps) {
@@ -112,6 +114,7 @@ export function DashboardClient({
       <DashboardHeader
         userName={userName}
         userEmail={userEmail}
+        avatarUrl={userAvatar}
         onSignOut={() => onLogout?.()}
       />
 
@@ -185,6 +188,7 @@ export function DashboardClient({
             <input
               type="text"
               placeholder="https://github.com/owner/repo"
+              aria-label="GitHub repository URL"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               disabled={isLoading}

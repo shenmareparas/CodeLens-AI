@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandLogo } from "@/components/BrandLogo";
 import styles from "./HomePage.module.css";
 
 export function HomePage() {
-  const { theme, cycleTheme } = useTheme();
   const { isAuthenticated } = useAuth();
-
-  const themeIcon = theme === "system" ? "💻" : theme === "dark" ? "🌙" : "☀️";
-  const themeLabel = theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light";
 
   return (
     <div className={styles.landingContainer}>
@@ -21,21 +18,7 @@ export function HomePage() {
       <header className={styles.nav}>
         <Link to="/" className={styles.brandLink}>
           <div className={styles.brandLogo}>
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              <line x1="8" y1="11" x2="14" y2="11" />
-              <line x1="11" y1="8" x2="11" y2="14" />
-            </svg>
+            <BrandLogo size={22} />
           </div>
           <span className={styles.brandText}>CodeLens AI</span>
         </Link>
@@ -61,15 +44,7 @@ export function HomePage() {
         </nav>
 
         <div className={styles.navActions}>
-          <button
-            type="button"
-            onClick={cycleTheme}
-            className={styles.themeToggle}
-            title={`Theme: ${themeLabel} (Click to toggle)`}
-          >
-            <span>{themeIcon}</span>
-            <span>{themeLabel}</span>
-          </button>
+          <ThemeToggle />
 
           {isAuthenticated ? (
             <Link to="/dashboard" className={styles.loginBtn}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { HotspotEntry } from "@/lib/api-client";
 
 interface HotspotTableProps {
@@ -11,13 +11,18 @@ export function HotspotTable({ hotspots }: HotspotTableProps) {
   const [filter, setFilter] = useState("");
   const [sortBy, setSortBy] = useState<"score" | "complexity" | "churn">("score");
 
-  const filtered = hotspots
-    .filter((h) => h.file.toLowerCase().includes(filter.toLowerCase()))
-    .sort((a, b) => {
+  const filtered = useMemo(() => {
+    const trimmedFilter = filter.trim().toLowerCase();
+    const list = trimmedFilter
+      ? hotspots.filter((h) => h.file.toLowerCase().includes(trimmedFilter))
+      : hotspots;
+
+    return [...list].sort((a, b) => {
       if (sortBy === "score") return b.score - a.score;
       if (sortBy === "complexity") return b.complexity - a.complexity;
       return b.churn - a.churn;
     });
+  }, [hotspots, filter, sortBy]);
 
   const getRiskBadge = (score: number, complexity: number) => {
     if (score >= 20 || complexity >= 25) {
@@ -50,6 +55,7 @@ export function HotspotTable({ hotspots }: HotspotTableProps) {
         <input
           type="text"
           placeholder="Filter hotspots by filename..."
+          aria-label="Filter hotspots by filename"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           style={{

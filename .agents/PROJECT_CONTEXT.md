@@ -113,11 +113,12 @@
 ### 3.4 Modern Landing Page, Unified Dashboard & Theme System
 
 - **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
-- **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`).
-- **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`).
-- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`).
-- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
-- **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens.
+- **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`). Supported on Azure SWA via `public/staticwebapp.config.json` navigation fallback.
+- **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`). Heavy viewers (`MermaidViewer` ~92 kB and `DossierViewer` ~159 kB) are dynamically loaded with `React.lazy()` and `<Suspense>` boundaries.
+- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`). Chat SSE requests are managed with an `AbortController` cleanup ref to prevent network leaks on unmount.
+- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
+- **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens. Theme context is memoized with pure state transitions and decoupled `localStorage` synchronization.
+- **Modern User Profile & Navigation Header:** `DashboardHeader.tsx` features an interactive user avatar pill displaying user initials and email address alongside an animated danger-glowing sign out button.
 - **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis (`forceRefresh: true`).
 
 ### 3.5 Cloud Infrastructure & CI/CD Deployment
@@ -149,7 +150,8 @@ codelens-ai/
 │   ├── AGENTS.md                                     # AI coding agent rules and operational constraints
 │   ├── PROJECT_CONTEXT.md                            # Authoritative project context & architecture spec
 │   └── skills/
-│       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
+│       ├── react-doctor/                             # React architecture, lint & bundle diagnostics skill
+│       └── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
 ├── backend/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
 │   ├── Dockerfile                                    # Multi-stage production container build (port 5050)
@@ -191,41 +193,46 @@ codelens-ai/
     ├── vite.config.ts
     ├── index.html                                    # SPA entrypoint with anti-flash theme script
     ├── staticwebapp.config.json                      # Azure SWA navigation fallback & headers
+    ├── public/
+    │   └── staticwebapp.config.json                  # Azure SWA navigation fallback deployed to dist/
     └── src/
         ├── main.tsx                                  # React DOM entrypoint
-        ├── App.tsx                                   # React Router DOM + ProtectedRoute
+        ├── App.tsx                                   # React Router DOM + ProtectedRoute + code splitting
         ├── context/
         │   ├── AuthContext.tsx                       # JWT authentication context
-        │   └── ThemeContext.tsx                      # Light/Dark/System theme context
+        │   └── ThemeContext.tsx                      # Pure Light/Dark/System theme context with memoized value
         ├── pages/
         │   ├── HomePage.tsx                          # Modern Product Landing Page with hero, features & CTA
         │   ├── HomePage.module.css                   # Glassmorphic landing styles & animations
         │   ├── SignInPage.tsx                        # Tabbed presentation container with back-to-home
         │   ├── CredentialsForm.tsx                   # Form state, validation & submission logic
         │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
-        │   ├── passwordUtils.ts                      # Pure scoring rules & validation helpers
+        │   ├── passwordUtils.ts                      # Criteria scoring & evaluation rules (hoisted regexes)
         │   ├── SignInPage.module.css                 # Glassmorphic component styles
         │   ├── NotFoundPage.tsx                      # 404 error page with theme cycle & contextual navigation
         │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
+        │   ├── BrandLogo.tsx                         # Reusable vector brand logo mark
+        │   ├── ThemeToggle.tsx                       # Universal glassmorphic theme toggle button
+        │   ├── ThemeToggle.module.css                # Animated theme toggle styles
         │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
-        │   ├── DashboardHeader.tsx                   # Top bar navigation, home breadcrumbs & user profile
-        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
-        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
+        │   ├── DashboardHeader.tsx                   # Top bar navigation, user profile avatar & sign out
+        │   ├── DashboardHeader.module.css            # Header layout, avatar & signout styles
+        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & lazy-loaded view tabs
+        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
-        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table
+        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
         │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
-        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with abort cleanup
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/
-            └── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
+            └── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE)
 ```
 - **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` includes user quick-sample chips and user recent repositories, retrieving shared repository audits in `<50ms` with commit SHA staleness detection.
-```
 
 ---
 

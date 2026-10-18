@@ -10,12 +10,17 @@ export interface PasswordEvaluation {
   strengthPercent: number;
 }
 
+const UPPERCASE_REGEX = /[A-Z]/;
+const LOWERCASE_REGEX = /[a-z]/;
+const NUMBER_REGEX = /[0-9]/;
+const SPECIAL_REGEX = /[^A-Za-z0-9]/;
+
 export function evaluatePassword(password: string): PasswordEvaluation {
   const hasMinLength = password.length >= 8;
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasLowercase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const hasUppercase = UPPERCASE_REGEX.test(password);
+  const hasLowercase = LOWERCASE_REGEX.test(password);
+  const hasNumber = NUMBER_REGEX.test(password);
+  const hasSpecial = SPECIAL_REGEX.test(password);
 
   const criteriaCount = [
     hasMinLength,

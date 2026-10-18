@@ -162,6 +162,7 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
           <input
             type="text"
             placeholder="Search packages..."
+            aria-label="Search packages"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -281,7 +282,7 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
 
             return (
               <div
-                key={idx}
+                key={`${dep.ecosystem}-${dep.package}`}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",

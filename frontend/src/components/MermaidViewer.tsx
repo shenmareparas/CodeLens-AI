@@ -344,6 +344,9 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       {/* ── Diagram Canvas ────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
+        role="region"
+        aria-label={title}
+        tabIndex={0}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

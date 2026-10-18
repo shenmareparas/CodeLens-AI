@@ -30,6 +30,13 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, onClose }: Re
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeStreamControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      activeStreamControllerRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,7 +70,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, onClose }: Re
     setMessages((prev) => [...prev, userMessage, initialAssistantMessage]);
     setIsStreaming(true);
 
-    streamChat(
+    activeStreamControllerRef.current?.abort();
+    activeStreamControllerRef.current = streamChat(
       auditId,
       query,
       backendToken,
@@ -78,10 +86,12 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, onClose }: Re
       },
       () => {
         setIsStreaming(false);
+        activeStreamControllerRef.current = null;
       },
       (err) => {
         setError(err.message || "Failed to stream chat response.");
         setIsStreaming(false);
+        activeStreamControllerRef.current = null;
       },
     );
   };

@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { getDossierDownloadUrl, type AuditResponse } from "@/lib/api-client";
 import { TelemetryBentoGrid } from "./TelemetryBentoGrid";
-import { MermaidViewer } from "./MermaidViewer";
-import { DossierViewer } from "./DossierViewer";
+
+const MermaidViewer = lazy(() =>
+  import("./MermaidViewer").then((m) => ({ default: m.MermaidViewer })),
+);
+const DossierViewer = lazy(() =>
+  import("./DossierViewer").then((m) => ({ default: m.DossierViewer })),
+);
 
 interface ActiveAuditSectionProps {
   audit: AuditResponse;
@@ -268,12 +273,20 @@ export function ActiveAuditSection({
       {activeTab === "dossier" && (
         <div style={{ minHeight: "750px" }}>
           {audit.dossierMarkdown ? (
-            <DossierViewer
-              markdown={audit.dossierMarkdown}
-              auditId={audit.auditId}
-              onDownloadSas={handleDownloadSas}
-              isDownloading={isDownloading}
-            />
+            <Suspense
+              fallback={
+                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                  Loading Knowledge Dossier...
+                </div>
+              }
+            >
+              <DossierViewer
+                markdown={audit.dossierMarkdown}
+                auditId={audit.auditId}
+                onDownloadSas={handleDownloadSas}
+                isDownloading={isDownloading}
+              />
+            </Suspense>
           ) : (
             <div
               style={{
@@ -294,10 +307,18 @@ export function ActiveAuditSection({
       {activeTab === "diagram" && (
         <div>
           {mermaidChart ? (
-            <MermaidViewer
-              chart={mermaidChart}
-              title={`${repoName} — C4 Architecture Model`}
-            />
+            <Suspense
+              fallback={
+                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                  Loading Architecture Diagram...
+                </div>
+              }
+            >
+              <MermaidViewer
+                chart={mermaidChart}
+                title={`${repoName} — C4 Architecture Model`}
+              />
+            </Suspense>
           ) : (
             <div
               style={{
