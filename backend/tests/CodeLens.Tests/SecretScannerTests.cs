@@ -62,4 +62,17 @@ public class SecretScannerTests
 
         Assert.Empty(alerts);
     }
+
+    [Fact]
+    public void ScanFile_DetectsLongStatelessGitHubAppInstallationToken()
+    {
+        // GitHub App installation tokens (ghs_) in the new stateless format (~520 chars)
+        var longToken = "ghs_" + new string('A', 520);
+        var content = $"GITHUB_TOKEN = \"{longToken}\"";
+        var alerts = RegexSecretScanner.ScanFile("ci-config.yaml", content);
+
+        Assert.NotEmpty(alerts);
+        Assert.Contains(alerts, a => a.Contains("GitHub Token") && a.Contains("ghs_"));
+    }
 }
+

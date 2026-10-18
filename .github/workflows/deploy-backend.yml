@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/codelens-api
+  IMAGE_NAME: shenmareparas/codelens-api
 
 jobs:
   build-and-test:
@@ -98,5 +98,6 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: ${{ vars.AZURE_CONTAINER_APP_NAME || 'ca-codelens-api' }}
-          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP || 'rg-codelens-ai' }}
+          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP || 'rg-codelens-prod' }}
           imageToDeploy: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          targetPort: 5050

@@ -122,12 +122,13 @@
 ### 3.5 Cloud Infrastructure & CI/CD Deployment
 
 - **Infrastructure as Code:** Azure Bicep templates in `infra/main.bicep` and `infra/main.parameters.json`.
+- **Regional Deployment:** Backend compute and databases in `Central India` (`rg-codelens-prod`), frontend edge in `East Asia` (`eastasia`) with global CDN distribution.
 - **Zero-Cost Profile:**
-  - Azure Container Apps (`ca-codelens-api`) with scale-to-zero compute (`minReplicas: 0`, `maxReplicas: 1`, 0.25 vCPU, 0.5 Gi memory).
-  - Azure Static Web Apps (`swa-codelens`) on Free SKU for Next.js frontend.
-  - Azure Cosmos DB NoSQL Lifetime Free Tier (1,000 RU/s, 25 GB storage).
+  - Azure Container Apps (`ca-codelens-api`) with scale-to-zero compute (`minReplicas: 0`, `maxReplicas: 2`, 0.25 vCPU, 0.5 Gi memory) on port 5050.
+  - Azure Static Web Apps (`swa-codelens-app`) on Free SKU for Next.js frontend.
+  - Azure Cosmos DB NoSQL Lifetime Free Tier (1,000 RU/s, 25 GB storage) with containers `Users`, `Audits`, and `ChatSessions`.
   - Azure Blob Storage (`stcodelens...`) with container `project-dossiers` for dossier markdown and 15-minute SAS tokens.
-- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running test suites, building Docker images to GHCR, and deploying to Azure.
+- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running 29/29 xUnit tests, building Docker images to GHCR with lowercase tags (`shenmareparas/codelens-api`), and deploying to Azure Container Apps and Azure Static Web Apps.
 
 ---
 

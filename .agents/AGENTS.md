@@ -102,13 +102,14 @@
 
 - **Bicep Infrastructure as Code (`infra/`):**
   - Declarative templates in `infra/main.bicep` and `infra/main.parameters.json`.
-  - **Cosmos DB Free Tier:** Configured with `enableFreeTier: true` (1,000 RU/s lifetime free throughput, 25 GB storage).
-  - **Azure Container Apps:** Deploys backend API in container app `ca-codelens-api` under Consumption workload profile with `minReplicas: 0` (scale-to-zero) and `maxReplicas: 1` (0.25 vCPU, 0.5 Gi memory) for zero idle compute billing.
-  - **Azure Static Web Apps:** Hosts Next.js frontend on Free SKU with global edge caching and automatic SSL.
+  - **Regional Topology:** Primary compute/storage resources reside in `Central India` (`rg-codelens-prod`), with Azure Static Web Apps anchored in `East Asia` (`eastasia`) with global edge CDN distribution.
+  - **Cosmos DB Free Tier:** Configured with `enableFreeTier: true` (1,000 RU/s lifetime free throughput, 25 GB storage) and containers `Users` (`/id`), `Audits` (`/repositoryId`), and `ChatSessions` (`/auditId`).
+  - **Azure Container Apps:** Deploys backend API in container app `ca-codelens-api` under Consumption workload profile with `minReplicas: 0` (scale-to-zero) and `maxReplicas: 2` (0.25 vCPU, 0.5 Gi memory) on port 5050 for zero idle compute billing.
+  - **Azure Static Web Apps:** Hosts Next.js frontend on Free SKU (`swa-codelens-app`) with global edge caching and automatic SSL.
   - **Azure Blob Storage:** General Purpose v2 storage account (`stcodelens...`) with container `project-dossiers` for dossier markdown and SAS tokens.
 - **GitHub Actions Workflows (`.github/workflows/`):**
-  - `deploy-backend.yml`: Automatically builds .NET 10 solution, runs 28/28 xUnit tests, packages Docker container image to GitHub Container Registry (GHCR), and deploys to Azure Container Apps.
-  - `deploy-frontend.yml`: Executes Bun Next.js 16 build and deploys to Azure Static Web Apps.
+  - `deploy-backend.yml`: Automatically builds .NET 10 solution, runs 29/29 xUnit tests, packages Docker container image to GitHub Container Registry (GHCR) using strictly lowercase image naming (`shenmareparas/codelens-api`), and deploys to Azure Container Apps (`ca-codelens-api` in `rg-codelens-prod`).
+  - `deploy-frontend.yml`: Executes Bun Next.js 16 build and deploys to Azure Static Web Apps (`swa-codelens-app`).
 
 ---
 

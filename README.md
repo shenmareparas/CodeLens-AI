@@ -70,7 +70,6 @@ codelens-ai/
 ├── .agents/
 │   ├── AGENTS.md                       # AI coding agent rules & guardrails
 │   ├── PROJECT_CONTEXT.md              # Comprehensive architectural specification
-│   ├── PROJECT_PLAN.md                 # Master project plan & feature specifications
 │   └── skills/                         # Agent diagnostic skills (e.g. react-doctor)
 ├── frontend/                           # Next.js 16 App Router (Bun)
 │   ├── src/
@@ -180,14 +179,14 @@ CodeLens AI includes full Infrastructure as Code (IaC) via **Azure Bicep** in [`
 # Log in to Azure
 az login
 
-# Create resource group
-az group create --name rg-codelens --location eastus
+# Create resource group in Central India (or preferred region)
+az group create --name rg-codelens-prod --location centralindia
 
 # Deploy Bicep template
 az deployment group create \
-  --resource-group rg-codelens \
+  --resource-group rg-codelens-prod \
   --template-file infra/main.bicep \
-  --parameters infra/main.parameters.json
+  --parameters location=centralindia
 ```
 
 ### 2. Automated GitHub Actions CI/CD

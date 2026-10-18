@@ -12,7 +12,7 @@ public static partial class RegexSecretScanner
     [GeneratedRegex(@"\bAKIA[0-9A-Z]{16}\b", RegexOptions.Compiled)]
     private static partial Regex AwsAccessKeyRegex();
 
-    [GeneratedRegex(@"\bgh[pousr]_[A-Za-z0-9_]{36,255}\b", RegexOptions.Compiled)]
+    [GeneratedRegex(@"\bgh[pousr]_[A-Za-z0-9_]{36,600}\b", RegexOptions.Compiled)]
     private static partial Regex GitHubTokenRegex();
 
     [GeneratedRegex(@"-----BEGIN (?:RSA|EC|DSA|OPENSSH|PGP|ENCRYPTED)?\s?PRIVATE KEY-----", RegexOptions.Compiled)]
