@@ -12,7 +12,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy Next.js Frontend
+    name: Build and Deploy Vite Frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,12 +29,11 @@ jobs:
         working-directory: ./frontend
         run: bun install --frozen-lockfile
 
-      - name: Build Next.js application
+      - name: Build Vite application
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://ca-codelens-api.eastus.azurecontainerapps.io' }}
-          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://codelens.azurestaticapps.net' }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'codelens-super-secret-key-for-development-purposes-must-be-32-chars-minimum' }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://ca-codelens-api.gentleground-0143ba7c.centralindia.azurecontainerapps.io' }}
+          VITE_APP_URL: ${{ vars.VITE_APP_URL || 'https://proud-ground-0f8336900.4.azurestaticapps.net' }}
         run: bun run build
 
       - name: Deploy to Azure Static Web Apps
@@ -48,5 +47,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: 'frontend'
-          output_location: '.next'
+          output_location: 'dist'
           skip_app_build: true

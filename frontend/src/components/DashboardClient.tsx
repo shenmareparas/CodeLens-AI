@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
 import {
   startAudit,
   getUserAudits,
@@ -16,6 +15,7 @@ interface DashboardClientProps {
   userName?: string | null;
   userEmail?: string | null;
   backendToken: string;
+  onLogout?: () => void;
 }
 
 const SAMPLE_REPOS = [
@@ -30,6 +30,7 @@ export function DashboardClient({
   userName,
   userEmail,
   backendToken,
+  onLogout,
 }: DashboardClientProps) {
   const [repoUrl, setRepoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -111,7 +112,7 @@ export function DashboardClient({
       <DashboardHeader
         userName={userName}
         userEmail={userEmail}
-        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
+        onSignOut={() => onLogout?.()}
       />
 
       {/* ── Ingestion Form / Hero ─────────────────────────────────────────── */}
