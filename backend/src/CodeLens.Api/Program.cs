@@ -16,7 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Configuration binding ──────────────────────────────────────────────────────
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-builder.Services.Configure<GoogleAuthOptions>(builder.Configuration.GetSection("Google"));
 builder.Services.Configure<CosmosDbOptions>(builder.Configuration.GetSection("CosmosDb"));
 builder.Services.Configure<BlobStorageOptions>(builder.Configuration.GetSection("BlobStorage"));
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection("GitHub"));

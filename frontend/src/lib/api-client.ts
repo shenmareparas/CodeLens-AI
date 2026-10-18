@@ -78,29 +78,6 @@ export async function loginWithCredentials(
   });
 }
 
-/**
- * Exchange the Google OAuth id_token for a CodeLens backend JWT.
- */
-export async function exchangeGoogleToken(idToken: string): Promise<BackendAuthResponse> {
-  return apiRequest<BackendAuthResponse>("/api/auth/google", {
-    method: "POST",
-    body: JSON.stringify({ idToken }),
-  });
-}
-
-/**
- * Link a Google account to currently logged in user.
- */
-export async function linkGoogleAccount(idToken: string, token: string): Promise<BackendAuthResponse> {
-  return apiRequest<BackendAuthResponse>(
-    "/api/auth/link-google",
-    {
-      method: "POST",
-      body: JSON.stringify({ idToken }),
-    },
-    token,
-  );
-}
 
 /**
  * Add or update local password for currently logged in user.

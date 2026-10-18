@@ -1,6 +1,6 @@
 # CodeLens AI — Project Context & Architectural Specification
 
-> **Frameworks:** .NET 10 (`net10.0`), Next.js 16 (App Router), Bun runtime, Google Gemini 3.8 Flash  
+> **Frameworks:** .NET 10 (`net10.0`), React 19 (Vite SPA), Bun runtime, Google Gemini 3.8 Flash  
 
 ---
 
@@ -23,8 +23,8 @@
 
 ```text
                                ┌────────────────────────────────────────┐
-                               │     Next.js 16 (Bun / App Router)      │
-                               │     Tailwind CSS / NextAuth v5         │
+                               │    React 19 SPA (Vite / Bun Runtime)   │
+                               │    React Router / Tailwind CSS         │
                                └──────────────────┬─────────────────────┘
                                                   │ HTTPS / Bearer JWT / SSE
                                                   ▼
@@ -44,10 +44,10 @@
 | Layer | Technology | Version / Spec | Key Role |
 | :--- | :--- | :--- | :--- |
 | **Frontend Runtime** | [Bun](https://bun.sh) | `1.2+` | Package manager and script runner (**NEVER** use npm/npx/yarn) |
-| **Frontend Framework** | Next.js 16 | App Router, React 19 | Server & Client Components, Geist typography |
-| **Styling & Design** | Tailwind CSS / CSS Modules | Custom Glassmorphism | Dark theme token system, smooth transitions |
-| **Frontend Auth** | NextAuth.js (Auth.js) | `v5.0.0-beta.25` | Hybrid Credentials provider + Google OAuth 2.0 |
-| **Route Protection** | Next.js 16 Proxy | `src/proxy.ts` | Route protection convention (no legacy `middleware.ts`) |
+| **Frontend Framework** | React 19 + Vite | React 19, Vite 8 | Ultra-fast client-side SPA, zero Node.js server overhead on edge |
+| **Styling & Design** | Tailwind CSS / CSS Modules | Custom Glassmorphism | Dark/Light/System theme token system, smooth transitions |
+| **Frontend Auth** | Client AuthContext | Custom JWT Hook | Direct authentication against backend JWT endpoints with localStorage session |
+| **Routing** | React Router DOM | `v7` | Client-side routing with `ProtectedRoute` and Azure SWA rewrites |
 | **Backend Framework** | ASP.NET Core Minimal APIs | `.NET 10` (`net10.0`) | High-performance, zero-warning asynchronous API |
 | **Backend Language** | C# 13 | NetCoreApp 10.0 | Pattern matching, records, primary constructors |
 | **API Documentation** | Scalar OpenAPI | `/scalar/v1` | Modern interactive API documentation |
@@ -63,17 +63,16 @@
 
 ## 3. Subsystem Specifications
 
-### 3.1 Authentication & Account Linking
+### 3.1 Credentials Authentication
 
-- **Password Security:** Passwords hashed with `Microsoft.AspNetCore.Identity.PasswordHasher<UserDocument>` using PBKDF2 with HMAC-SHA512 and 100,000 iterations.
+- **Password Security:** Passwords hashed with PBKDF2 using HMAC-SHA512 and 100,000 iterations.
 - **Complexity Policy:** Enforces 8+ characters, at least one uppercase (`A-Z`), one lowercase (`a-z`), one digit (`0-9`), and one special character (`!@#$%^&*...`).
 - **Interactive Password UX:**
   - Eye/eye-off visibility toggle buttons for password and confirm-password fields.
   - Live criteria checklist with checkmark status badges.
   - Dynamic 5-level strength meter (`Weak` → `Fair` → `Good` → `Strong`).
   - Real-time confirm-password matching indicator.
-- **OAuth Account Linking:** When authenticating via Google OAuth (`POST /api/auth/google`), the backend validates the Google `id_token` cryptographically via `Google.Apis.Auth`. If an existing user matches the verified email, it automatically links `GoogleSub` and appends `"google"` to `AuthProviders`.
-- **Session Bridge:** NextAuth v5 stores the backend-issued HS256 JWT in `session.backendToken`. The frontend `api-client.ts` automatically attaches `Authorization: Bearer ${session.backendToken}` to all backend calls.
+- **Session Bridge:** `AuthContext.tsx` stores the backend-issued HS256 JWT in `localStorage` under `codelens-token`. The frontend `api-client.ts` automatically attaches `Authorization: Bearer ${token}` to all backend calls.
 
 ### 3.2 Zero-Disk Telemetry & Static Analysis Pipeline
 
@@ -95,7 +94,7 @@
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 29 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
+- **Test Suite:** 30 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
 
 ### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
@@ -111,12 +110,13 @@
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 
-### 3.4 Unified Dashboard, Floating AI Drawer & Theme System
+### 3.4 Modern Landing Page, Unified Dashboard & Theme System
 
+- **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`).
 - **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`).
 - **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
-- **Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `layout.tsx`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens.
+- **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens.
 - **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis (`forceRefresh: true`).
 
 ### 3.5 Cloud Infrastructure & CI/CD Deployment
@@ -125,10 +125,10 @@
 - **Regional Deployment:** Backend compute and databases in `Central India` (`rg-codelens-prod`), frontend edge in `East Asia` (`eastasia`) with global CDN distribution.
 - **Zero-Cost Profile:**
   - Azure Container Apps (`ca-codelens-api`) with scale-to-zero compute (`minReplicas: 0`, `maxReplicas: 2`, 0.25 vCPU, 0.5 Gi memory) on port 5050.
-  - Azure Static Web Apps (`swa-codelens-app`) on Free SKU for Next.js frontend.
+  - Azure Static Web Apps (`swa-codelens-app`) on Free SKU for Vite React SPA.
   - Azure Cosmos DB NoSQL Lifetime Free Tier (1,000 RU/s, 25 GB storage) with containers `Users`, `Audits`, and `ChatSessions`.
   - Azure Blob Storage (`stcodelens...`) with container `project-dossiers` for dossier markdown and 15-minute SAS tokens.
-- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running 29/29 xUnit tests, building Docker images to GHCR with lowercase tags (`shenmareparas/codelens-api`), and deploying to Azure Container Apps and Azure Static Web Apps.
+- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running 30/30 xUnit tests, building Docker images to GHCR with lowercase tags (`shenmareparas/codelens-api`), and deploying to Azure Container Apps and Azure Static Web Apps.
 
 ---
 
@@ -140,21 +140,20 @@ codelens-ai/
 ├── .github/
 │   └── workflows/
 │       ├── deploy-backend.yml                        # GitHub Actions: .NET 10 build, test, Docker & ACA deploy
-│       └── deploy-frontend.yml                       # GitHub Actions: Bun Next.js 16 build & SWA deploy
+│       └── deploy-frontend.yml                       # GitHub Actions: Vite React build & SWA deploy
 ├── infra/
 │   ├── main.bicep                                    # Zero-cost Azure Bicep template (ACA, SWA, Cosmos, Blob)
 │   └── main.parameters.json                          # Deployment parameter configurations
 ├── .agents/
 │   ├── AGENTS.md                                     # AI coding agent rules and operational constraints
 │   ├── PROJECT_CONTEXT.md                            # Authoritative project context & architecture spec
-│   ├── PROJECT_PLAN.md                               # Comprehensive roadmap and technical specification
 │   └── skills/
 │       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
 ├── backend/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
 │   ├── Dockerfile                                    # Multi-stage production container build (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # 28 xUnit tests
+│   │   └── CodeLens.Tests/                           # 30 xUnit tests
 │   │       ├── OctokitTelemetryTests.cs              # Sparkline, URL parsing, release tests
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs     # Complexity, Symbol Manifest, Pub & Bun tests
 │   │       ├── SecretScannerTests.cs                 # [GeneratedRegex] secret detection tests
@@ -166,7 +165,7 @@ codelens-ai/
 │       │   ├── DTOs/                                 # ApiDtos.cs, TelemetryDtos.cs
 │       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService, IGeminiSynthesisService
 │       ├── CodeLens.Infrastructure/
-│       │   ├── Auth/AuthService.cs                   # Hybrid Credentials + Google OAuth + PBKDF2
+│       │   ├── Auth/AuthService.cs                   # PBKDF2 Password Hashing & HS256 JWT Service
 │       │   ├── Data/CosmosRepository.cs              # Cosmos DB implementation
 │       │   ├── Data/InMemoryCosmosRepository.cs      # In-memory database fallback
 │       │   ├── Data/BlobStorageService.cs            # Azure Blob Storage + SAS URLs
@@ -188,39 +187,40 @@ codelens-ai/
 └── frontend/
     ├── package.json
     ├── bun.lock
-    ├── .env.local                                    # Local environment variables (gitignored)
+    ├── vite.config.ts
+    ├── index.html                                    # SPA entrypoint with anti-flash theme script
+    ├── staticwebapp.config.json                      # Azure SWA navigation fallback & headers
     └── src/
-        ├── auth.ts                                   # NextAuth v5 configuration
-        ├── proxy.ts                                  # Next.js 16 route protection proxy
-        ├── lib/
-        │   ├── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
-        │   └── auth-helpers.ts                       # Server-side auth helpers
-        ├── app/
-        │   ├── globals.css                           # Glassmorphism design system & CSS tokens
-        │   ├── layout.tsx                            # Root layout with Geist typography
-        │   ├── page.tsx                              # Landing page
-        │   ├── api/auth/[...nextauth]/route.ts       # NextAuth route handler
-        │   ├── auth/signin/
-        │   │   ├── page.tsx                          # Auth entrypoint
-        │   │   ├── SignInPage.tsx                    # Tabbed presentation container
-        │   │   ├── CredentialsForm.tsx               # Form state, validation & submission logic
-        │   │   ├── PasswordValidationComponents.tsx  # Eye toggles, strength meter, checklist badges
-        │   │   ├── passwordUtils.ts                  # Pure scoring rules & validation helpers
-        │   │   └── SignInPage.module.css             # Glassmorphic component styles
-        │   └── dashboard/
-        │       ├── page.tsx                          # Protected server page with session check
-        │       └── DashboardClient.tsx               # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
-        └── components/
-            ├── DashboardHeader.tsx                   # Top bar navigation & user profile
-            ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
-            ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
-            ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
-            ├── HotspotTable.tsx                      # Complexity x Churn risk table
-            ├── SparklineChart.tsx                    # SVG commit sparkline chart
-            ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
-            ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-            ├── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
-            └── Providers.tsx                         # NextAuth SessionProvider wrapper
+        ├── main.tsx                                  # React DOM entrypoint
+        ├── App.tsx                                   # React Router DOM + ProtectedRoute
+        ├── context/
+        │   ├── AuthContext.tsx                       # JWT authentication context
+        │   └── ThemeContext.tsx                      # Light/Dark/System theme context
+        ├── pages/
+        │   ├── HomePage.tsx                          # Modern Product Landing Page with hero, features & CTA
+        │   ├── HomePage.module.css                   # Glassmorphic landing styles & animations
+        │   ├── SignInPage.tsx                        # Tabbed presentation container with back-to-home
+        │   ├── CredentialsForm.tsx                   # Form state, validation & submission logic
+        │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
+        │   ├── passwordUtils.ts                      # Pure scoring rules & validation helpers
+        │   ├── SignInPage.module.css                 # Glassmorphic component styles
+        │   └── DashboardPage.tsx                     # Protected dashboard page
+        ├── components/
+        │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
+        │   ├── DashboardHeader.tsx                   # Top bar navigation, home breadcrumbs & user profile
+        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
+        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
+        │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
+        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table
+        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+        │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
+        ├── styles/
+        │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
+        └── lib/
+            └── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
+```
 - **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` includes user quick-sample chips and user recent repositories, retrieving shared repository audits in `<50ms` with commit SHA staleness detection.
 ```
 

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useMemo } from "react";
 import {
   loginWithCredentials,
   registerWithCredentials,
-  exchangeGoogleToken,
   type BackendAuthResponse,
 } from "@/lib/api-client";
 
@@ -20,7 +19,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -31,7 +29,6 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: false,
   login: async () => {},
   register: async () => {},
-  loginWithGoogle: async () => {},
   logout: () => {},
 });
 
@@ -91,16 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async (idToken: string) => {
-    setIsLoading(true);
-    try {
-      const res = await exchangeGoogleToken(idToken);
-      handleAuthSuccess(res);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const logout = () => {
     setBackendToken(null);
     setUser(null);
@@ -116,7 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       login,
       register,
-      loginWithGoogle,
       logout,
     }),
     [user, backendToken, isLoading],

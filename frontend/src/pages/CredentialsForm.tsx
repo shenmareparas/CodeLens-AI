@@ -73,7 +73,14 @@ export function CredentialsForm({ activeTab }: CredentialsFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {error && <div className={styles.errorMessage}>{error}</div>}
+      {error && (
+        <div className={styles.errorAlert} role="alert">
+          <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
 
       {activeTab === "signup" && (
         <div className={styles.inputGroup}>
@@ -162,13 +169,18 @@ export function CredentialsForm({ activeTab }: CredentialsFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className={styles.submitButton}
+        className={styles.submitBtn}
       >
-        {isLoading
-          ? "Processing..."
-          : activeTab === "signup"
-            ? "Create Account"
-            : "Sign In with Email"}
+        {isLoading ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+            <span className={styles.spinner} />
+            <span>Processing...</span>
+          </span>
+        ) : activeTab === "signup" ? (
+          "Create Account"
+        ) : (
+          "Sign In with Email"
+        )}
       </button>
     </form>
   );

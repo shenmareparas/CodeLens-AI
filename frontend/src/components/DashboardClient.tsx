@@ -120,35 +120,40 @@ export function DashboardClient({
         style={{
           background: "var(--color-surface)",
           border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius-xl)",
-          padding: "2rem",
+          borderRadius: "20px",
+          padding: "2.25rem",
           display: "flex",
           flexDirection: "column",
-          gap: "1.25rem",
+          gap: "1.5rem",
           boxShadow: "var(--shadow-card)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
         }}
       >
         <div>
           <span
             style={{
-              display: "inline-block",
-              padding: "0.2rem 0.6rem",
-              borderRadius: "99px",
-              background: "rgba(99, 102, 241, 0.15)",
-              border: "1px solid rgba(99, 102, 241, 0.3)",
-              color: "var(--color-primary)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.25rem 0.75rem",
+              borderRadius: "9999px",
+              background: "rgba(99, 102, 241, 0.12)",
+              border: "1px solid rgba(99, 102, 241, 0.28)",
+              color: "var(--color-primary-light)",
               fontSize: "0.75rem",
               fontWeight: 600,
-              marginBottom: "0.5rem",
+              marginBottom: "0.6rem",
             }}
           >
-            Zero-Disk Telemetry & Shared Repo Cache
+            <span>⚡</span>
+            <span>Zero-Disk Telemetry & Shared Repo Cache</span>
           </span>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--color-text)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.65rem", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--color-text)", margin: "0 0 0.35rem" }}>
             Scan & Audit GitHub Repository
           </h2>
-          <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", maxWidth: "600px" }}>
-            Extracts commit sparklines, release cadence, Roslyn cyclomatic complexity, hotspot risk scores, dependencies, and sensitive secrets in-memory.
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", maxWidth: "640px", margin: 0, lineHeight: 1.55 }}>
+            Extract commit sparklines, release cadence, Roslyn AST cyclomatic complexity, hotspot risk scores, dependencies, and sensitive secrets in-memory.
           </p>
         </div>
 
@@ -157,53 +162,77 @@ export function DashboardClient({
             e.preventDefault();
             handleAnalyze();
           }}
-          style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
+          style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "stretch" }}
         >
-          <input
-            type="text"
-            placeholder="https://github.com/owner/repo"
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-            disabled={isLoading}
-            style={{
-              flex: "1 1 320px",
-              padding: "0.75rem 1rem",
-              background: "var(--color-input-bg)",
-              border: "1px solid var(--color-input-border)",
-              borderRadius: "var(--radius-md)",
-              color: "var(--color-input-text)",
-              fontSize: "0.95rem",
-              fontFamily: "var(--font-mono)",
-              outline: "none",
-            }}
-          />
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 340px", position: "relative" }}>
+            <span
+              style={{
+                position: "absolute",
+                left: "1rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--color-text-muted)",
+                pointerEvents: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="https://github.com/owner/repo"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              disabled={isLoading}
+              style={{
+                width: "100%",
+                padding: "0.85rem 1rem 0.85rem 2.75rem",
+                background: "var(--color-input-bg)",
+                border: "1px solid var(--color-input-border)",
+                borderRadius: "12px",
+                color: "var(--color-input-text)",
+                fontSize: "0.95rem",
+                fontFamily: "var(--font-mono)",
+                outline: "none",
+                boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.2)",
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
             <button
               type="submit"
               disabled={isLoading || !repoUrl.trim()}
               style={{
-                padding: "0.75rem 1.5rem",
-                borderRadius: "var(--radius-md)",
+                padding: "0.85rem 1.65rem",
+                borderRadius: "12px",
                 border: "none",
-                background: isLoading ? "rgba(99, 102, 241, 0.5)" : "var(--color-primary)",
+                background: isLoading ? "rgba(99, 102, 241, 0.5)" : "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                 color: "#fff",
                 fontWeight: 600,
-                fontSize: "0.95rem",
-                cursor: isLoading ? "not-allowed" : "pointer",
+                fontFamily: "var(--font-display)",
+                fontSize: "0.9375rem",
+                cursor: isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                transition: "var(--transition-fast)",
+                boxShadow: "0 4px 14px rgba(99, 102, 241, 0.35)",
+                transition: "all 0.2s ease",
               }}
             >
               {isLoading ? (
                 <>
                   <span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>🔄</span>
-                  Analyzing...
+                  <span>Analyzing Repository...</span>
                 </>
               ) : (
                 <>
-                  <span>⚡</span> Analyze Repository
+                  <span>⚡</span>
+                  <span>Analyze Repository</span>
                 </>
               )}
             </button>
@@ -213,29 +242,30 @@ export function DashboardClient({
               onClick={() => handleAnalyze(repoUrl, true)}
               title="Bypass shared cache and re-analyze the repository from scratch"
               style={{
-                padding: "0.75rem 1.25rem",
-                borderRadius: "var(--radius-md)",
+                padding: "0.85rem 1.35rem",
+                borderRadius: "12px",
                 border: "1px solid var(--color-border)",
                 background: "var(--color-surface)",
                 color: "var(--color-text)",
                 fontWeight: 600,
-                fontSize: "0.95rem",
+                fontFamily: "var(--font-display)",
+                fontSize: "0.9375rem",
                 cursor: isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.5rem",
-                transition: "var(--transition-fast)",
+                gap: "0.45rem",
+                transition: "all 0.2s ease",
               }}
             >
-              <span style={{ display: "inline-block" }}>🔄</span>
+              <span>🔄</span>
               <span>Re-analyze</span>
             </button>
           </div>
         </form>
 
         {/* Quick Sample Links */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", fontSize: "0.8rem" }}>
-          <span style={{ color: "var(--color-text-muted)" }}>Try quick sample:</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", fontSize: "0.8125rem" }}>
+          <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}>Quick sample repos:</span>
           {SAMPLE_REPOS.map((sample) => (
             <button
               key={sample}
@@ -246,15 +276,16 @@ export function DashboardClient({
                 handleAnalyze(sample);
               }}
               style={{
-                padding: "0.2rem 0.55rem",
-                borderRadius: "var(--radius-sm)",
+                padding: "0.3rem 0.65rem",
+                borderRadius: "8px",
                 border: "1px solid var(--color-border)",
-                background: "var(--color-surface)",
-                color: "var(--color-primary)",
+                background: "var(--color-badge-bg)",
+                color: "var(--color-text)",
                 cursor: "pointer",
-                fontSize: "0.75rem",
+                fontSize: "0.78rem",
                 fontFamily: "var(--font-mono)",
                 fontWeight: 500,
+                transition: "all 0.15s ease",
               }}
             >
               {sample.replace("https://github.com/", "")}

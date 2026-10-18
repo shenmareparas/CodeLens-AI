@@ -4,7 +4,7 @@
 
 - **Project:** CodeLens AI (Repository Intelligence, Architecture Auditor & Onboarding Copilot)
 - **Monorepo Layout:**
-  - `frontend/`: Next.js 16 (App Router), Bun, TypeScript, Tailwind CSS, NextAuth v5 (Hybrid Google OAuth + Email/Password Credentials)
+  - `frontend/`: React 19 SPA (Vite + Bun), TypeScript, Tailwind CSS, React Router, client-side JWT AuthContext
   - `backend/`: C# .NET 10 (`net10.0`) 3-project Clean Architecture solution (`CodeLens.Core`, `CodeLens.Infrastructure`, `CodeLens.Api`) + `tests/CodeLens.Tests`
 - **Cloud & Storage:** Microsoft Azure (Container Apps, Static Web Apps, Cosmos DB NoSQL Free Tier, Azure Blob Storage)
 - **AI Engine:** Google Gemini 3.8 Flash (`gemini-3.8-flash`) via `Microsoft.SemanticKernel` (`1.81.0`) using a Google AI Studio API Key
@@ -16,9 +16,10 @@
 ### Frontend (`frontend/`)
 
 - **NEVER** use `npm`, `npx`, `yarn`, or `pnpm`. **ALWAYS** use **Bun** (`bun install`, `bun add`, `bun run dev`, `bun run build`).
-- **Next.js 16 Routing Convention:** Route protection is handled in `src/proxy.ts` (Next.js 16 convention). Do NOT create a legacy `src/middleware.ts` file that conflicts with `src/proxy.ts`.
-- **Hydration Safety:** Root `<body>` in `src/app/layout.tsx` uses `suppressHydrationWarning` to prevent browser extension mismatches.
-- **Verification Command:** Always run `bun run build` inside `frontend/` to verify TypeScript and static/dynamic route compilation before finishing a task.
+- **Framework & Router:** React 19 SPA powered by Vite and React Router DOM (`v7`).
+- **Route Protection:** Handled via `<ProtectedRoute>` in `src/App.tsx`, verifying authentication state in `AuthContext.tsx`.
+- **Hydration & Anti-Flash Safety:** Pre-hydration theme script runs directly inside `frontend/index.html` to eliminate theme flashing.
+- **Verification Command:** Always run `bun run build` inside `frontend/` to verify TypeScript and static bundle compilation before finishing a task.
 - **Diagnostics & Quality (`react-doctor`):** Before completing frontend features or committing React code, invoke the workspace skill `react-doctor` (`.agents/skills/react-doctor/SKILL.md`) to verify accessibility, bundle efficiency, and anti-patterns. Maintain a 0-warning baseline.
 
 ### Backend (`backend/`)
@@ -34,17 +35,15 @@
 
 ## 3. Architectural Guardrails & Coding Standards
 
-### 3.1 Hybrid Authentication & Account Linking (`AuthService.cs` & `src/auth.ts`)
+### 3.1 Credentials Authentication (`AuthService.cs` & `src/context/AuthContext.tsx`)
 
 - **Supported Flows:**
-  1. `POST /api/auth/register` — Email/password registration using `PasswordHasher<UserDocument>` (PBKDF2 with HMAC-SHA512 + 100,000 iterations). Enforces strong password rules (8+ chars, uppercase, lowercase, digit, special symbol).
+  1. `POST /api/auth/register` — Email/password registration using PBKDF2 with HMAC-SHA512 + 100,000 iterations. Enforces strong password rules (8+ chars, uppercase, lowercase, digit, special symbol).
   2. `POST /api/auth/login` — Email/password login returning a signed HS256 backend JWT.
-  3. `POST /api/auth/google` — Google `id_token` validation via `Google.Apis.Auth` (`1.73.0`). If an account with the same verified email already exists in Cosmos DB, auto-link `GoogleSub` and append `"google"` to `AuthProviders` while preserving the existing `UserDocument.Id`.
-  4. `POST /api/auth/link-google` — Authenticated endpoint to bind a Google account to an existing logged-in user.
-  5. `POST /api/auth/set-password` — Authenticated endpoint to assign a local password to an existing logged-in OAuth user.
-  6. `DELETE /api/auth/users` — Cleanup endpoint to purge all users in development.
-- **Frontend Password UX:** Password forms in `frontend/src/app/auth/signin/` feature interactive eye show/hide visibility toggles, real-time password criteria validation badges, dynamic strength meters, and confirm-password matching.
-- **Frontend Session Contract:** NextAuth v5 (`src/auth.ts`) stores the backend-issued HS256 JWT in `session.backendToken`. All API calls in `src/lib/api-client.ts` pass `Authorization: Bearer ${session.backendToken}`.
+  3. `POST /api/auth/set-password` — Authenticated endpoint to change or update local password.
+  4. `DELETE /api/auth/users` — Cleanup endpoint to purge all users in development.
+- **Frontend Password UX:** Password forms in `frontend/src/pages/` feature interactive eye show/hide visibility toggles, real-time password criteria validation badges, dynamic strength meters, and confirm-password matching.
+- **Frontend Session Contract:** `AuthContext.tsx` stores the backend-issued HS256 JWT in `localStorage` under `codelens-token`. All API calls in `src/lib/api-client.ts` pass `Authorization: Bearer ${token}`.
 
 ### 3.2 Zero-Disk Ingestion Pipeline
 
@@ -83,6 +82,7 @@
 
 ### 3.5 Unified Interactive Dashboard, Floating AI Drawer & Theme System
 
+- **Landing Page & Routing:** `HomePage.tsx` lives at `/`, serving as a visual product showcase detailing repository telemetry, AST complexity heatmaps, and Gemini-powered architecture synthesis with direct action links to sign in (`/auth/signin`) or open the dashboard (`/dashboard`).
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`). Navigation is streamlined via view tabs (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`) on the home screen.
 - **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips and real-time streaming tokens.
 - **Trackpad Gestures, Dynamic Zoom & Pan Clamping:**
@@ -108,8 +108,8 @@
   - **Azure Static Web Apps:** Hosts Next.js frontend on Free SKU (`swa-codelens-app`) with global edge caching and automatic SSL.
   - **Azure Blob Storage:** General Purpose v2 storage account (`stcodelens...`) with container `project-dossiers` for dossier markdown and SAS tokens.
 - **GitHub Actions Workflows (`.github/workflows/`):**
-  - `deploy-backend.yml`: Automatically builds .NET 10 solution, runs 29/29 xUnit tests, packages Docker container image to GitHub Container Registry (GHCR) using strictly lowercase image naming (`shenmareparas/codelens-api`), and deploys to Azure Container Apps (`ca-codelens-api` in `rg-codelens-prod`).
-  - `deploy-frontend.yml`: Executes Bun Next.js 16 build and deploys to Azure Static Web Apps (`swa-codelens-app`).
+  - `deploy-backend.yml`: Automatically builds .NET 10 solution, runs 30/30 xUnit tests, packages Docker container image to GitHub Container Registry (GHCR) using strictly lowercase image naming (`shenmareparas/codelens-api`), and deploys to Azure Container Apps (`ca-codelens-api` in `rg-codelens-prod`).
+  - `deploy-frontend.yml`: Executes Bun Vite React build and deploys pre-built static artifacts to Azure Static Web Apps (`swa-codelens-app`).
 
 ---
 
@@ -121,21 +121,20 @@ codelens-ai/
 ├── .github/
 │   └── workflows/
 │       ├── deploy-backend.yml                        # CI/CD: .NET 10 build, xUnit test, Docker GHCR & ACA deploy
-│       └── deploy-frontend.yml                       # CI/CD: Bun Next.js 16 build & SWA deploy
+│       └── deploy-frontend.yml                       # CI/CD: Vite React build & SWA deploy
 ├── infra/
 │   ├── main.bicep                                    # Zero-cost Azure Bicep template (ACA, SWA, Cosmos, Blob)
 │   └── main.parameters.json                          # Parameter configurations for Azure environment
 ├── .agents/
 │   ├── AGENTS.md                                     # AI coding agent instructions & guardrails
 │   ├── PROJECT_CONTEXT.md                            # Comprehensive architectural single-source-of-truth
-│   ├── PROJECT_PLAN.md                               # Master specification & roadmap
 │   └── skills/
 │       └── react-doctor/                             # React architecture, lint & bundle diagnostics skill
 ├── backend/
 │   ├── CodeLens.sln
 │   ├── Dockerfile                                    # Multi-stage .NET 10 container image (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # xUnit Test Suite (28 tests)
+│   │   └── CodeLens.Tests/                           # xUnit Test Suite (30 tests)
 │   │       ├── OctokitTelemetryTests.cs
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs
 │   │       ├── SecretScannerTests.cs
@@ -147,7 +146,7 @@ codelens-ai/
 │       │   ├── DTOs/                                 # ApiDtos.cs, TelemetryDtos.cs
 │       │   └── Interfaces/                           # ICosmosRepository, IBlobStorageService, IGitHubTelemetryService, ICodeAnalysisService, IGeminiSynthesisService
 │       ├── CodeLens.Infrastructure/
-│       │   ├── Auth/AuthService.cs                   # Hybrid Credentials + Google OAuth + JWT + PBKDF2
+│       │   ├── Auth/AuthService.cs                   # PBKDF2 Password Hashing & HS256 JWT Service
 │       │   ├── Data/CosmosRepository.cs              # Cosmos DB persistence
 │       │   ├── Data/InMemoryCosmosRepository.cs      # Local in-memory repository fallback
 │       │   ├── Data/BlobStorageService.cs            # Azure Blob + 15-min SAS URLs
@@ -164,40 +163,51 @@ codelens-ai/
 │           ├── Endpoints/                            # AuthEndpoints, AuditEndpoints, ChatEndpoints
 │           └── Program.cs                            # Port 5050, DI, JWT Bearer, CORS, Scalar OpenAPI
 └── frontend/
+    ├── package.json
+    ├── bun.lock
+    ├── vite.config.ts
+    ├── index.html                                    # SPA entrypoint with anti-flash theme script
+    ├── staticwebapp.config.json                      # Azure SWA navigation fallback & headers
     └── src/
-        ├── auth.ts                                   # NextAuth v5 (Google + Credentials)
-        ├── proxy.ts                                  # Next.js 16 auth route protection
-        ├── lib/api-client.ts                         # Typed REST + SSE stream client (JSON & raw chunk handling)
-        ├── app/
-        │   ├── auth/signin/
-        │   │   ├── page.tsx                          # Auth entrypoint
-        │   │   ├── SignInPage.tsx                    # Tabbed Sign-In / Sign-Up Presentation
-        │   │   ├── CredentialsForm.tsx               # Form state & NextAuth handler
-        │   │   ├── PasswordValidationComponents.tsx  # Eye toggles, strength bar, checklist
-        │   │   └── passwordUtils.ts                  # Criteria scoring & evaluation rules
-        │   └── dashboard/
-        │       ├── page.tsx                          # Protected server dashboard page
-        │       └── DashboardClient.tsx               # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
-        └── components/
-            ├── DashboardHeader.tsx                   # Top bar navigation & user profile
-            ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
-            ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
-            ├── DependenciesCard.tsx                  # Ecosystem filter tabs (Bun, Pub, npm, NuGet, PyPI), package search & badges
-            ├── HotspotTable.tsx                      # Complexity x Churn risk table
-            ├── SparklineChart.tsx                    # SVG 8-week commit sparklines
-            ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
-            ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-            ├── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
-            └── Providers.tsx                         # NextAuth SessionProvider wrapper
-- **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) and retrieves shared audits in `<50ms` with remote commit staleness detection.
+        ├── main.tsx                                  # React DOM entrypoint
+        ├── App.tsx                                   # React Router DOM + ProtectedRoute
+        ├── context/
+        │   ├── AuthContext.tsx                       # JWT authentication context
+        │   └── ThemeContext.tsx                      # Light/Dark/System theme context
+        ├── pages/
+        │   ├── HomePage.tsx                          # Modern Product Landing Page with hero, features & CTA
+        │   ├── HomePage.module.css                   # Glassmorphic landing styles & animations
+        │   ├── SignInPage.tsx                        # Tabbed presentation container with back-to-home
+        │   ├── CredentialsForm.tsx                   # Form state, validation & submission logic
+        │   ├── PasswordValidationComponents.tsx      # Eye toggles, strength meter, checklist badges
+        │   ├── passwordUtils.ts                      # Criteria scoring & evaluation rules
+        │   ├── SignInPage.module.css                 # Glassmorphic component styles
+        │   └── DashboardPage.tsx                     # Protected dashboard page
+        ├── components/
+        │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
+        │   ├── DashboardHeader.tsx                   # Top bar navigation, home breadcrumbs & user profile
+        │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & Bento container
+        │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation
+        │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
+        │   ├── HotspotTable.tsx                      # Complexity x Churn risk table
+        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy
+        │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar
+        ├── styles/
+        │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
+        └── lib/
+            └── api-client.ts                         # Typed REST API & SSE client (JSON & raw chunk handling)
 ```
+
+- **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) and retrieves shared audits in `<50ms` with remote commit staleness detection.
 
 ---
 
 ## 5. Pre-Commit Verification Checklist for Agents
 
 1. Run `dotnet build backend/CodeLens.sln` — Must output `0 Warning(s)` and `0 Error(s)`.
-2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 29/29).
-3. Run `cd frontend && bun run build` — Must pass typechecking and route generation cleanly.
+2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 30/30).
+3. Run `cd frontend && bun run build` — Must pass typechecking and static bundle compilation cleanly.
 4. Run `bunx react-doctor@latest --scope changed` — Verify diagnostics baseline.
 5. Verify no secrets or API keys are hardcoded in `appsettings.json` or `.env.local`.

@@ -37,8 +37,6 @@
     <!-- Password Hashing (PBKDF2 with HMAC-SHA512) -->
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="10.0.13" />
 
-    <!-- Google APIs (id_token verification) -->
-    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
   </ItemGroup>
 
 </Project>

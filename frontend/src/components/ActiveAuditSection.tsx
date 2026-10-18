@@ -152,8 +152,8 @@ export function ActiveAuditSection({
               display: "flex",
               alignItems: "center",
               background: "var(--color-badge-bg)",
-              padding: "0.2rem",
-              borderRadius: "var(--radius-sm)",
+              padding: "0.25rem",
+              borderRadius: "10px",
               border: "1px solid var(--color-border)",
               gap: "0.25rem",
             }}
@@ -172,18 +172,20 @@ export function ActiveAuditSection({
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   style={{
-                    padding: "0.35rem 0.75rem",
-                    borderRadius: "var(--radius-sm)",
+                    padding: "0.4rem 0.85rem",
+                    borderRadius: "8px",
                     border: "none",
                     background: isCurrent ? "var(--color-primary)" : "transparent",
                     color: isCurrent ? "#ffffff" : "var(--color-text-muted)",
                     fontWeight: isCurrent ? 600 : 500,
-                    fontSize: "0.78rem",
+                    fontFamily: "var(--font-display)",
+                    fontSize: "0.8125rem",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.35rem",
-                    transition: "var(--transition-fast)",
+                    gap: "0.4rem",
+                    boxShadow: isCurrent ? "0 2px 8px rgba(99, 102, 241, 0.35)" : "none",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   <span>{tab.icon}</span>

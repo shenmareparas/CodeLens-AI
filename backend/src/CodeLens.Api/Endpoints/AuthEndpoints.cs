@@ -91,63 +91,6 @@ public static class AuthEndpoints
         .WithSummary("Sign in with email and password")
         .AllowAnonymous();
 
-        // ── Google OAuth Sign-In & Auto-Linking ───────────────────────────────
-        group.MapPost("/google", async (
-            [FromBody] GoogleAuthRequest request,
-            [FromServices] AuthService authService,
-            CancellationToken ct) =>
-        {
-            try
-            {
-                var (token, user) = await authService.AuthenticateGoogleAsync(request.IdToken, ct);
-                return Results.Ok(new AuthResponse(
-                    token, user.Id, user.Email, user.Name, user.AvatarUrl, user.AuthProviders));
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(
-                    title: "Google authentication failed",
-                    detail: ex.Message,
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
-        })
-        .WithName("AuthenticateGoogle")
-        .WithSummary("Exchange a Google id_token for a CodeLens backend JWT")
-        .AllowAnonymous();
-
-        // ── Explicit Link Google Account ──────────────────────────────────────
-        group.MapPost("/link-google", async (
-            [FromBody] LinkGoogleRequest request,
-            ClaimsPrincipal principal,
-            [FromServices] AuthService authService,
-            CancellationToken ct) =>
-        {
-            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? principal.FindFirstValue("sub");
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Results.Unauthorized();
-            }
-
-            try
-            {
-                var user = await authService.LinkGoogleAsync(userId, request.IdToken, ct);
-                var token = authService.IssueJwt(user);
-                return Results.Ok(new AuthResponse(
-                    token, user.Id, user.Email, user.Name, user.AvatarUrl, user.AuthProviders));
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(
-                    title: "Account linking failed",
-                    detail: ex.Message,
-                    statusCode: StatusCodes.Status400BadRequest);
-            }
-        })
-        .WithName("LinkGoogle")
-        .WithSummary("Link a Google account to the currently authenticated user")
-        .RequireAuthorization();
 
         // ── Explicit Set Password ─────────────────────────────────────────────
         group.MapPost("/set-password", async (

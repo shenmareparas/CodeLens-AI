@@ -8,7 +8,6 @@ public sealed class UserDocument
     public string Name { get; set; } = default!;
     public string? AvatarUrl { get; set; }
     public string? PasswordHash { get; set; }
-    public string? GoogleSub { get; set; }
     public List<string> AuthProviders { get; set; } = [];
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

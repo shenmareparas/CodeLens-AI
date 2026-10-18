@@ -6,11 +6,6 @@ public sealed record RegisterRequest(string Name, string Email, string Password)
 /// <summary>Request body for POST /api/auth/login</summary>
 public sealed record LoginRequest(string Email, string Password);
 
-/// <summary>Request body for POST /api/auth/google</summary>
-public sealed record GoogleAuthRequest(string IdToken);
-
-/// <summary>Request body for POST /api/auth/link-google</summary>
-public sealed record LinkGoogleRequest(string IdToken);
 
 /// <summary>Request body for POST /api/auth/set-password</summary>
 public sealed record SetPasswordRequest(string Password);

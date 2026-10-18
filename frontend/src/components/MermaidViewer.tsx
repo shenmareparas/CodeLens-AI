@@ -10,7 +10,7 @@ interface MermaidViewerProps {
 }
 
 export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Component)" }: MermaidViewerProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
   const [svgContent, setSvgContent] = useState<string>("");
@@ -29,7 +29,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
   });
 
   useEffect(() => {
-    const isDark = theme === "dark";
+    const isDark = resolvedTheme === "dark";
     mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? "dark" : "default",
@@ -72,7 +72,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     };
 
     renderChart();
-  }, [chart, theme]);
+  }, [chart, resolvedTheme]);
 
   // Measure rendered SVG and calculate proportional zoom bounds
   useEffect(() => {

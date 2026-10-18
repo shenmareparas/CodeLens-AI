@@ -1,6 +1,5 @@
 using CodeLens.Core.Entities;
 using CodeLens.Core.Interfaces;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,21 +18,14 @@ public sealed class JwtOptions
     public int ExpiryMinutes { get; set; } = 1440; // 24 hours
 }
 
-public sealed class GoogleAuthOptions
-{
-    public string ClientId { get; set; } = default!;
-}
-
 /// <summary>
-/// Hybrid authentication service supporting email/password, Google OAuth, and account linking.
+/// Authentication service supporting email/password and JWT issuance.
 /// </summary>
 public sealed class AuthService(
     ICosmosRepository repository,
-    IOptions<JwtOptions> jwtOptions,
-    IOptions<GoogleAuthOptions> googleOptions)
+    IOptions<JwtOptions> jwtOptions)
 {
     private readonly JwtOptions _jwt = jwtOptions.Value;
-    private readonly GoogleAuthOptions _google = googleOptions.Value;
 
     // ── Email / Password Registration ──────────────────────────────────────────
 
@@ -48,25 +40,7 @@ public sealed class AuthService(
         var existingUser = await repository.GetUserByEmailAsync(normalizedEmail, ct);
         if (existingUser is not null)
         {
-            if (existingUser.AuthProviders.Contains("credentials"))
-            {
-                throw new InvalidOperationException("An account with this email already exists. Please sign in.");
-            }
-
-            // Existing Google user adding credentials
-            existingUser.PasswordHash = HashPassword(password);
-            if (!existingUser.AuthProviders.Contains("credentials"))
-            {
-                existingUser.AuthProviders.Add("credentials");
-            }
-            if (string.IsNullOrWhiteSpace(existingUser.Name) && !string.IsNullOrWhiteSpace(name))
-            {
-                existingUser.Name = name.Trim();
-            }
-
-            var updatedUser = await repository.UpsertUserAsync(existingUser, ct);
-            var token = IssueJwt(updatedUser);
-            return (token, updatedUser);
+            throw new InvalidOperationException("An account with this email already exists. Please sign in.");
         }
 
         var newUser = new UserDocument
@@ -108,83 +82,6 @@ public sealed class AuthService(
         return (token, user);
     }
 
-    // ── Google OAuth Sign-In & Auto-Linking ───────────────────────────────────
-
-    public async Task<(string Token, UserDocument User)> AuthenticateGoogleAsync(
-        string idToken,
-        CancellationToken ct = default)
-    {
-        var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
-        {
-            Audience = [_google.ClientId],
-        });
-
-        var normalizedEmail = payload.Email.Trim().ToLowerInvariant();
-        var existingUser = await repository.GetUserByEmailAsync(normalizedEmail, ct);
-
-        if (existingUser is not null)
-        {
-            // Auto-link Google provider to existing account if not already linked
-            existingUser.GoogleSub = payload.Subject;
-            if (string.IsNullOrEmpty(existingUser.AvatarUrl))
-            {
-                existingUser.AvatarUrl = payload.Picture;
-            }
-            if (string.IsNullOrEmpty(existingUser.Name) && !string.IsNullOrEmpty(payload.Name))
-            {
-                existingUser.Name = payload.Name;
-            }
-            if (!existingUser.AuthProviders.Contains("google"))
-            {
-                existingUser.AuthProviders.Add("google");
-            }
-
-            var updated = await repository.UpsertUserAsync(existingUser, ct);
-            return (IssueJwt(updated), updated);
-        }
-
-        var newUser = new UserDocument
-        {
-            Id = $"usr_{Guid.NewGuid():N}",
-            Email = normalizedEmail,
-            Name = payload.Name ?? normalizedEmail,
-            AvatarUrl = payload.Picture,
-            GoogleSub = payload.Subject,
-            AuthProviders = ["google"],
-            CreatedAt = DateTimeOffset.UtcNow,
-        };
-
-        var savedUser = await repository.UpsertUserAsync(newUser, ct);
-        return (IssueJwt(savedUser), savedUser);
-    }
-
-    // ── Explicit Google Account Linking (for logged-in user) ──────────────────
-
-    public async Task<UserDocument> LinkGoogleAsync(
-        string userId,
-        string idToken,
-        CancellationToken ct = default)
-    {
-        var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
-        {
-            Audience = [_google.ClientId],
-        });
-
-        var user = await repository.GetUserByIdAsync(userId, ct)
-            ?? throw new KeyNotFoundException("User not found.");
-
-        user.GoogleSub = payload.Subject;
-        if (string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            user.AvatarUrl = payload.Picture;
-        }
-        if (!user.AuthProviders.Contains("google"))
-        {
-            user.AuthProviders.Add("google");
-        }
-
-        return await repository.UpsertUserAsync(user, ct);
-    }
 
     // ── Explicit Set Password (for OAuth users adding credentials) ────────────
 
