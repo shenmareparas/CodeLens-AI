@@ -37,6 +37,7 @@ public sealed class TelemetryData
     public string? License { get; set; }
     public string ReleaseStatus { get; set; } = "Unknown";
     public int DaysSinceLastRelease { get; set; }
+    public long TotalCommits { get; set; }
     public List<int> WeeklyCommitsSparkline { get; set; } = [];
     public Dictionary<string, double> Languages { get; set; } = [];
     public List<HotspotEntry> Hotspots { get; set; } = [];

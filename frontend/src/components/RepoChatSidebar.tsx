@@ -22,11 +22,35 @@ interface RepoChatSidebarProps {
   onClose?: () => void;
 }
 
-const PRESET_QUESTIONS = [
-  "What is the core architecture and design pattern of this repository?",
-  "How do I set up and run this project locally for onboarding?",
-  "Are there any circular dependencies, God classes, or security smells?",
-  "Explain the entry points and major data flows.",
+interface PromptCategory {
+  category: string;
+  prompts: string[];
+}
+
+const SUGGESTED_PROMPT_GROUPS: PromptCategory[] = [
+  {
+    category: "General & Non-Developer Friendly",
+    prompts: [
+      "Explain what this project does in simple, non-technical terms.",
+      "What are the main features and who is the target audience for this app?",
+      "Give me a high-level overview of what technologies are used and why.",
+    ],
+  },
+  {
+    category: "Getting Started & Onboarding",
+    prompts: [
+      "How do I set up and run this project step-by-step on my computer?",
+      "What environment variables or prerequisites are needed before starting?",
+    ],
+  },
+  {
+    category: "Architecture & Engineering Deep Dive",
+    prompts: [
+      "What is the core architecture, folder structure, and design pattern used here?",
+      "Draw a flowchart diagram explaining the major data flow and entry points.",
+      "Are there any circular dependencies, security alerts, or code hotspots?",
+    ],
+  },
 ];
 
 interface ChatMessageItemProps {
@@ -199,9 +223,34 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
   const [isClearing, setIsClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeStreamControllerRef = useRef<AbortController | null>(null);
   const isInitialMountRef = useRef(true);
+
+  // Timer countdown for rate limit cooldown
+  useEffect(() => {
+    if (!rateLimitUntil) {
+      setSecondsRemaining(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = Math.ceil((rateLimitUntil - now) / 1000);
+      if (diff <= 0) {
+        setRateLimitUntil(null);
+        setSecondsRemaining(0);
+      } else {
+        setSecondsRemaining(diff);
+      }
+    };
+
+    updateTimer();
+    const interval = window.setInterval(updateTimer, 1000);
+    return () => window.clearInterval(interval);
+  }, [rateLimitUntil]);
 
   // Load chat history from backend on mount if local state is empty
   useEffect(() => {
@@ -321,6 +370,10 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
         setError(err.message || "Failed to stream chat response.");
         setIsStreaming(false);
         activeStreamControllerRef.current = null;
+      },
+      (retryAfter) => {
+        const cooldown = (retryAfter && retryAfter > 0 ? retryAfter : 60) * 1000;
+        setRateLimitUntil(Date.now() + cooldown);
       },
     );
   };
@@ -515,7 +568,91 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
         </div>
       )}
 
-      {/* ── Messages List ────────────────────────────────────────────────── */}
+      {/* ── Rate Limit Notification Banner ─────────────────────────────────── */}
+      {Boolean(rateLimitUntil && secondsRemaining > 0) && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            padding: "0.75rem 1.15rem",
+            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)",
+            borderBottom: "1px solid rgba(245, 158, 11, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+            animation: "fadeIn 0.25s ease-out",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", flex: 1 }}>
+            <span style={{ fontSize: "1.1rem", lineHeight: 1.2 }}>⏳</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f59e0b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span>Gemini API Quota Exhausted</span>
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    fontWeight: 600,
+                    padding: "0.1rem 0.4rem",
+                    borderRadius: "99px",
+                    background: "rgba(245, 158, 11, 0.2)",
+                    color: "#f59e0b",
+                    fontFamily: "var(--font-mono, monospace)",
+                  }}
+                >
+                  Free Tier (15 RPM)
+                </span>
+              </div>
+              <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>
+                Rate limit reached. Answers are actively answered by the local AST grounded engine.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                fontFamily: "var(--font-mono, monospace)",
+              }}
+            >
+              <span style={{ fontSize: "0.62rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Resets in
+              </span>
+              <span
+                style={{
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: secondsRemaining <= 10 ? "#ef4444" : "#f59e0b",
+                }}
+              >
+                {secondsRemaining >= 3600
+                  ? `${Math.floor(secondsRemaining / 3600)}h ${Math.floor((secondsRemaining % 3600) / 60)}m`
+                  : `${Math.floor(secondsRemaining / 60)}:${(secondsRemaining % 60).toString().padStart(2, "0")}`}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setRateLimitUntil(null)}
+              title="Dismiss warning"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--color-text-muted)",
+                cursor: "pointer",
+                padding: "0.2rem",
+                fontSize: "0.85rem",
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div
         style={{
           flex: 1,
@@ -543,37 +680,57 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
               <strong style={{ color: "var(--color-text)" }}>{repoName}</strong>. Answers are grounded in AST telemetry and dossier facts.
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.5rem" }}>
-              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
-                Suggested Prompts
-              </span>
-              {PRESET_QUESTIONS.map((question) => (
-                <button
-                  key={question}
-                  type="button"
-                  onClick={() => handleSend(question)}
-                  style={{
-                    padding: "0.55rem 0.85rem",
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--color-surface)",
-                    border: "1px solid var(--color-border)",
-                    color: "var(--color-primary-light)",
-                    fontSize: "0.78rem",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    transition: "var(--transition-fast)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--color-surface-hover)";
-                    e.currentTarget.style.borderColor = "var(--color-primary)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "var(--color-surface)";
-                    e.currentTarget.style.borderColor = "var(--color-border)";
-                  }}
-                >
-                  💬 {question}
-                </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem", marginTop: "0.5rem" }}>
+              {SUGGESTED_PROMPT_GROUPS.map((group) => (
+                <div key={group.category} style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: "var(--color-primary-light)",
+                      fontWeight: 600,
+                      textAlign: "left",
+                    }}
+                  >
+                    {group.category}
+                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                    {group.prompts.map((question) => (
+                      <button
+                        key={question}
+                        type="button"
+                        onClick={() => handleSend(question)}
+                        style={{
+                          padding: "0.5rem 0.75rem",
+                          borderRadius: "var(--radius-sm)",
+                          background: "var(--color-surface)",
+                          border: "1px solid var(--color-border)",
+                          color: "var(--color-text)",
+                          fontSize: "0.78rem",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          transition: "var(--transition-fast)",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "0.4rem",
+                          lineHeight: "1.4",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "var(--color-surface-hover)";
+                          e.currentTarget.style.borderColor = "var(--color-primary)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "var(--color-surface)";
+                          e.currentTarget.style.borderColor = "var(--color-border)";
+                        }}
+                      >
+                        <span style={{ color: "var(--color-primary)" }}>💬</span>
+                        <span>{question}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

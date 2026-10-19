@@ -31,6 +31,12 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
     [GeneratedRegex(@"\s*```\s*$", RegexOptions.Multiline)]
     private static partial Regex JsonFenceEndRegex();
 
+    [GeneratedRegex(@"""retryDelay"":\s*""(\d+)s""", RegexOptions.IgnoreCase)]
+    private static partial Regex RetryDelaySecondsRegex();
+
+    [GeneratedRegex(@"retry in (?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?", RegexOptions.IgnoreCase)]
+    private static partial Regex RetryInDurationRegex();
+
     public GeminiSynthesisService(
         IOptions<GeminiOptions> options,
         ILogger<GeminiSynthesisService> logger)
@@ -114,9 +120,31 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
             chatHistory.AddSystemMessage(systemPrompt);
             chatHistory.AddUserMessage(userPrompt);
 
-            var response = await _chatService.GetChatMessageContentAsync(
-                chatHistory,
-                cancellationToken: ct);
+            // Attempt with exponential backoff on 429 rate limit
+            ChatMessageContent? response = null;
+            const int maxRetries = 3;
+            for (var attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    response = await _chatService.GetChatMessageContentAsync(
+                        chatHistory,
+                        cancellationToken: ct);
+                    break;
+                }
+                catch (HttpOperationException httpEx) when (httpEx.StatusCode == System.Net.HttpStatusCode.TooManyRequests && attempt < maxRetries)
+                {
+                    var delaySeconds = Math.Pow(2, attempt); // 2s, 4s
+                    _logger.LogWarning("Gemini rate limit (429) encountered on attempt {Attempt}/{MaxRetries}. Retrying in {Delay}s...", attempt, maxRetries, delaySeconds);
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds), ct);
+                }
+            }
+
+            if (response is null)
+            {
+                _logger.LogWarning("Gemini synthesis exhausted retry budget. Using deterministic fallback.");
+                return BuildFallbackInsights(owner, repo, telemetry);
+            }
 
             var responseContent = response.Content ?? string.Empty;
             var insights = ParseGeminiResponse(responseContent, repo, telemetry);
@@ -126,7 +154,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Gemini synthesis failed for {Owner}/{Repo}. Falling back to deterministic synthesis.", owner, repo);
+            _logger.LogWarning(ex, "Gemini synthesis failed for {Owner}/{Repo}. Falling back to deterministic synthesis.", owner, repo);
             return BuildFallbackInsights(owner, repo, telemetry);
         }
     }
@@ -188,6 +216,8 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
             {
                 var yieldedAny = false;
                 var enumeratorFailed = false;
+                var rateLimitEncountered = false;
+                var rateLimitRetryAfterSeconds = 60;
                 await using var enumerator = stream.WithCancellation(ct).GetAsyncEnumerator();
                 while (true)
                 {
@@ -200,9 +230,24 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                         }
                         chunk = enumerator.Current;
                     }
+                    catch (HttpOperationException httpEx) when (httpEx.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    {
+                        _logger.LogWarning("Gemini rate limit (429) encountered during chat streaming. Switching to grounded local responder.");
+                        enumeratorFailed = true;
+                        rateLimitEncountered = true;
+                        rateLimitRetryAfterSeconds = ExtractRetryAfterSeconds(httpEx.ResponseContent);
+                        break;
+                    }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error while consuming Gemini stream chunks. Falling back to grounded local responder.");
+                        if (ex.Message.Contains("429", StringComparison.OrdinalIgnoreCase) ||
+                            ex.Message.Contains("Quota", StringComparison.OrdinalIgnoreCase) ||
+                            ex.Message.Contains("ResourceExhausted", StringComparison.OrdinalIgnoreCase))
+                        {
+                            rateLimitEncountered = true;
+                            rateLimitRetryAfterSeconds = ExtractRetryAfterSeconds(ex.Message);
+                        }
                         enumeratorFailed = true;
                         break;
                     }
@@ -217,6 +262,11 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                 if (!enumeratorFailed || yieldedAny)
                 {
                     yield break;
+                }
+
+                if (rateLimitEncountered)
+                {
+                    yield return $"[CODELENS_RATELIMIT_EXHAUSTED:{rateLimitRetryAfterSeconds}]";
                 }
             }
         }
@@ -512,6 +562,52 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         {
             yield return s.Substring(i, Math.Min(chunkSize, s.Length - i));
         }
+    }
+
+    private static int ExtractRetryAfterSeconds(string? errorContent)
+    {
+        if (string.IsNullOrWhiteSpace(errorContent))
+        {
+            return 60;
+        }
+
+        try
+        {
+            var matchSec = RetryDelaySecondsRegex().Match(errorContent);
+            if (matchSec.Success && int.TryParse(matchSec.Groups[1].Value, out var parsedSec) && parsedSec > 0)
+            {
+                return parsedSec;
+            }
+
+            var matchDuration = RetryInDurationRegex().Match(errorContent);
+            if (matchDuration.Success)
+            {
+                var total = 0;
+                if (int.TryParse(matchDuration.Groups[1].Value, out var hours))
+                {
+                    total += hours * 3600;
+                }
+                if (int.TryParse(matchDuration.Groups[2].Value, out var mins))
+                {
+                    total += mins * 60;
+                }
+                if (double.TryParse(matchDuration.Groups[3].Value, out var secs))
+                {
+                    total += (int)Math.Ceiling(secs);
+                }
+
+                if (total > 0)
+                {
+                    return total;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore parsing errors, return default
+        }
+
+        return 60;
     }
 
     private sealed class GeminiOutputDto

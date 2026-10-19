@@ -94,7 +94,7 @@
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 30 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, and dossier compilation.
+- **Test Suite:** 31 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, total commit calculation, and dossier compilation.
 
 ### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
@@ -112,6 +112,7 @@
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 - **Chat Copilot API & Session Persistence:**
   - `POST /api/chat/{id}/stream`: Real-time SSE streaming copilot grounded directly in `PROJECT_KNOWLEDGE.md`. Response enumeration is guarded with try-catch fallback handling to prevent HTTP 500 interruptions.
+  - **Rate Limit Propagation & Quota Alert Banner:** When Gemini API returns `429 Too Many Requests` or quota exhaustion, `GeminiSynthesisService.cs` extracts the actual retry delay from Google's response (`retryDelay` / `retry in Xh Ym Zs`) and emits `[CODELENS_RATELIMIT_EXHAUSTED:{seconds}]`. `ChatEndpoints.cs` maps this to an SSE event `data: {"text":"","rateLimited":true,"retryAfterSeconds":{seconds}}\n\n`. `RepoChatSidebar.tsx` renders a prominent top warning banner with a live countdown timer (`Resets in MM:SS` or `Hh MMm`), which automatically and synchronously dismisses as soon as the cooldown expires (`Boolean(rateLimitUntil && secondsRemaining > 0)`), while continuing uninterrupted with local AST grounded answers.
   - `GET /api/chat/{id}`: Restores stored conversation messages for the active audit session.
   - `DELETE /api/chat/{id}`: Purges chat history from storage.
 
@@ -120,8 +121,10 @@
 - **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
 - **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`). Supported on Azure SWA via `public/staticwebapp.config.json` navigation fallback.
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`). Heavy viewers (`MermaidViewer` ~92 kB and `DossierViewer` ~159 kB) are dynamically loaded with `React.lazy()` and `<Suspense>` boundaries.
+- **All-Time Commits & Refined Activity Pulse:** `OctokitTelemetryService.FetchTotalCommitsAsync` inspects GitHub API pagination headers (`rel="last"`) with `PageSize=1` to retrieve the true lifetime commit count in 1 API call. Displayed alongside weekly commit sparklines in an internal card footer pill with clean hover-only inspection (no timeline buttons or locked popovers).
+- **Dual-Mode Language Distribution (`LanguageDistributionCard.tsx`):** Features interactive Bar mode (compact multi-segment progress bar + proportional language rows) and Circular mode (two-column Donut chart + scrollable legend) with a dominant stack banner.
 - **Floating AI Drawer & Persistent Copilot:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`. Messages render formatted markdown (headings, code blocks, lists) via `ReactMarkdown` + `remark-gfm`. Chat history is preserved across drawer toggles using dual-layer synchronization (`localStorage` + backend `GET /api/chat/{id}`), with a `[ 🗑️ Clear ]` action to purge chat history on demand. Real-time streaming tokens are ingested over SSE with automatic connection cleanup on unmount.
-- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
+- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` and `FullscreenMermaidModal.tsx` support trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, normalized 1.0 = 100% fit baseline, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default 100% framing.
 - **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens. Theme context is memoized with pure state transitions and decoupled `localStorage` synchronization.
 - **Modern User Profile & Navigation Header:** `DashboardHeader.tsx` features an interactive user avatar pill displaying user initials and email address alongside an animated danger-glowing sign out button.
 - **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis (`forceRefresh: true`).
@@ -229,13 +232,15 @@ codelens-ai/
         │   ├── analysisSteps.ts                      # 6-step analysis stage metadata, icons, and descriptions
         │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
+        │   ├── LanguageDistributionCard.tsx          # Dual-mode Bar/Circular language distribution with dominant stack banner
         │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
-        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
-        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart with all-time total commits pill
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy, 100% reset & a11y region
+        │   ├── FullscreenMermaidModal.tsx            # Fullscreen interactive diagram modal with pan/touch clamping
         │   ├── InlineMermaidBlock.tsx                # Flow diagram renderer for AI chat markdown responses
         │   ├── ThinkingLines.tsx                     # Claude-style multi-line animated thinking shimmer state
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & clear chat
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & rate-limit banner
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/

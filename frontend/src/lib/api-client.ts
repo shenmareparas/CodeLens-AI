@@ -116,6 +116,7 @@ export interface TelemetryData {
   license?: string;
   releaseStatus: string;
   daysSinceLastRelease: number;
+  totalCommits?: number;
   weeklyCommitsSparkline: number[];
   languages: Record<string, number>;
   hotspots: HotspotEntry[];
@@ -181,6 +182,7 @@ export function streamChat(
   onChunk: (chunk: string) => void,
   onDone: () => void,
   onError: (err: Error) => void,
+  onRateLimited?: (retryAfterSeconds: number) => void,
 ): AbortController {
   const controller = new AbortController();
 
@@ -222,8 +224,13 @@ export function streamChat(
             }
             try {
               const parsed = JSON.parse(data);
+              if (parsed?.rateLimited && onRateLimited) {
+                onRateLimited(Number(parsed.retryAfterSeconds) || 60);
+              }
               if (typeof parsed?.text === "string") {
-                onChunk(parsed.text);
+                if (parsed.text.length > 0) {
+                  onChunk(parsed.text);
+                }
                 continue;
               }
             } catch {

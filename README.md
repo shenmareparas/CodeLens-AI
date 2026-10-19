@@ -13,16 +13,17 @@
 - 🌓 **Proper Light / Dark / System Theme & Glassmorphic Switcher:** Unified 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, high-contrast form controls, and an animated glassmorphic quick-switch control.
 - 👤 **Modern Profile Avatar & Authenticated Header:** Dashboard header featuring user initials/avatar pill, user email, and an interactive danger-accented signout action with smooth transitions.
 - ⚡ **Vercel Best Practices & Route-Level Code Splitting:** `React.lazy()` and `<Suspense>` boundaries split heavy diagram renderers (`MermaidViewer` ~92 kB, `DossierViewer` ~159 kB) and route pages, reducing initial bundle weight from ~644 kB to ~265 kB. Pure state updaters, hoisted regular expressions, and abort-controller SSE cleanups prevent memory leaks and unnecessary rerenders.
-- 📊 **Commit Velocity & Sparklines:** Tracks commit cadence and repository activity over time via GitHub Octokit.
+- 📊 **Commit Velocity, All-Time Totals & Clean Activity Pulse:** Tracks 8-week commit cadence and all-time repository total commits via GitHub Octokit with clean hover-only inspection (eliminating cluttered timeline buttons and locked popovers).
+- 🌐 **Enhanced Language Distribution:** Interactive distribution card with dual visualization modes—compact multi-segment progress bar with proportional rows in Bar mode, and an expanded two-column Donut + Legend layout in Circular mode.
 - 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots (automatically ignoring `.agents/` and configuration tooling).
 - 📦 **Polyglot Dependency Intelligence:** Parses Bun (`bun.lock`), Node.js (`package.json`), Dart/Flutter (`pubspec.yaml`), .NET (`.csproj`), Python (`requirements.txt`), Go (`go.mod`), and Rust (`Cargo.toml`) with interactive real-time ecosystem filtering and search.
-- 🌳 **Architecture Explorer & Touchpad Gestures:** Generates interactive Mermaid.js C4 and component dependency diagrams with trackpad pinch-to-zoom, two-finger pan, dynamic size-aware zoom limits, viewport pan clamping (preventing diagrams from escaping off-screen), a 1-click view reset button, and SVG export.
+- 🌳 **Architecture Explorer & Touchpad Gestures:** Generates interactive Mermaid.js C4 and component dependency diagrams with trackpad pinch-to-zoom, two-finger pan, dynamic size-aware zoom limits, viewport pan clamping (preventing diagrams from escaping off-screen), a 1-click 100% view reset button, and SVG export.
 - 🧹 **Dead Code & Zombie Files:** Pinpoints unreferenced internal symbols and dormant legacy files.
 - 🛡️ **Zero-Allocation Secret Scanner:** Scans for exposed API keys, private keys, `.pem`, and environment secrets using compiled .NET 10 `[GeneratedRegex]`, with smart filtering for benign `.env.example` templates.
 - 🔐 **Secure Password Authentication:** Built-in email/password credentials with PBKDF2 (HMAC-SHA512 + 100,000 iterations), strict password strength verification, and signed HS256 JWT sessions.
 - ⚡ **Shared Repo Cache & 1-Click Re-Analysis:** Instantly retrieves previously analyzed repositories in `<50ms`. Automatically compares cached commit SHAs against the GitHub remote default branch to flag outdated audits with 1-click re-analysis (`forceRefresh: true`).
 - 🖥️ **Unified All-in-One Dashboard:** High-contrast Bento Grid telemetry cards, interactive repository selector with quick sample chips, Architecture Diagram canvas, and Knowledge Dossier viewer.
-- 🤖 **Context-Grounded Floating AI Drawer:** Slide-over AI copilot accessible from a floating bottom-right launcher button or top header, grounded strictly in the synthesized `PROJECT_KNOWLEDGE.md` dossier via real-time SSE streaming.
+- 🤖 **Context-Grounded Floating AI Drawer & Live Quota Countdown:** Slide-over AI copilot accessible from a floating bottom-right launcher button or top header, grounded strictly in the synthesized `PROJECT_KNOWLEDGE.md` dossier via real-time SSE streaming. Features prominent top-of-chat rate-limit alerts with a live countdown timer (`Resets in MM:SS` or `Hh MMm`), dynamic `retryDelay` propagation from Google Gemini, instantaneous auto-dismiss upon timer completion, and seamless fallback to the local AST-grounded engine when Gemini Free Tier quota is reached.
 - 🌓 **Proper Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, and high-contrast form controls.
 - ☁️ **Zero-Cost Azure Cloud Infrastructure:** Fully automated Infrastructure as Code via Azure Bicep (`infra/main.bicep`) featuring Cosmos DB Lifetime Free Tier (1,000 RU/s, 25 GB), Azure Container Apps with scale-to-zero billing, Azure Static Web Apps, and GitHub Actions CI/CD.
 
@@ -113,13 +114,15 @@ codelens-ai/
 │   │   │   ├── analysisSteps.ts        # 6-step analysis stage metadata, icons, and descriptions
 │   │   │   ├── TelemetryBentoGrid.tsx  # Metrics Bento Grid layout
 │   │   │   ├── DependenciesCard.tsx    # Ecosystem filter tabs (Bun, Pub, npm, NuGet, PyPI), search & badges
+│   │   │   ├── LanguageDistributionCard.tsx # Dual-mode Bar/Circular language telemetry with dominant stack banner
 │   │   │   ├── HotspotTable.tsx        # Complexity x Churn risk table (memoized sorting & filter)
-│   │   │   ├── SparklineChart.tsx      # SVG 8-week commit sparklines
-│   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+│   │   │   ├── SparklineChart.tsx      # SVG 8-week commit sparklines with all-time total commits pill
+│   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy, 100% reset & a11y region
+│   │   │   ├── FullscreenMermaidModal.tsx # Immersive fullscreen diagram viewer with touch & pan clamping
 │   │   │   ├── InlineMermaidBlock.tsx  # Flow diagram renderer for AI chat markdown responses
 │   │   │   ├── ThinkingLines.tsx       # Claude-style multi-line animated thinking shimmer state
 │   │   │   ├── DossierViewer.tsx       # Formatted Markdown dossier preview with SAS download
-│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot with markdown formatting & clear chat
+│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot with rate-limit countdown banner & clear chat
 │   │   ├── styles/
 │   │   │   └── globals.css             # Glassmorphism design system & token definitions (Plus Jakarta Sans, Inter, JetBrains Mono)
 │   │   └── lib/
@@ -129,7 +132,7 @@ codelens-ai/
 └── backend/                            # .NET 10 Solution
     ├── CodeLens.sln
     ├── Dockerfile                      # Multi-stage .NET 10 container image (port 5050)
-    ├── tests/CodeLens.Tests/           # xUnit test suite (30 tests)
+    ├── tests/CodeLens.Tests/           # xUnit test suite (31 tests)
     └── src/
         ├── CodeLens.Core/              # Domain entities, DTOs, and interface contracts (IGeminiSynthesisService)
         ├── CodeLens.Infrastructure/    # Cosmos DB, Blob, Octokit, Roslyn analysis, Secret scanner, Gemini AI Engine
@@ -156,7 +159,7 @@ From the project root:
 ```bash
 cd backend
 dotnet restore CodeLens.sln
-dotnet test CodeLens.sln               # Run all 30 xUnit tests
+dotnet test CodeLens.sln               # Run all 31 xUnit tests
 dotnet run --project src/CodeLens.Api
 ```
 

@@ -25,16 +25,21 @@ public static class AuditEndpoints
                 ?? user.FindFirstValue("sub")!;
 
             var audits = await repository.GetAuditsByUserAsync(userId, ct);
-            var summaries = audits.Select(a => new AuditSummaryResponse(
-                a.Id,
-                a.Status.ToString(),
-                a.RepoUrl,
-                a.CreatedAt,
-                a.Telemetry,
-                a.AiInsights,
-                a.DossierMarkdown,
-                CommitSha: a.CommitSha
-            )).ToList();
+            // Deduplicate by repository so subsequent analyses override prior ones in the recent list
+            var summaries = audits
+                .GroupBy(a => a.RepositoryId, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.OrderByDescending(a => a.CreatedAt).First())
+                .OrderByDescending(a => a.CreatedAt)
+                .Select(a => new AuditSummaryResponse(
+                    a.Id,
+                    a.Status.ToString(),
+                    a.RepoUrl,
+                    a.CreatedAt,
+                    a.Telemetry,
+                    a.AiInsights,
+                    a.DossierMarkdown,
+                    CommitSha: a.CommitSha
+                )).ToList();
 
             return Results.Ok(summaries);
         })
@@ -157,6 +162,7 @@ public static class AuditEndpoints
                     License = telemetryResult.License,
                     ReleaseStatus = telemetryResult.ReleaseStatus,
                     DaysSinceLastRelease = telemetryResult.DaysSinceLastRelease,
+                    TotalCommits = telemetryResult.TotalCommits,
                     WeeklyCommitsSparkline = telemetryResult.WeeklyCommitsSparkline.ToList(),
                     Languages = telemetryResult.Languages.ToDictionary(),
                     Hotspots = analysisResult.Hotspots.ToList(),

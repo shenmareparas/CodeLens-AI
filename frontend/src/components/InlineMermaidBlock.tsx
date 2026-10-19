@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, useId, memo } from "react";
+import { useEffect, useRef, useState, useId, useCallback, memo } from "react";
 import mermaid from "mermaid";
 import { useTheme } from "@/context/ThemeContext";
 import { sanitizeMermaid } from "@/lib/mermaidUtils";
+import { FullscreenMermaidModal } from "./FullscreenMermaidModal";
 
 interface InlineMermaidBlockProps {
   code: string;
@@ -21,6 +22,7 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
   const [svgHtml, setSvgHtml] = useState<string>(() => svgRenderCache.get(cacheKey) || "");
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -106,6 +108,14 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
     }
   };
 
+  const handleOpenFullscreen = useCallback(() => {
+    setIsFullscreen(true);
+  }, []);
+
+  const handleCloseFullscreen = useCallback(() => {
+    setIsFullscreen(false);
+  }, []);
+
   if (error) {
     return (
       <div
@@ -131,79 +141,115 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
   }
 
   return (
-    <div
-      style={{
-        margin: "0.75rem 0",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid var(--color-border)",
-        background: "var(--color-surface)",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)",
-      }}
-    >
+    <>
       <div
         style={{
+          margin: "0.75rem 0",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          background: "var(--color-surface)",
+          overflow: "hidden",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0.45rem 0.75rem",
-          borderBottom: "1px solid var(--color-border-subtle)",
-          background: "rgba(0, 0, 0, 0.2)",
-          fontSize: "0.72rem",
-          fontFamily: "var(--font-mono)",
-          color: "var(--color-text-muted)",
+          flexDirection: "column",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)",
         }}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <span>📊</span>
-          <span>Flow Diagram</span>
-        </span>
-        <button
-          type="button"
-          onClick={handleCopy}
+        <div
           style={{
-            padding: "0.2rem 0.5rem",
-            background: "transparent",
-            border: "1px solid var(--color-border)",
-            borderRadius: "4px",
-            color: copied ? "var(--color-success)" : "var(--color-text-muted)",
-            fontSize: "0.7rem",
-            cursor: "pointer",
-            transition: "var(--transition-fast)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0.45rem 0.75rem",
+            borderBottom: "1px solid var(--color-border-subtle)",
+            background: "rgba(0, 0, 0, 0.2)",
+            fontSize: "0.72rem",
+            fontFamily: "var(--font-mono)",
+            color: "var(--color-text-muted)",
           }}
         >
-          {copied ? "✓ Copied" : "Copy Code"}
-        </button>
+          <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <span>📊</span>
+            <span>Flow Diagram</span>
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            {svgHtml && (
+              <button
+                type="button"
+                onClick={handleOpenFullscreen}
+                title="View Diagram Fullscreen"
+                style={{
+                  padding: "0.2rem 0.55rem",
+                  background: "transparent",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "4px",
+                  color: "var(--color-text)",
+                  fontSize: "0.7rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
+                  transition: "var(--transition-fast)",
+                }}
+              >
+                <span>⛶</span>
+                <span>Fullscreen</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleCopy}
+              title="Copy Mermaid syntax"
+              style={{
+                padding: "0.2rem 0.5rem",
+                background: "transparent",
+                border: "1px solid var(--color-border)",
+                borderRadius: "4px",
+                color: copied ? "var(--color-success)" : "var(--color-text-muted)",
+                fontSize: "0.7rem",
+                cursor: "pointer",
+                transition: "var(--transition-fast)",
+              }}
+            >
+              {copied ? "✓ Copied" : "Copy Code"}
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: "1rem",
+            overflowX: "auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "120px",
+          }}
+        >
+          {svgHtml ? (
+            <div
+              dangerouslySetInnerHTML={{ __html: svgHtml }}
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            />
+          ) : (
+            <div style={{ color: "var(--color-text-muted)", fontSize: "0.75rem", fontStyle: "italic" }}>
+              Rendering flowchart...
+            </div>
+          )}
+        </div>
       </div>
 
-      <div
-        style={{
-          padding: "1rem",
-          overflowX: "auto",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "120px",
-        }}
-      >
-        {svgHtml ? (
-          <div
-            dangerouslySetInnerHTML={{ __html: svgHtml }}
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-            }}
-          />
-        ) : (
-          <div style={{ color: "var(--color-text-muted)", fontSize: "0.75rem", fontStyle: "italic" }}>
-            Rendering flowchart...
-          </div>
-        )}
-      </div>
-    </div>
+      <FullscreenMermaidModal
+        isOpen={isFullscreen}
+        onClose={handleCloseFullscreen}
+        svgHtml={svgHtml}
+        code={code}
+        resolvedTheme={resolvedTheme}
+      />
+    </>
   );
 }
 

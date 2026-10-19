@@ -4,6 +4,7 @@ import type { TelemetryData } from "@/lib/api-client";
 import { SparklineChart } from "./SparklineChart";
 import { HotspotTable } from "./HotspotTable";
 import { DependenciesCard } from "./DependenciesCard";
+import { LanguageDistributionCard } from "./LanguageDistributionCard";
 
 interface TelemetryBentoGridProps {
   repoUrl?: string;
@@ -110,61 +111,31 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
         }}
       >
         {/* Sparkline Card */}
-        <div style={cardStyle}>
-          <h3 style={sectionHeadingStyle}>Activity Pulse (Last 8 Weeks)</h3>
-          <SparklineChart data={telemetry.weeklyCommitsSparkline} />
+        <div
+          style={{
+            ...cardStyle,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.85rem" }}>
+            <span style={{ fontSize: "1.1rem" }}>⚡</span>
+            <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>Activity Pulse (Last 8 Weeks)</h3>
+          </div>
+          <SparklineChart
+            data={telemetry.weeklyCommitsSparkline}
+            allTimeTotalCommits={telemetry.totalCommits}
+          />
         </div>
 
-        {/* Languages Card */}
-        <div style={cardStyle}>
-          <h3 style={sectionHeadingStyle}>Language & Byte Distribution</h3>
-          {Object.keys(telemetry.languages).length === 0 ? (
-            <div style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>No languages detected</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {/* Stacked bar */}
-              <div
-                style={{
-                  display: "flex",
-                  height: "10px",
-                  borderRadius: "99px",
-                  overflow: "hidden",
-                  width: "100%",
-                  background: "rgba(255,255,255,0.05)",
-                }}
-              >
-                {Object.entries(telemetry.languages).map(([lang, pct]) => (
-                  <div
-                    key={lang}
-                    title={`${lang}: ${pct}%`}
-                    style={{
-                      width: `${pct}%`,
-                      background: languageColors[lang] || "#818cf8",
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
-                {Object.entries(telemetry.languages).map(([lang, pct]) => (
-                  <div key={lang} style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}>
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: languageColors[lang] || "#818cf8",
-                      }}
-                    />
-                    <span style={{ color: "var(--color-text)" }}>{lang}</span>
-                    <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>{pct}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Language Distribution Card */}
+        <LanguageDistributionCard
+          languages={telemetry.languages}
+          languageColors={languageColors}
+          cardStyle={cardStyle}
+          sectionHeadingStyle={sectionHeadingStyle}
+        />
       </div>
 
       {/* ── Security / Secret Scanner Surface ────────────────────────────── */}

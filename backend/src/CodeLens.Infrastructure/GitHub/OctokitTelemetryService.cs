@@ -102,7 +102,10 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
         // 5. File commit churn from recent commits
         var fileChurn = await FetchFileCommitChurnAsync(owner, repo);
 
-        // 6. Latest commit SHA
+        // 6. All-time total commits
+        var totalCommits = await FetchTotalCommitsAsync(owner, repo, defaultBranch);
+
+        // 7. Latest commit SHA
         var commitSha = await GetLatestCommitShaAsync(owner, repo, defaultBranch, ct);
 
         return new RepoTelemetryResult(
@@ -117,7 +120,8 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
             DaysSinceLastRelease: daysSinceRelease,
             WeeklyCommitsSparkline: sparkline,
             Languages: languages,
-            FileChurn: fileChurn
+            FileChurn: fileChurn,
+            TotalCommits: totalCommits
         );
     }
 
@@ -377,5 +381,39 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
         }
 
         return fileChurn;
+    }
+
+    private async Task<long> FetchTotalCommitsAsync(string owner, string repo, string branch)
+    {
+        try
+        {
+            // Query 1 commit to read the pagination 'last' page Link header from GitHub API
+            var commits = await _client.Repository.Commit.GetAll(
+                owner,
+                repo,
+                new CommitRequest { Sha = branch },
+                new ApiOptions { PageSize = 1, PageCount = 1 });
+
+            var lastApiInfo = _client.GetLastApiInfo();
+            if (lastApiInfo?.Links != null &&
+                lastApiInfo.Links.TryGetValue("last", out var lastPageUri) &&
+                lastPageUri != null)
+            {
+                var query = System.Web.HttpUtility.ParseQueryString(lastPageUri.Query);
+                var pageStr = query["page"];
+                if (long.TryParse(pageStr, out var totalPages) && totalPages > 0)
+                {
+                    return totalPages;
+                }
+            }
+
+            // If no pagination 'last' link exists, total commits is the small returned count
+            return commits.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to retrieve all-time total commits for {Owner}/{Repo}", owner, repo);
+            return 0;
+        }
     }
 }

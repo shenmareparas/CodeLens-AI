@@ -17,7 +17,8 @@ public sealed record RepoTelemetryResult(
     int DaysSinceLastRelease,
     IReadOnlyList<int> WeeklyCommitsSparkline,
     IReadOnlyDictionary<string, double> Languages,
-    IReadOnlyDictionary<string, int> FileChurn
+    IReadOnlyDictionary<string, int> FileChurn,
+    long TotalCommits = 0
 );
 
 /// <summary>

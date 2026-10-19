@@ -58,6 +58,26 @@ public static class ChatEndpoints
 
             await foreach (var token in geminiService.StreamChatResponseAsync(dossierMarkdown, history, request.Message, ct))
             {
+                if (token.StartsWith("[CODELENS_RATELIMIT_EXHAUSTED:", StringComparison.Ordinal))
+                {
+                    var retrySec = 60;
+                    var colonIdx = token.IndexOf(':');
+                    var closeIdx = token.IndexOf(']');
+                    if (colonIdx > 0 && closeIdx > colonIdx)
+                    {
+                        var secSpan = token.AsSpan(colonIdx + 1, closeIdx - colonIdx - 1);
+                        if (int.TryParse(secSpan, out var parsedSec) && parsedSec > 0)
+                        {
+                            retrySec = parsedSec;
+                        }
+                    }
+
+                    var payloadLimit = JsonSerializer.Serialize(new { text = "", rateLimited = true, retryAfterSeconds = retrySec });
+                    await response.WriteAsync($"data: {payloadLimit}\n\n", ct);
+                    await response.Body.FlushAsync(ct);
+                    continue;
+                }
+
                 fullReply.Append(token);
                 var payload = JsonSerializer.Serialize(new { text = token });
                 await response.WriteAsync($"data: {payload}\n\n", ct);

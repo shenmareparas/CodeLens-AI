@@ -75,12 +75,14 @@
 - **Dossier Artifact:** Every completed audit compiles a standardized `PROJECT_KNOWLEDGE.md` file via `MarkdownDossierBuilder.cs`, uploads it to Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches the markdown in `AuditDocument.DossierMarkdown` in Cosmos DB.
 - **Chat Endpoints & Stream Resilience (`/api/chat`):**
   - `POST /api/chat/{id}/stream`: Real-time SSE streaming copilot grounded strictly on `PROJECT_KNOWLEDGE.md`. Sets response headers `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `X-Accel-Buffering: no`. Streams tokens as JSON payloads (`data: {"text":"..."}\n\n`). Stream consumption is wrapped in a resilient try-catch to seamlessly fall back to local grounded answers without dropping connections (preventing 500 errors).
+  - **Rate Limit Propagation & Quota Banner:** When Gemini API returns `429 Too Many Requests` or quota exhaustion, `GeminiSynthesisService.cs` extracts the actual retry delay from Google's response (`retryDelay` / `retry in Xh Ym Zs`) and emits `[CODELENS_RATELIMIT_EXHAUSTED:{seconds}]`. `ChatEndpoints.cs` converts this into an SSE event `data: {"text":"","rateLimited":true,"retryAfterSeconds":{seconds}}\n\n` without polluting stored chat history. `RepoChatSidebar.tsx` renders a prominent top warning banner with a live countdown timer (`Resets in MM:SS` or `Hh MMm`), which automatically and synchronously dismisses the banner as soon as the countdown finishes, while continuing uninterrupted with local AST grounded answers.
   - `GET /api/chat/{id}`: Fetches stored conversation messages for audit sessions.
   - `DELETE /api/chat/{id}`: Purges conversation history for an audit from Cosmos DB / in-memory store.
 - **Chat Presentation & Persistence (`RepoChatSidebar.tsx`):**
   - Renders assistant responses with `ReactMarkdown` and `remark-gfm` featuring styled typography, syntax-highlighted code blocks, lists, and headers instead of raw text.
   - Retains conversation state across drawer close/re-open via synchronized `localStorage` (`codelens-chat-${auditId}`) and backend `GET /api/chat/{id}` synchronization.
   - Features an interactive `[ 🗑️ Clear ]` action in the chat header to reset conversation history both locally and on the server.
+  - Features a rate-limit banner pinned under the header with live monospace cooldown countdown (`Hh MMm` / `MM:SS`), instantaneous auto-dismiss upon timer completion (`Boolean(rateLimitUntil && secondsRemaining > 0)`), and manual dismiss option.
 
 ### 3.4 Cosmos DB Free-Tier Efficiency & Local Dev Fallbacks
 
@@ -92,12 +94,14 @@
 
 - **Landing Page & Routing:** `HomePage.tsx` lives at `/`, serving as a visual product showcase detailing repository telemetry, AST complexity heatmaps, and Gemini-powered architecture synthesis with direct action links to sign in (`/auth/signin`) or open the dashboard (`/dashboard`).
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`). Navigation is streamlined via view tabs (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`) on the home screen.
-- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips, conversation persistence, clear chat capability, and real-time streaming tokens.
+- **All-Time Commits & Refined Activity Pulse:** `OctokitTelemetryService.FetchTotalCommitsAsync` inspects GitHub API pagination headers (`rel="last"`) with `PageSize=1` to retrieve the true lifetime commit count in 1 API call. Displayed alongside weekly commit sparklines in an internal card footer pill with clean hover-only inspection (no timeline buttons or locked popovers).
+- **Dual-Mode Language Distribution (`LanguageDistributionCard.tsx`):** Features interactive Bar mode (compact multi-segment progress bar + proportional language rows) and Circular mode (two-column Donut chart + scrollable legend) with a dominant stack banner.
+- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips, conversation persistence, clear chat capability, real-time streaming tokens, and live quota countdown alerts.
 - **Trackpad Gestures, Dynamic Zoom & Pan Clamping:**
-  - `MermaidViewer.tsx` supports native trackpad pinch-to-zoom (`ctrlKey + wheel` / `gesturestart` / `gesturechange`) and two-finger panning.
-  - Dynamic zoom limits calculated based on SVG diagram bounds prevent over-zooming out into invisibility or over-zooming in beyond legibility.
+  - `MermaidViewer.tsx` and `FullscreenMermaidModal.tsx` support native trackpad pinch-to-zoom (`ctrlKey + wheel` / `gesturestart` / `gesturechange`) and two-finger panning.
+  - Normalized zoom scale where `1.0` represents 100% fit-to-screen baseline. Zoom out is clamped at `1.0` to prevent diagrams from shrinking into invisibility.
   - Viewport pan clamping (`clampPan`) prevents the diagram from moving fully out of the container screen during mouse drag or two-finger trackpad panning.
-  - Quick `[ ↺ Reset ]` action button restores the diagram view to default auto-fit scale and `(0, 0)` pan coordinates.
+  - Quick `[ ↺ Reset ]` action button restores the diagram view to default auto-fit scale (100% / 1.0) and `(0, 0)` pan coordinates.
 - **Theme Architecture (Light / Dark / System):**
   - `ThemeContext.tsx` handles `light`, `dark`, and `system` modes, dynamically listening to OS color scheme changes (`matchMedia`).
   - Pre-hydration anti-flash script in `layout.tsx` reads `localStorage` before paint to eliminate light/dark flickering.
@@ -143,7 +147,7 @@ codelens-ai/
 │   ├── CodeLens.sln
 │   ├── Dockerfile                                    # Multi-stage .NET 10 container image (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # xUnit Test Suite (30 tests)
+│   │   └── CodeLens.Tests/                           # xUnit Test Suite (31 tests)
 │   │       ├── OctokitTelemetryTests.cs
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs
 │   │       ├── SecretScannerTests.cs
@@ -208,13 +212,15 @@ codelens-ai/
         │   ├── analysisSteps.ts                      # 6-step analysis stage metadata, icons, and descriptions
         │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
+        │   ├── LanguageDistributionCard.tsx          # Dual-mode Bar/Circular language distribution with dominant stack banner
         │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
-        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
-        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+        │   ├── SparklineChart.tsx                    # SVG commit sparkline chart with all-time total commits pill
+        │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy, 100% reset & a11y region
+        │   ├── FullscreenMermaidModal.tsx            # Fullscreen interactive diagram modal with pan/touch clamping
         │   ├── InlineMermaidBlock.tsx                # Flow diagram renderer for AI chat markdown responses
         │   ├── ThinkingLines.tsx                     # Claude-style multi-line animated thinking shimmer state
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & clear chat
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & rate-limit banner
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/
@@ -229,7 +235,7 @@ codelens-ai/
 ## 5. Pre-Commit Verification Checklist for Agents
 
 1. Run `dotnet build backend/CodeLens.sln` — Must output `0 Warning(s)` and `0 Error(s)`.
-2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 30/30).
+2. Run `dotnet test backend/CodeLens.sln` — All xUnit tests must pass (currently 31/31).
 3. Run `cd frontend && bun run build` — Must pass typechecking and static bundle compilation cleanly.
 4. Run `bunx react-doctor@latest --scope changed` — Verify diagnostics baseline.
 5. Verify no secrets or API keys are hardcoded in `appsettings.json` or `.env.local`.

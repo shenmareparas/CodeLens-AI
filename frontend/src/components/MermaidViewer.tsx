@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import mermaid from "mermaid";
 import { useTheme } from "@/context/ThemeContext";
+import { FullscreenMermaidModal } from "./FullscreenMermaidModal";
 
 interface MermaidViewerProps {
   chart: string;
@@ -20,12 +21,18 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const [copied, setCopied] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Dynamic zoom boundaries based on diagram geometry
-  const [zoomLimits, setZoomLimits] = useState<{ min: number; max: number; initial: number }>({
-    min: 0.5,
-    max: 2.2,
-    initial: 1,
+  const handleOpenFullscreen = useCallback(() => setIsFullscreen(true), []);
+  const handleCloseFullscreen = useCallback(() => setIsFullscreen(false), []);
+
+  // Fit scale where 1.0 zoom (100%) fits the diagram comfortably in view
+  const [baseFitScale, setBaseFitScale] = useState(1);
+
+  // Dynamic zoom boundaries relative to the 100% fit view (fit to screen = 1.0 = min zoom)
+  const [zoomLimits, setZoomLimits] = useState<{ min: number; max: number }>({
+    min: 1.0,
+    max: 3.5,
   });
 
   useEffect(() => {
@@ -74,7 +81,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     renderChart();
   }, [chart, resolvedTheme]);
 
-  // Measure rendered SVG and calculate proportional zoom bounds
+  // Measure rendered SVG and calculate proportional fit-to-screen scale
   useEffect(() => {
     if (!svgContent || !containerRef.current || !svgWrapperRef.current) return;
 
@@ -93,32 +100,26 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       if (!svgWidth || svgWidth <= 0) svgWidth = 800;
       if (!svgHeight || svgHeight <= 0) svgHeight = 500;
 
-      // Fit ratio to show entire diagram comfortably in view
+      // Fit ratio so 1.0 (100%) fits the entire diagram comfortably in the viewport
       const fitRatioX = (containerWidth - 60) / svgWidth;
       const fitRatioY = (containerHeight - 60) / svgHeight;
-      const fitRatio = Math.min(fitRatioX, fitRatioY, 1.1);
+      const fitScale = Math.min(fitRatioX, fitRatioY, 1.1);
 
-      // Proportional dynamic boundaries:
-      // - Min zoom: allows seeing full context without shrinking into an unreadable speck
-      // - Max zoom: prevents over-zooming beyond legible glyph clarity
-      const computedMin = Math.max(0.4, Math.round(fitRatio * 0.65 * 100) / 100);
-      const computedMax = Math.min(3.0, Math.max(1.8, Math.round(fitRatio * 2.8 * 100) / 100));
-      const computedInitial = Math.min(Math.max(computedMin, fitRatio), computedMax);
-
+      setBaseFitScale(fitScale);
       setZoomLimits({
-        min: computedMin,
-        max: computedMax,
-        initial: computedInitial,
+        min: 1.0,
+        max: 3.5,
       });
 
-      setZoom(computedInitial);
+      // Fit to screen is 100% (zoom = 1)
+      setZoom(1);
       setPan({ x: 0, y: 0 });
     }, 50);
 
     return () => clearTimeout(timer);
   }, [svgContent]);
 
-  // Helper to clamp pan offsets so diagram content cannot move fully out of the container viewport
+  // Helper to clamp pan offsets so diagram content cannot move out of the container screen
   const clampPan = (newX: number, newY: number, currentZoom: number) => {
     const container = containerRef.current;
     const svgEl = svgWrapperRef.current?.querySelector("svg");
@@ -132,24 +133,33 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     if (!svgWidth || svgWidth <= 0) svgWidth = 800;
     if (!svgHeight || svgHeight <= 0) svgHeight = 500;
 
-    // Visual dimensions of the rendered diagram
-    const renderedWidth = svgWidth * currentZoom;
-    const renderedHeight = svgHeight * currentZoom;
+    // Visual dimensions of the rendered diagram based on baseFitScale * zoom
+    const effectiveScale = baseFitScale * currentZoom;
+    const renderedWidth = svgWidth * effectiveScale;
+    const renderedHeight = svgHeight * effectiveScale;
 
-    // Keep at least 100px or 25% of the diagram always visible inside the viewport
-    const minVisibleX = Math.min(100, renderedWidth * 0.25);
-    const minVisibleY = Math.min(100, renderedHeight * 0.25);
+    // If rendered diagram is smaller than or equal to container, keep centered (0)
+    // If larger than container, allow panning only up to the diagram edges
+    let clampedX = 0;
+    if (renderedWidth > containerWidth) {
+      const maxPanX = (renderedWidth - containerWidth) / 2 + 30;
+      clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
+    } else {
+      // Allow minor wiggle room (max 20px) but snap back within view
+      const maxMargin = Math.max(0, (containerWidth - renderedWidth) / 4);
+      clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
+    }
 
-    const maxPanX = (containerWidth / 2) + (renderedWidth / 2) - minVisibleX;
-    const minPanX = -maxPanX;
+    let clampedY = 0;
+    if (renderedHeight > containerHeight) {
+      const maxPanY = (renderedHeight - containerHeight) / 2 + 30;
+      clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
+    } else {
+      const maxMargin = Math.max(0, (containerHeight - renderedHeight) / 4);
+      clampedY = Math.max(-maxMargin, Math.min(maxMargin, newY));
+    }
 
-    const maxPanY = (containerHeight / 2) + (renderedHeight / 2) - minVisibleY;
-    const minPanY = -maxPanY;
-
-    return {
-      x: Math.max(minPanX, Math.min(maxPanX, newX)),
-      y: Math.max(minPanY, Math.min(maxPanY, newY)),
-    };
+    return { x: clampedX, y: clampedY };
   };
 
   // Touchpad pinch-to-zoom and two-finger scroll panning with dynamic boundaries
@@ -159,7 +169,8 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (e.ctrlKey) {
+      e.stopPropagation();
+      if (e.ctrlKey || e.metaKey) {
         const zoomDelta = -e.deltaY * 0.008;
         const nextZoom = Math.min(Math.max(zoomLimits.min, zoom + zoomDelta), zoomLimits.max);
         setZoom(nextZoom);
@@ -169,9 +180,18 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       }
     };
 
+    const handleGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
     container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("gesturestart", handleGesture, { passive: false });
+    container.addEventListener("gesturechange", handleGesture, { passive: false });
+
     return () => {
       container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("gesturestart", handleGesture);
+      container.removeEventListener("gesturechange", handleGesture);
     };
   }, [zoomLimits, zoom]);
 
@@ -201,7 +221,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
   };
 
   const handleResetZoom = () => {
-    setZoom(zoomLimits.initial);
+    setZoom(1);
     setPan({ x: 0, y: 0 });
   };
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.15, zoomLimits.max));
@@ -251,15 +271,17 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
             <button
               type="button"
               onClick={handleZoomOut}
-              title="Zoom Out"
+              disabled={zoom <= zoomLimits.min}
+              title={zoom <= zoomLimits.min ? "Minimum zoom (Fit to Screen)" : "Zoom Out"}
               style={{
                 padding: "0.25rem 0.6rem",
                 background: "transparent",
                 border: "none",
-                color: "var(--color-text)",
-                cursor: "pointer",
+                color: zoom <= zoomLimits.min ? "var(--color-text-muted)" : "var(--color-text)",
+                cursor: zoom <= zoomLimits.min ? "not-allowed" : "pointer",
                 fontSize: "0.85rem",
                 fontWeight: 600,
+                opacity: zoom <= zoomLimits.min ? 0.5 : 1,
               }}
             >
               −
@@ -317,6 +339,31 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
             <span>↺</span>
             <span>Reset</span>
           </button>
+
+          {svgContent && !renderError && (
+            <button
+              type="button"
+              onClick={handleOpenFullscreen}
+              title="View Architecture Diagram Fullscreen"
+              style={{
+                padding: "0.3rem 0.75rem",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                cursor: "pointer",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                transition: "var(--transition-fast)",
+              }}
+            >
+              <span>⛶</span>
+              <span>Fullscreen</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -411,7 +458,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
           <div
             ref={svgWrapperRef}
             style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${baseFitScale * zoom})`,
               transformOrigin: "center center",
               transition: isDragging ? "none" : "transform 0.08s ease-out",
               width: "100%",
@@ -427,6 +474,17 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
           </div>
         )}
       </div>
+
+      <FullscreenMermaidModal
+        isOpen={isFullscreen}
+        onClose={handleCloseFullscreen}
+        svgHtml={svgContent}
+        code={chart}
+        resolvedTheme={resolvedTheme}
+        title={title}
+        icon="🗺️"
+      />
     </div>
   );
 }
+

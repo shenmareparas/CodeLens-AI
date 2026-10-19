@@ -79,4 +79,55 @@ public class UserRepositoryTests
         Assert.NotNull(latest);
         Assert.Equal("audit_new", latest.Id);
     }
+
+    [Fact]
+    public async Task GetAuditsByUserAsync_CanBeDeduplicatedByRepositoryKeepingLatest()
+    {
+        var repo = new InMemoryCosmosRepository();
+
+        var audit1 = new AuditDocument
+        {
+            Id = "audit_1",
+            RepositoryId = "owner_repo",
+            RepoUrl = "https://github.com/owner/repo",
+            UserId = "user_123",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-3)
+        };
+
+        var audit2 = new AuditDocument
+        {
+            Id = "audit_2",
+            RepositoryId = "owner_repo",
+            RepoUrl = "https://github.com/owner/repo",
+            UserId = "user_123",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+
+        var audit3 = new AuditDocument
+        {
+            Id = "audit_3",
+            RepositoryId = "owner_other",
+            RepoUrl = "https://github.com/owner/other",
+            UserId = "user_123",
+            Status = AuditStatus.Completed,
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5)
+        };
+
+        await repo.UpsertAuditAsync(audit1);
+        await repo.UpsertAuditAsync(audit2);
+        await repo.UpsertAuditAsync(audit3);
+
+        var userAudits = await repo.GetAuditsByUserAsync("user_123");
+        var deduplicated = userAudits
+            .GroupBy(a => a.RepositoryId, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.OrderByDescending(a => a.CreatedAt).First())
+            .OrderByDescending(a => a.CreatedAt)
+            .ToList();
+
+        Assert.Equal(2, deduplicated.Count);
+        Assert.Equal("audit_3", deduplicated[0].Id);
+        Assert.Equal("audit_2", deduplicated[1].Id);
+    }
 }
