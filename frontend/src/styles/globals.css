@@ -178,6 +178,11 @@ a {
 }
 
 a:hover {
+  text-decoration: none;
+}
+
+/* Only underline inline links without class names on hover */
+a:where(:not([class])):hover {
   text-decoration: underline;
 }
 

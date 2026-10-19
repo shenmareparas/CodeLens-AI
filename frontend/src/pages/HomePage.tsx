@@ -1,20 +1,247 @@
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BrandLogo } from "@/components/BrandLogo";
+
+import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroPreviewTabs } from "@/components/landing/HeroPreviewTabs";
+import { IngestionPipelineSection } from "@/components/landing/IngestionPipelineSection";
+import { BentoFeaturesSection } from "@/components/landing/BentoFeaturesSection";
+import { EcosystemSection } from "@/components/landing/EcosystemSection";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
+import { CtaBannerSection } from "@/components/landing/CtaBannerSection";
+
 import styles from "./HomePage.module.css";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+const SAMPLE_REPOS = [
+  { name: "CodeLens-AI", repo: "shenmareparas/CodeLens-AI", tag: ".NET 10" },
+  { name: "Chess Flutter", repo: "shenmareparas/Chess", tag: "Flutter" },
+  { name: "Play Store AI", repo: "shenmareparas/play-store-ai-review", tag: "Python" },
+  { name: "Portfolio Next.js", repo: "shenmareparas/Portfolio_NextJS", tag: "Next.js" },
+] as const;
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedRepo, setSelectedRepo] = useState<string>("shenmareparas/CodeLens-AI");
+
+  // GSAP Animation Master Orchestrator
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia(containerRef);
+
+      mm.add(
+        {
+          isDesktop: "(min-width: 800px)",
+          isMobile: "(max-width: 799px)",
+          reduceMotion: "(prefers-reduced-motion: reduce)",
+        },
+        (context) => {
+          const { reduceMotion } = context.conditions as {
+            isDesktop: boolean;
+            isMobile: boolean;
+            reduceMotion: boolean;
+          };
+
+          // Accessibility: If user prefers reduced motion, set elements immediately visible
+          if (reduceMotion) {
+            gsap.set(
+              ".hero-badge, .hero-headline, .hero-subtitle, .hero-samples, .hero-cta, .hero-stats, .preview-window, .pipeline-step-card, .bento-feature-card, .eco-card, .comp-row",
+              {
+                autoAlpha: 1,
+                y: 0,
+                scale: 1,
+              }
+            );
+            return;
+          }
+
+          // Initial batch hidden state for ScrollTrigger elements
+          gsap.set(".pipeline-step-card", { autoAlpha: 0, y: 35 });
+          gsap.set(".bento-feature-card", { autoAlpha: 0, y: 35 });
+          gsap.set(".eco-card", { autoAlpha: 0, y: 25 });
+          gsap.set(".comp-row", { autoAlpha: 0, x: -20 });
+
+          // 1. Ambient Background Floating Glow Orbs
+          gsap.to(".bg-glow-orb", {
+            y: "+=35",
+            x: "-=20",
+            duration: 6,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+            stagger: {
+              each: 2,
+              from: "random",
+            },
+          });
+
+          // 2. Master Hero Entrance Timeline
+          const heroTl = gsap.timeline({
+            defaults: { ease: "power3.out" },
+          });
+
+          heroTl
+            .from(".hero-badge", {
+              autoAlpha: 0,
+              y: -25,
+              scale: 0.9,
+              duration: 0.6,
+              ease: "back.out(1.7)",
+            })
+            .from(
+              ".hero-headline",
+              {
+                autoAlpha: 0,
+                y: 35,
+                duration: 0.8,
+              },
+              "-=0.3"
+            )
+            .from(
+              ".hero-subtitle",
+              {
+                autoAlpha: 0,
+                y: 20,
+                duration: 0.65,
+              },
+              "-=0.5"
+            )
+            .from(
+              ".hero-samples",
+              {
+                autoAlpha: 0,
+                y: 15,
+                duration: 0.55,
+              },
+              "-=0.4"
+            )
+            .from(
+              ".hero-cta",
+              {
+                autoAlpha: 0,
+                scale: 0.95,
+                y: 15,
+                duration: 0.55,
+              },
+              "-=0.4"
+            )
+            .from(
+              ".hero-stats",
+              {
+                autoAlpha: 0,
+                y: 25,
+                duration: 0.75,
+              },
+              "-=0.3"
+            );
+
+          // 3. ScrollTrigger for Mock Preview Window
+          gsap.from(".preview-window", {
+            scrollTrigger: {
+              trigger: ".preview-window",
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+            autoAlpha: 0,
+            y: 50,
+            scale: 0.96,
+            duration: 0.9,
+            ease: "power3.out",
+          });
+
+          // 4. ScrollTrigger Batch for Pipeline Cards
+          ScrollTrigger.batch(".pipeline-step-card", {
+            onEnter: (batch) =>
+              gsap.to(batch, {
+                autoAlpha: 1,
+                y: 0,
+                stagger: 0.14,
+                duration: 0.65,
+                ease: "power2.out",
+                overwrite: true,
+              }),
+            start: "top 82%",
+          });
+
+          // 5. ScrollTrigger Batch for Bento Feature Cards
+          ScrollTrigger.batch(".bento-feature-card", {
+            onEnter: (batch) =>
+              gsap.to(batch, {
+                autoAlpha: 1,
+                y: 0,
+                stagger: 0.12,
+                duration: 0.65,
+                ease: "power2.out",
+                overwrite: true,
+              }),
+            start: "top 82%",
+          });
+
+          // 6. ScrollTrigger Batch for Ecosystem Cards
+          ScrollTrigger.batch(".eco-card", {
+            onEnter: (batch) =>
+              gsap.to(batch, {
+                autoAlpha: 1,
+                y: 0,
+                stagger: 0.08,
+                duration: 0.5,
+                ease: "power2.out",
+                overwrite: true,
+              }),
+            start: "top 85%",
+          });
+
+          // 7. ScrollTrigger Batch for Comparison Rows
+          ScrollTrigger.batch(".comp-row", {
+            onEnter: (batch) =>
+              gsap.to(batch, {
+                autoAlpha: 1,
+                x: 0,
+                stagger: 0.08,
+                duration: 0.55,
+                ease: "power2.out",
+                overwrite: true,
+              }),
+            start: "top 85%",
+          });
+
+          // 8. CTA Section entrance
+          gsap.from(".cta-title, .cta-subtitle, .cta-actions", {
+            scrollTrigger: {
+              trigger: ".cta-title",
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+            autoAlpha: 0,
+            y: 25,
+            stagger: 0.15,
+            duration: 0.7,
+            ease: "power2.out",
+          });
+        }
+      );
+
+      return () => mm.revert();
+    },
+    { scope: containerRef }
+  );
 
   return (
-    <div className={styles.landingContainer}>
-      {/* Ambient background glows */}
-      <div className={styles.bgGlowTop} aria-hidden="true" />
-      <div className={styles.bgGlowMiddle} aria-hidden="true" />
-      <div className={styles.bgGlowBottom} aria-hidden="true" />
+    <div ref={containerRef} className={styles.landingContainer}>
+      {/* Ambient background glowing orbs */}
+      <div className={`${styles.bgGlowTop} bg-glow-orb`} aria-hidden="true" />
+      <div className={`${styles.bgGlowMiddle} bg-glow-orb`} aria-hidden="true" />
+      <div className={`${styles.bgGlowBottom} bg-glow-orb`} aria-hidden="true" />
 
-      {/* Navigation */}
+      {/* Navigation Bar */}
       <header className={styles.nav}>
         <Link to="/" className={styles.brandLink}>
           <div className={styles.brandLogo}>
@@ -24,14 +251,20 @@ export function HomePage() {
         </Link>
 
         <nav className={styles.navLinks} aria-label="Main Navigation">
-          <a href="#features" className={styles.navLink}>
-            Features
+          <a href="#pipeline" className={styles.navLink}>
+            Pipeline
           </a>
           <a href="#preview" className={styles.navLink}>
             Dashboard
           </a>
+          <a href="#features" className={styles.navLink}>
+            Capabilities
+          </a>
           <a href="#ecosystem" className={styles.navLink}>
             Ecosystems
+          </a>
+          <a href="#comparison" className={styles.navLink}>
+            Why Us
           </a>
           <a
             href="https://github.com/shenmareparas/CodeLens-AI"
@@ -60,233 +293,39 @@ export function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className={styles.hero}>
-        <div className={styles.badge}>
-          <span>✨</span>
-          <span>Next-Generation Architecture Auditor & Ingestion Copilot</span>
-        </div>
+      {/* Main Content Sections */}
+      <main>
+        {/* 1. Hero Section */}
+        <HeroSection isAuthenticated={isAuthenticated} />
 
-        <h1 className={styles.headline}>
-          Understand Any Codebase in Seconds,{" "}
-          <span className={styles.gradientText}>Not Weeks.</span>
-        </h1>
+        {/* 2. Interactive Mock Sandbox with sample repo selector directly on top */}
+        <HeroPreviewTabs
+          selectedRepo={selectedRepo}
+          onSelectRepo={setSelectedRepo}
+          sampleRepos={SAMPLE_REPOS}
+        />
 
-        <p className={styles.subtitle}>
-          Stream repositories zero-disk from GitHub, compute deterministic cyclomatic complexity
-          hotspots, render interactive C4 diagrams, and synthesize actionable technical dossiers
-          with Google Gemini 3.8 Flash.
-        </p>
+        {/* 3. Ingestion Pipeline Section */}
+        <IngestionPipelineSection />
 
-        <div className={styles.heroCtaGroup}>
-          <Link to={isAuthenticated ? "/dashboard" : "/auth/signin"} className={styles.primaryCta}>
-            <span>{isAuthenticated ? "Go to Dashboard" : "Get Started Free"}</span>
-            <span aria-hidden="true">→</span>
-          </Link>
-          <a href="#features" className={styles.secondaryCta}>
-            <span>Explore Architecture</span>
-          </a>
-        </div>
+        {/* 4. Core Bento Capabilities */}
+        <BentoFeaturesSection />
 
-        {/* Stats Ribbon */}
-        <div className={styles.statsRibbon}>
-          <div className={styles.statItem}>
-            <div className={styles.statNum}>&lt; 50ms</div>
-            <div className={styles.statLabel}>Shared Repo Cache Hit</div>
-          </div>
-          <div className={styles.statItem}>
-            <div className={styles.statNum}>0-Disk</div>
-            <div className={styles.statLabel}>In-Memory Zip Stream</div>
-          </div>
-          <div className={styles.statItem}>
-            <div className={styles.statNum}>7+</div>
-            <div className={styles.statLabel}>Polyglot Ecosystems</div>
-          </div>
-          <div className={styles.statItem}>
-            <div className={styles.statNum}>100%</div>
-            <div className={styles.statLabel}>Grounded Gemini AI</div>
-          </div>
-        </div>
-      </section>
+        {/* 5. Supported Ecosystems */}
+        <EcosystemSection />
 
-      {/* Interactive Mock Dashboard Preview */}
-      <section id="preview" className={styles.mockSection}>
-        <div className={styles.mockWindow}>
-          <div className={styles.mockTitleBar}>
-            <span className={`${styles.mockDot} ${styles.mockDotRed}`} />
-            <span className={`${styles.mockDot} ${styles.mockDotYellow}`} />
-            <span className={`${styles.mockDot} ${styles.mockDotGreen}`} />
-            <span className={styles.mockAddress}>
-              https://codelens.ai/dashboard/shenmareparas/CodeLens-AI
-            </span>
-          </div>
+        {/* 6. Comparison Section */}
+        <ComparisonSection />
 
-          <div className={styles.mockContent}>
-            <div className={styles.mockTelemetryCard}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "1.1rem" }}>Repository Telemetry Bento</strong>
-                <span style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", borderRadius: "6px", background: "rgba(16, 185, 129, 0.2)", color: "#10b981", fontWeight: 600 }}>
-                  Live Audit
-                </span>
-              </div>
-              <div className={styles.mockMetricRow}>
-                <span>Cyclomatic Risk Hotspots</span>
-                <strong style={{ color: "#f59e0b" }}>Low Risk (1.42 max)</strong>
-              </div>
-              <div className={styles.mockMetricRow}>
-                <span>Dependencies Analyzed</span>
-                <strong>Bun, .NET 10, Roslyn, React 19</strong>
-              </div>
-              <div className={styles.mockMetricRow}>
-                <span>Zero-Allocation Secret Scan</span>
-                <strong style={{ color: "#10b981" }}>0 Exposed Keys Clean</strong>
-              </div>
-              <div className={styles.mockMetricRow}>
-                <span>Architecture Diagram</span>
-                <strong>Interactive C4 Mermaid Canvas</strong>
-              </div>
-            </div>
-
-            <div className={styles.mockAiCard}>
-              <div className={styles.mockAiHeader}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                </svg>
-                <span>Gemini 3.8 Flash Dossier Copilot</span>
-              </div>
-              <div className={styles.mockAiBubble}>
-                &ldquo;This repository is structured around a Clean Architecture .NET 10 backend on port 5050 and a React 19 Bun SPA. Zero disk cloning was executed; all symbols were parsed dynamically in memory with sub-second commit tracking.&rdquo;
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Pillars Grid */}
-      <section id="features" className={styles.featuresSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionEyebrow}>Core Capabilities</div>
-          <h2 className={styles.sectionTitle}>Everything Engineered for Deep Codebase Clarity</h2>
-          <p className={styles.sectionDesc}>
-            Built from the ground up with high-throughput .NET 10 compilation, Roslyn syntax analysis, and Semantic Kernel.
-          </p>
-        </div>
-
-        <div className={styles.featureGrid}>
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Zero-Disk Ingestion Pipeline</h3>
-            <p className={styles.featureCardDesc}>
-              Never run local git clones. Repositories are streamed directly into memory via GitHub Zipball API, filtering vendor directories and analyzing AST symbols on the fly.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Google Gemini 3.8 Flash Dossiers</h3>
-            <p className={styles.featureCardDesc}>
-              Passes compact AST symbol manifests and churn telemetry to synthesize technical onboarding dossiers (Architecture smells, ELI5, Runbook, and licenses) with zero context bloat.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="m16 12-4-4-4 4M12 8v8" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Interactive C4 & Gesture Canvas</h3>
-            <p className={styles.featureCardDesc}>
-              Auto-generates clean Mermaid.js component diagrams. Features native trackpad pinch-to-zoom, two-finger panning, viewport boundaries, and 1-click view reset.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Zero-Allocation Secret Scanner</h3>
-            <p className={styles.featureCardDesc}>
-              High-speed compiled regex scanner detects API keys, credentials, and certificates without false positives on dummy templates like .env.example.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Grounded Real-Time Copilot</h3>
-            <p className={styles.featureCardDesc}>
-              Slide-over AI copilot drawer grounded strictly in the synthesized PROJECT_KNOWLEDGE.md dossier, answering repo-specific architecture queries via live SSE token streams.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div className={styles.iconCircle}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </div>
-            <h3 className={styles.featureCardTitle}>Shared Cache & 1-Click Refresh</h3>
-            <p className={styles.featureCardDesc}>
-              Retrieves analyzed repositories instantly in under 50ms from Cosmos DB. Compares latest git commit SHAs to flag staleness with 1-click re-analysis.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Polyglot Ecosystems Section */}
-      <section id="ecosystem" className={styles.featuresSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionEyebrow}>Ecosystem Coverage</div>
-          <h2 className={styles.sectionTitle}>Deep Polyglot Dependency Parsing</h2>
-          <p className={styles.sectionDesc}>
-            Accurately parses modern lockfiles, workspace manifests, and sub-dependencies.
-          </p>
-
-          <div className={styles.ecosystemRibbon}>
-            <span className={styles.ecosystemTag}>⚡ Bun (bun.lock)</span>
-            <span className={styles.ecosystemTag}>📦 Node.js (package.json)</span>
-            <span className={styles.ecosystemTag}>🎯 Dart & Flutter (pubspec.yaml)</span>
-            <span className={styles.ecosystemTag}>🔷 .NET 10 & C# (.csproj)</span>
-            <span className={styles.ecosystemTag}>🐍 Python (requirements.txt)</span>
-            <span className={styles.ecosystemTag}>🐹 Go (go.mod)</span>
-            <span className={styles.ecosystemTag}>🦀 Rust (Cargo.toml)</span>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Bottom Banner */}
-      <section className={styles.ctaBanner}>
-        <h2 className={styles.ctaTitle}>Ready to Audit Your Architecture?</h2>
-        <p className={styles.ctaSubtitle}>
-          Join developers auditing complex codebases with high confidence, zero local disk bloat, and deep AI insight.
-        </p>
-        <Link to={isAuthenticated ? "/dashboard" : "/auth/signin"} className={styles.primaryCta}>
-          <span>{isAuthenticated ? "Launch Dashboard" : "Sign In & Get Started"}</span>
-          <span aria-hidden="true">→</span>
-        </Link>
-      </section>
+        {/* 7. Bottom CTA Banner */}
+        <CtaBannerSection isAuthenticated={isAuthenticated} />
+      </main>
 
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <p className={styles.footerCopy}>
-            &copy; {new Date().getFullYear()} CodeLens AI. Built with .NET 10, React 19, and Gemini 3.8 Flash.
+            &copy; {new Date().getFullYear()} CodeLens AI. Built with .NET 10, React 19, and Google Gemini 3.8 Flash.
           </p>
           <div className={styles.footerLinks}>
             <Link to="/auth/signin" className={styles.footerLink}>

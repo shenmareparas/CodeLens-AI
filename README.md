@@ -7,7 +7,7 @@
 
 ## 🌟 Highlights & Capabilities
 
-- 🌐 **Modern Landing Page & Seamless Onboarding:** Immersive glassmorphic product showcase at `/` introducing features, telemetry capabilities, and architecture highlights, seamlessly routing through authentication to the protected workspace.
+- 🌐 **GSAP-Powered Modern Landing Page:** Immersive product showcase at `/` built with official GSAP primitives (`useGSAP`, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety). Features an interactive macOS sandbox window with live demo repository switching across 4 polyglot repos, 4-stage zero-disk streaming pipeline cards, uniform 3x2 bento capabilities, official Simple Icons vector brand logos, and dimension-by-dimension comparison table.
 - 🚫 **Resilient 404 Not Found Handling & Azure SWA Rewrites:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links, reinforced by Azure Static Web Apps `staticwebapp.config.json` navigation fallback.
 - 🎨 **State-of-the-Art Typography & Aesthetics:** Curated Google Fonts typography stack featuring **Plus Jakarta Sans** for prominent headings, **Inter** for readable body content, and **JetBrains Mono** for AST metrics, code tokens, and file paths.
 - 🌓 **Proper Light / Dark / System Theme & Glassmorphic Switcher:** Unified 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, high-contrast form controls, and an animated glassmorphic quick-switch control.
@@ -52,6 +52,7 @@
 | Layer | Technologies | Details |
 | :--- | :--- | :--- |
 | **Frontend** | React 19, Vite, Bun, TypeScript, React Router | Ultra-fast client-side SPA, Light/Dark/System theme system, client JWT auth, dedicated 404 page |
+| **Animation & Motion** | GSAP (`gsap@^3.15.0`), `@gsap/react`, ScrollTrigger | Master entrance timeline, `ScrollTrigger.batch` reveals, `matchMedia` accessibility |
 | **Workspace UI** | Mermaid.js, React Markdown, Lucide Icons | Trackpad gestures, size-aware zoom, Markdown dossier viewer, AI chat drawer |
 | **Backend** | .NET 10 (`net10.0`), C# 13, ASP.NET Core | Minimal APIs, Scalar OpenAPI, PBKDF2 cryptography, port 5050 |
 | **Analysis** | Roslyn C# Compiler, Polyglot AST, Octokit | In-memory zipball parsing, complexity & hotspot calculation (ignoring `.agents/`), commit staleness |
@@ -78,7 +79,8 @@ codelens-ai/
 │   ├── PROJECT_CONTEXT.md              # Comprehensive architectural specification
 │   └── skills/                         # Agent engineering & quality skills
 │       ├── react-doctor/               # React architecture, lint & bundle diagnostics skill
-│       └── vercel-react-best-practices/# Vercel React & Next.js performance optimization skill
+│       ├── vercel-react-best-practices/# Vercel React & Next.js performance optimization skill
+│       └── gsap-*                      # Official GSAP AI skills (core, react, timeline, scrolltrigger, etc.)
 ├── frontend/                           # React 19 SPA (Vite + Bun)
 │   ├── index.html                      # SPA entry point with anti-flash script
 │   ├── vite.config.ts                  # Vite ESM configuration (`import.meta.dirname`) & path aliases
@@ -102,6 +104,14 @@ codelens-ai/
 │   │   │   ├── NotFoundPage.module.css # 404 styles, badges, and layout
 │   │   │   └── DashboardPage.tsx       # Protected dashboard page
 │   │   ├── components/                 # Presentation & telemetry components
+│   │   │   ├── landing/                # GSAP modular landing page sections
+│   │   │   │   ├── HeroSection.tsx     # Hero introduction, stats ribbon & CTAs
+│   │   │   │   ├── HeroPreviewTabs.tsx # macOS sandbox window with demo repo controls & 4 tabs
+│   │   │   │   ├── IngestionPipelineSection.tsx # 4-stage zero-disk streaming pipeline cards
+│   │   │   │   ├── BentoFeaturesSection.tsx # 3x2 uniform bento capabilities grid
+│   │   │   │   ├── EcosystemSection.tsx# Polyglot manifest intelligence & official Simple Icons
+│   │   │   │   ├── ComparisonSection.tsx # Dimension-by-dimension comparison table
+│   │   │   │   └── CtaBannerSection.tsx# Conversion CTA banner & community links
 │   │   │   ├── BrandLogo.tsx           # Reusable SVG brand mark component
 │   │   │   ├── ThemeToggle.tsx         # Glassmorphic 3-mode theme toggle button
 │   │   │   ├── ThemeToggle.module.css  # Animated theme toggle styles

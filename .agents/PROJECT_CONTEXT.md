@@ -45,6 +45,7 @@
 | :--- | :--- | :--- | :--- |
 | **Frontend Runtime** | [Bun](https://bun.sh) | `1.2+` | Package manager and script runner (**NEVER** use npm/npx/yarn) |
 | **Frontend Framework** | React 19 + Vite | React 19, Vite 8 | Ultra-fast client-side SPA, zero Node.js server overhead on edge |
+| **Animation & Motion** | GSAP + @gsap/react | `3.15.0` / `2.1.2` | Master timeline, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety |
 | **Styling & Design** | Tailwind CSS / CSS Modules | Custom Glassmorphism | Dark/Light/System theme token system, smooth transitions |
 | **Frontend Auth** | Client AuthContext | Custom JWT Hook | Direct authentication against backend JWT endpoints with localStorage session |
 | **Routing** | React Router DOM | `v7` | Client-side routing with `ProtectedRoute` and Azure SWA rewrites |
@@ -116,9 +117,19 @@
   - `GET /api/chat/{id}`: Restores stored conversation messages for the active audit session.
   - `DELETE /api/chat/{id}`: Purges chat history from storage.
 
-### 3.4 Modern Landing Page, Unified Dashboard & Theme System
+### 3.4 GSAP-Powered Modern Landing Page, Unified Dashboard & Theme System
 
-- **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
+- **GSAP-Powered Modern Landing Page (`HomePage.tsx` & `src/components/landing/`):**
+  - **Animation Architecture:** Built with official GSAP primitives (`useGSAP`, `ScrollTrigger.batch`, `gsap.matchMedia()`). Automatically verifies `prefers-reduced-motion` to bypass animations for users with vestibular sensitivities while maintaining high aesthetic polish.
+  - **Modular Component Breakdown:**
+    1. `HeroSection.tsx`: Staggered entrance headline, clean subtitle, CTAs, 4-stat metrics ribbon (`< 50ms`, `0-Disk`, `7+ Ecosystems`, `100% Grounded`), and live emerald pulse badge.
+    2. `HeroPreviewTabs.tsx`: Interactive macOS-style sandbox preview window with address bar `https://codelens.ai/` and 4 switchable views (*Telemetry Bento*, *Interactive C4 Diagram*, *Knowledge Dossier*, *Grounded Copilot*). Includes the **Live Demo Repository Selector** pinned directly above the window for 1-click state switching across 4 polyglot repos (`CodeLens-AI`, `Chess Flutter`, `Play Store AI`, `Portfolio Next.js`).
+    3. `IngestionPipelineSection.tsx`: 4-stage zero-disk streaming pipeline cards with syntax-highlighted C# Roslyn and Octokit snippets.
+    4. `BentoFeaturesSection.tsx`: Uniform 3x2 bento grid detailing zero-disk streaming, deterministic cyclomatic mathematical scoring (`CC * ln(Churn + 1)`), Gemini 3.8 Flash synthesis, gesture-driven C4 diagrams, grounded copilot, and zero-idle cloud architecture.
+    5. `EcosystemSection.tsx`: Polyglot lockfile and manifest intelligence (Bun, Dart/Flutter, .NET 10, Node.js, Python, Go, Rust) with official Simple Icons vector paths.
+    6. `ComparisonSection.tsx`: Dimension-by-dimension comparison table comparing legacy manual audits with CodeLens AI.
+    7. `CtaBannerSection.tsx`: Radiant glow conversion banner and external community links.
+  - **Strict Styling Rules:** Zero emojis across all landing components (strictly SVG icons). All button links and child elements strictly enforce `text-decoration: none !important`.
 - **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`). Supported on Azure SWA via `public/staticwebapp.config.json` navigation fallback.
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`). Heavy viewers (`MermaidViewer` ~92 kB and `DossierViewer` ~159 kB) are dynamically loaded with `React.lazy()` and `<Suspense>` boundaries.
 - **All-Time Commits & Chronological Activity Pulse:** `OctokitTelemetryService.FetchTotalCommitsAsync` inspects GitHub API pagination headers (`rel="last"`) with `PageSize=1` to retrieve the true lifetime commit count in 1 API call. `OctokitTelemetryService.FetchCommitActivityAndTimelineAsync` compiles full chronological commit history grouped into month/year buckets (e.g. `Jan 2024`, `Feb 2024`) or spaced lifetime intervals for older/newer repositories, transmitting `CommitTimeline` directly to `SparklineChart.tsx` with date ranges, month/year X-axis labels, and clean hover-only inspection.
@@ -159,12 +170,13 @@ codelens-ai/
 │   ├── PROJECT_CONTEXT.md                            # Authoritative project context & architecture spec
 │   └── skills/
 │       ├── react-doctor/                             # React architecture, lint & bundle diagnostics skill
-│       └── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
+│       ├── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
+│       └── gsap-*                                    # Official GSAP AI skills (core, react, timeline, scrolltrigger, etc.)
 ├── backend/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
 │   ├── Dockerfile                                    # Multi-stage production container build (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # 30 xUnit tests
+│   │   └── CodeLens.Tests/                           # 31 xUnit tests
 │   │       ├── OctokitTelemetryTests.cs              # Sparkline, URL parsing, release tests
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs     # Complexity, Symbol Manifest, Pub & Bun tests
 │   │       ├── SecretScannerTests.cs                 # [GeneratedRegex] secret detection tests
@@ -221,6 +233,14 @@ codelens-ai/
         │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
+        │   ├── landing/                              # GSAP modular landing page sections
+        │   │   ├── HeroSection.tsx                   # Hero introduction, stats ribbon & CTAs
+        │   │   ├── HeroPreviewTabs.tsx               # macOS sandbox window with demo repo controls & 4 tabs
+        │   │   ├── IngestionPipelineSection.tsx      # 4-stage zero-disk streaming pipeline cards
+        │   │   ├── BentoFeaturesSection.tsx          # 3x2 uniform bento capabilities grid
+        │   │   ├── EcosystemSection.tsx              # Polyglot manifest intelligence & official Simple Icons
+        │   │   ├── ComparisonSection.tsx             # Dimension-by-dimension comparison table
+        │   │   └── CtaBannerSection.tsx              # Conversion CTA banner & community links
         │   ├── BrandLogo.tsx                         # Reusable vector brand logo mark
         │   ├── ThemeToggle.tsx                       # Universal glassmorphic theme toggle button
         │   ├── ThemeToggle.module.css                # Animated theme toggle styles
@@ -267,7 +287,7 @@ codelens-ai/
 cd backend
 dotnet restore CodeLens.sln               # Restore NuGet packages
 dotnet build CodeLens.sln                 # Build (Zero warnings required)
-dotnet test CodeLens.sln                  # Run 30 xUnit tests
+dotnet test CodeLens.sln                  # Run 31 xUnit tests
 dotnet run --project src/CodeLens.Api     # Start API server on port 5050
 
 # ── Frontend Operations ─────────────────────────────────────────────
@@ -281,7 +301,7 @@ bunx react-doctor@latest --scope changed  # Verify React diagnostics
 ### 5.3 Quality & Guardrail Checklist
 
 - [x] Zero warnings on `dotnet build CodeLens.sln`.
-- [x] All 30 xUnit tests passing on `dotnet test CodeLens.sln`.
+- [x] All 31 xUnit tests passing on `dotnet test CodeLens.sln`.
 - [x] Clean `bun run build` with static bundle compilation.
 - [x] React Doctor baseline maintained.
 - [x] Zero hardcoded secrets in source files (always use `.env.local` or gitignored `appsettings.Development.json`).

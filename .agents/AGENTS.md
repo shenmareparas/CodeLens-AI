@@ -90,9 +90,15 @@
 - Always include the Partition Key in point reads and queries to keep operations under 1–2 RUs within the 1,000 RU/s lifetime free tier.
 - **In-Memory Fallbacks:** `InMemoryCosmosRepository` and `InMemoryBlobStorageService` are used automatically when Azure connection strings are omitted or placeholder, enabling zero-setup local development.
 
-### 3.5 Unified Interactive Dashboard, Floating AI Drawer & Theme System
+### 3.5 GSAP-Powered Modern Landing Page, Unified Dashboard & Theme System
 
-- **Landing Page & Routing:** `HomePage.tsx` lives at `/`, serving as a visual product showcase detailing repository telemetry, AST complexity heatmaps, and Gemini-powered architecture synthesis with direct action links to sign in (`/auth/signin`) or open the dashboard (`/dashboard`).
+- **GSAP-Powered Modern Landing Page (`HomePage.tsx` & `src/components/landing/`):**
+  - **Orchestration & Performance:** Uses `useGSAP` hook with `gsap.matchMedia()` container scoping. If `prefers-reduced-motion: reduce` is detected, animations are gracefully bypassed to ensure full accessibility.
+  - **Ambient & Batch Animations:** Ambient floating background glowing orbs (`sine.inOut`), entrance timeline for hero text/CTAs, and `ScrollTrigger.batch` for stagger reveals on pipeline cards, bento feature cards, ecosystem cards, and comparison rows.
+  - **Interactive Sandbox Window (`HeroPreviewTabs.tsx`):** macOS-style window mock with clean `https://codelens.ai/` address bar and 4 interactive preview tabs (*Telemetry Bento*, *Interactive C4 Diagram*, *Knowledge Dossier*, *Grounded Copilot*).
+  - **Live Demo Repository Selector:** Pinned directly above the interactive mock window, allowing 1-click state switching across 4 representative polyglot repositories (`shenmareparas/CodeLens-AI`, `shenmareparas/Chess`, `play-store-ai-review`, `Portfolio_NextJS`).
+  - **Polyglot Ecosystem Vectors (`EcosystemSection.tsx`):** Official brand vector SVG paths from Simple Icons for Bun (bao dumpling), Dart & Flutter, .NET 10, Node.js, Python (dual snake), Go (stylized speed mark), and Rust (gear & 'R').
+  - **Strict Button & Icon Styling:** Zero emojis anywhere in landing UI (strictly SVG vector icons). All button links and child elements enforce `text-decoration: none !important` across all hover, focus, and active states.
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`). Navigation is streamlined via view tabs (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`) on the home screen.
 - **All-Time Commits & Chronological Activity Pulse:** `OctokitTelemetryService.FetchTotalCommitsAsync` inspects GitHub API pagination headers (`rel="last"`) with `PageSize=1` to retrieve the true lifetime commit count in 1 API call. `OctokitTelemetryService.FetchCommitActivityAndTimelineAsync` generates a chronological commit history grouped by month and year (or spaced lifetime intervals for older/newer repos), passing `CommitTimeline` with date ranges and month/year axis labels directly into the front-end `SparklineChart.tsx`. Displayed with hover card inspections (`X commits (MMM dd, yyyy - MMM dd, yyyy)`) and dynamic X-axis labels.
 - **Dual-Mode Language Distribution (`LanguageDistributionCard.tsx`):** Features interactive Bar mode (compact multi-segment progress bar + proportional language rows) and Circular mode (two-column Donut chart + scrollable legend) with a dominant stack banner.
@@ -142,7 +148,8 @@ codelens-ai/
 │   ├── PROJECT_CONTEXT.md                            # Comprehensive architectural single-source-of-truth
 │   └── skills/
 │       ├── react-doctor/                             # React architecture, lint & bundle diagnostics skill
-│       └── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
+│       ├── vercel-react-best-practices/              # Vercel React & Next.js performance optimization skill
+│       └── gsap-*                                    # Official GSAP AI skills (core, react, timeline, scrolltrigger, plugins, etc.)
 ├── backend/
 │   ├── CodeLens.sln
 │   ├── Dockerfile                                    # Multi-stage .NET 10 container image (port 5050)
@@ -201,6 +208,14 @@ codelens-ai/
         │   ├── NotFoundPage.module.css               # 404 error page styles
         │   └── DashboardPage.tsx                     # Protected dashboard page
         ├── components/
+        │   ├── landing/                              # GSAP modular landing page sections
+        │   │   ├── HeroSection.tsx                   # Hero introduction, stats ribbon & CTAs
+        │   │   ├── HeroPreviewTabs.tsx               # macOS sandbox window with demo repo controls & 4 tabs
+        │   │   ├── IngestionPipelineSection.tsx      # 4-stage zero-disk streaming pipeline cards
+        │   │   ├── BentoFeaturesSection.tsx          # 3x2 uniform bento capabilities grid
+        │   │   ├── EcosystemSection.tsx              # Polyglot manifest intelligence & official Simple Icons
+        │   │   ├── ComparisonSection.tsx             # Dimension-by-dimension comparison table
+        │   │   └── CtaBannerSection.tsx              # Conversion CTA banner & community links
         │   ├── BrandLogo.tsx                         # Reusable vector brand logo mark
         │   ├── ThemeToggle.tsx                       # Universal glassmorphic theme toggle button
         │   ├── ThemeToggle.module.css                # Animated theme toggle styles
