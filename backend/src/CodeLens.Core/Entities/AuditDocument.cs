@@ -39,12 +39,20 @@ public sealed class TelemetryData
     public int DaysSinceLastRelease { get; set; }
     public long TotalCommits { get; set; }
     public List<int> WeeklyCommitsSparkline { get; set; } = [];
+    public List<CommitActivityPoint> CommitTimeline { get; set; } = [];
     public Dictionary<string, double> Languages { get; set; } = [];
     public List<HotspotEntry> Hotspots { get; set; } = [];
     public List<string> DeadCode { get; set; } = [];
     public List<string> SecretAlerts { get; set; } = [];
     public List<DependencyEntry> Dependencies { get; set; } = [];
     public string? SymbolManifest { get; set; }
+}
+
+public sealed class CommitActivityPoint
+{
+    public string Label { get; set; } = default!;
+    public string DateRange { get; set; } = default!;
+    public int Commits { get; set; }
 }
 
 public sealed class HotspotEntry

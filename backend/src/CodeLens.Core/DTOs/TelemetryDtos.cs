@@ -3,6 +3,15 @@ namespace CodeLens.Core.DTOs;
 using CodeLens.Core.Entities;
 
 /// <summary>
+/// A single point in time representing commit activity along the repository lifetime.
+/// </summary>
+public sealed record CommitActivityPoint(
+    string Label,
+    string DateRange,
+    int Commits
+);
+
+/// <summary>
 /// Deterministic GitHub repository telemetry fetched via Octokit.
 /// </summary>
 public sealed record RepoTelemetryResult(
@@ -18,7 +27,8 @@ public sealed record RepoTelemetryResult(
     IReadOnlyList<int> WeeklyCommitsSparkline,
     IReadOnlyDictionary<string, double> Languages,
     IReadOnlyDictionary<string, int> FileChurn,
-    long TotalCommits = 0
+    long TotalCommits = 0,
+    IReadOnlyList<CommitActivityPoint>? CommitTimeline = null
 );
 
 /// <summary>

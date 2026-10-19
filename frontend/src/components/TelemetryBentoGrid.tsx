@@ -121,10 +121,13 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.85rem" }}>
             <span style={{ fontSize: "1.1rem" }}>⚡</span>
-            <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>Activity Pulse (Last 8 Weeks)</h3>
+            <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>
+              Activity Pulse {telemetry.commitTimeline && telemetry.commitTimeline.length > 0 ? "(All-Time History)" : "(Recent Cadence)"}
+            </h3>
           </div>
           <SparklineChart
             data={telemetry.weeklyCommitsSparkline}
+            commitTimeline={telemetry.commitTimeline}
             allTimeTotalCommits={telemetry.totalCommits}
           />
         </div>

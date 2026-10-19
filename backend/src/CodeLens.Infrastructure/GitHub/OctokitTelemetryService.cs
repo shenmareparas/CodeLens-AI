@@ -96,14 +96,14 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
         // 3. Release cadence & days since release
         var (releaseStatus, daysSinceRelease) = await DetermineReleaseCadenceAsync(owner, repo);
 
-        // 4. 8-Week Commit Sparkline
-        var sparkline = await FetchCommitSparklineAsync(owner, repo);
-
-        // 5. File commit churn from recent commits
-        var fileChurn = await FetchFileCommitChurnAsync(owner, repo);
-
-        // 6. All-time total commits
+        // 4. All-time total commits
         var totalCommits = await FetchTotalCommitsAsync(owner, repo, defaultBranch);
+
+        // 5. Commit Activity & Chronological Timeline
+        var (sparkline, commitTimeline) = await FetchCommitActivityAndTimelineAsync(owner, repo, totalCommits);
+
+        // 6. File commit churn from recent commits
+        var fileChurn = await FetchFileCommitChurnAsync(owner, repo);
 
         // 7. Latest commit SHA
         var commitSha = await GetLatestCommitShaAsync(owner, repo, defaultBranch, ct);
@@ -121,7 +121,8 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
             WeeklyCommitsSparkline: sparkline,
             Languages: languages,
             FileChurn: fileChurn,
-            TotalCommits: totalCommits
+            TotalCommits: totalCommits,
+            CommitTimeline: commitTimeline
         );
     }
 
@@ -281,53 +282,203 @@ public sealed class OctokitTelemetryService : IGitHubTelemetryService
         }
     }
 
-    private async Task<IReadOnlyList<int>> FetchCommitSparklineAsync(string owner, string repo)
+    private async Task<(IReadOnlyList<int> Sparkline, IReadOnlyList<CommitActivityPoint> Timeline)> FetchCommitActivityAndTimelineAsync(
+        string owner,
+        string repo,
+        long totalCommits = 0)
     {
         var sparkline = new int[8];
+        var timeline = new List<CommitActivityPoint>();
 
+        // 1. Try 52-week commit activity statistics from GitHub
+        IReadOnlyList<WeeklyCommitActivity>? weeklyActivities = null;
         try
         {
-            // GitHub Commit Activity API returns 52 weeks of stats.
             var activity = await _client.Repository.Statistics.GetCommitActivity(owner, repo);
             if (activity?.Activity != null && activity.Activity.Count >= 8)
             {
-                var last8Weeks = activity.Activity.TakeLast(8).Select(w => w.Total).ToArray();
-                return last8Weeks;
+                weeklyActivities = activity.Activity;
+                sparkline = weeklyActivities.TakeLast(8).Select(w => w.Total).ToArray();
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Statistics API not yet warm or unavailable for {Owner}/{Repo}. Falling back to commit query.", owner, repo);
+            _logger.LogDebug(ex, "Statistics API not yet warm or unavailable for {Owner}/{Repo}. Falling back to commit queries.", owner, repo);
         }
 
+        // 2. If weekly sparkline was not obtained from statistics, query last 56 days
+        if (weeklyActivities == null)
+        {
+            try
+            {
+                var since = DateTimeOffset.UtcNow.AddDays(-56);
+                var commits = await _client.Repository.Commit.GetAll(
+                    owner,
+                    repo,
+                    new CommitRequest { Since = since },
+                    new ApiOptions { PageSize = 100, PageCount = 2 });
+
+                foreach (var commit in commits)
+                {
+                    var commitDate = commit.Commit.Author?.Date ?? DateTimeOffset.UtcNow;
+                    var daysAgo = (DateTimeOffset.UtcNow - commitDate).TotalDays;
+                    var weekIndex = 7 - (int)(daysAgo / 7);
+
+                    if (weekIndex is >= 0 and < 8)
+                    {
+                        sparkline[weekIndex]++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to build recent 8-week commit sparkline for {Owner}/{Repo}", owner, repo);
+            }
+        }
+
+        // 3. Build All-Time chronological commit history timeline with date ranges and month/year labels
         try
         {
-            // Fallback: Query commits across the last 56 days (8 weeks)
-            var since = DateTimeOffset.UtcNow.AddDays(-56);
-            var commits = await _client.Repository.Commit.GetAll(
+            var allTimeCommits = await _client.Repository.Commit.GetAll(
                 owner,
                 repo,
-                new CommitRequest { Since = since },
-                new ApiOptions { PageSize = 100, PageCount = 2 });
+                new ApiOptions { PageSize = 100, PageCount = 1 });
 
-            foreach (var commit in commits)
+            if (allTimeCommits.Count > 0)
             {
-                var commitDate = commit.Commit.Author?.Date ?? DateTimeOffset.UtcNow;
-                var daysAgo = (DateTimeOffset.UtcNow - commitDate).TotalDays;
-                var weekIndex = 7 - (int)(daysAgo / 7);
+                var orderedCommits = allTimeCommits
+                    .Select(c => c.Commit.Author?.Date ?? c.Commit.Committer?.Date ?? DateTimeOffset.UtcNow)
+                    .OrderBy(d => d)
+                    .ToList();
 
-                if (weekIndex is >= 0 and < 8)
+                var minDate = orderedCommits.First();
+                var maxDate = orderedCommits.Last();
+                var totalDays = (maxDate.Date - minDate.Date).TotalDays;
+
+                if (totalDays > 60)
                 {
-                    sparkline[weekIndex]++;
+                    // Group commits chronologically by month (e.g., "Jan 2024", "Feb 2024")
+                    var monthlyGroups = orderedCommits
+                        .GroupBy(d => new { d.Year, d.Month })
+                        .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                        .ToList();
+
+                    // If monthly groups are 14 or fewer, use monthly buckets directly
+                    if (monthlyGroups.Count <= 14)
+                    {
+                        foreach (var mg in monthlyGroups)
+                        {
+                            var monthDate = new DateTime(mg.Key.Year, mg.Key.Month, 1);
+                            var lastDay = DateTime.DaysInMonth(mg.Key.Year, mg.Key.Month);
+                            timeline.Add(new CommitActivityPoint(
+                                Label: monthDate.ToString("MMM yyyy"),
+                                DateRange: $"{monthDate:MMM 01} - {monthDate:MMM} {lastDay}, {mg.Key.Year}",
+                                Commits: mg.Count()
+                            ));
+                        }
+                    }
+                    else
+                    {
+                        // Repository spans many months/years: segment into 12 evenly-spaced chronological time windows
+                        int bucketCount = 12;
+                        var timeSpan = (maxDate - minDate).TotalSeconds;
+                        var bucketCounters = new int[bucketCount];
+                        var bucketMinDates = new DateTimeOffset?[bucketCount];
+                        var bucketMaxDates = new DateTimeOffset?[bucketCount];
+
+                        foreach (var date in orderedCommits)
+                        {
+                            var fraction = timeSpan > 0 ? (date - minDate).TotalSeconds / timeSpan : 0;
+                            var idx = Math.Clamp((int)(fraction * bucketCount), 0, bucketCount - 1);
+                            bucketCounters[idx]++;
+                            if (!bucketMinDates[idx].HasValue || date < bucketMinDates[idx]!.Value) bucketMinDates[idx] = date;
+                            if (!bucketMaxDates[idx].HasValue || date > bucketMaxDates[idx]!.Value) bucketMaxDates[idx] = date;
+                        }
+
+                        for (int i = 0; i < bucketCount; i++)
+                        {
+                            var start = minDate.AddSeconds(timeSpan * i / bucketCount);
+                            var end = minDate.AddSeconds(timeSpan * (i + 1) / bucketCount);
+                            timeline.Add(new CommitActivityPoint(
+                                Label: $"{start:MMM yyyy}",
+                                DateRange: $"{start:MMM dd, yyyy} - {end:MMM dd, yyyy}",
+                                Commits: bucketCounters[i]
+                            ));
+                        }
+                    }
+                }
+                else
+                {
+                    // Shorter repository lifetime (< 60 days): group into 8 chronological intervals
+                    int bucketCount = Math.Min(8, Math.Max(4, orderedCommits.Count));
+                    var timeSpan = (maxDate - minDate).TotalSeconds;
+                    var bucketCounters = new int[bucketCount];
+                    var bucketStart = new DateTimeOffset[bucketCount];
+                    var bucketEnd = new DateTimeOffset[bucketCount];
+
+                    for (int i = 0; i < bucketCount; i++)
+                    {
+                        bucketStart[i] = minDate.AddSeconds(timeSpan > 0 ? timeSpan * i / bucketCount : 0);
+                        bucketEnd[i] = minDate.AddSeconds(timeSpan > 0 ? timeSpan * (i + 1) / bucketCount : 0);
+                    }
+
+                    foreach (var date in orderedCommits)
+                    {
+                        var fraction = timeSpan > 0 ? (date - minDate).TotalSeconds / timeSpan : 0;
+                        var idx = Math.Clamp((int)(fraction * bucketCount), 0, bucketCount - 1);
+                        bucketCounters[idx]++;
+                    }
+
+                    for (int i = 0; i < bucketCount; i++)
+                    {
+                        timeline.Add(new CommitActivityPoint(
+                            Label: $"{bucketStart[i]:MMM dd}",
+                            DateRange: $"{bucketStart[i]:MMM dd, yyyy} - {bucketEnd[i]:MMM dd, yyyy}",
+                            Commits: bucketCounters[i]
+                        ));
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to build commit sparkline for {Owner}/{Repo}", owner, repo);
+            _logger.LogWarning(ex, "Failed to compile all-time commit chronological timeline for {Owner}/{Repo}", owner, repo);
         }
 
-        return sparkline;
+        // If timeline remains empty but 52-week activity exists, project non-zero activity
+        if (timeline.Count == 0 && weeklyActivities != null && weeklyActivities.Count > 0)
+        {
+            var nonZero = weeklyActivities.Where(w => w.Total > 0).ToList();
+            if (nonZero.Count > 0)
+            {
+                foreach (var w in weeklyActivities.TakeLast(12))
+                {
+                    var weekDate = DateTimeOffset.FromUnixTimeSeconds(w.Week);
+                    timeline.Add(new CommitActivityPoint(
+                        Label: weekDate.ToString("MMM yyyy"),
+                        DateRange: $"{weekDate:MMM dd} - {weekDate.AddDays(6):MMM dd, yyyy}",
+                        Commits: w.Total
+                    ));
+                }
+            }
+        }
+
+        // If recent 8-week commits are low (<= 5) but chronological timeline has data, update sparkline from timeline
+        if (sparkline.Sum() <= 5 && timeline.Count >= 4)
+        {
+            var sampled = new int[8];
+            for (int i = 0; i < 8; i++)
+            {
+                int timelineIdx = (int)Math.Round((double)i / 7 * (timeline.Count - 1));
+                sampled[i] = timeline[timelineIdx].Commits;
+            }
+            if (sampled.Sum() > 0)
+            {
+                sparkline = sampled;
+            }
+        }
+
+        return (sparkline, timeline);
     }
 
     private async Task<IReadOnlyDictionary<string, int>> FetchFileCommitChurnAsync(string owner, string repo)

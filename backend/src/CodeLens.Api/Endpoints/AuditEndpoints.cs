@@ -164,6 +164,12 @@ public static class AuditEndpoints
                     DaysSinceLastRelease = telemetryResult.DaysSinceLastRelease,
                     TotalCommits = telemetryResult.TotalCommits,
                     WeeklyCommitsSparkline = telemetryResult.WeeklyCommitsSparkline.ToList(),
+                    CommitTimeline = telemetryResult.CommitTimeline?.Select(p => new CodeLens.Core.Entities.CommitActivityPoint
+                    {
+                        Label = p.Label,
+                        DateRange = p.DateRange,
+                        Commits = p.Commits
+                    }).ToList() ?? [],
                     Languages = telemetryResult.Languages.ToDictionary(),
                     Hotspots = analysisResult.Hotspots.ToList(),
                     DeadCode = analysisResult.DeadCode.ToList(),

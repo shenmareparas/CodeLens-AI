@@ -110,6 +110,12 @@ export interface DependencyEntry {
   version: string;
 }
 
+export interface CommitActivityPoint {
+  label: string;
+  dateRange: string;
+  commits: number;
+}
+
 export interface TelemetryData {
   stars: number;
   forks: number;
@@ -118,6 +124,7 @@ export interface TelemetryData {
   daysSinceLastRelease: number;
   totalCommits?: number;
   weeklyCommitsSparkline: number[];
+  commitTimeline?: CommitActivityPoint[];
   languages: Record<string, number>;
   hotspots: HotspotEntry[];
   deadCode: string[];
