@@ -68,18 +68,23 @@
 ### 3.3 Gemini 3.8 Flash & Dossier Synthesis
 
 - **Model Identifier:** Always use `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
+- **macOS SSL & Network Resilience:** Semantic Kernel's Gemini connector uses a custom `SocketsHttpHandler` with `CertificateRevocationCheckMode = X509RevocationMode.NoCheck` to prevent macOS `AuthenticationException` / `RevocationStatusUnknown` errors when validating Google API endpoints, while preserving full cryptographic certificate chain validation.
 - **Context Discipline:** Never send raw multi-megabyte source files to Gemini. Pass the compact **AST Symbol Manifest** + deterministic telemetry summary extracted during static analysis.
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` / `GEMINI_API_KEY` is omitted or invalid, `GeminiSynthesisService.cs` executes a deterministic fallback synthesis engine derived from AST telemetry and package manifests, guaranteeing zero-failure local development and CI runs.
 - **Mermaid Sanitization:** All LLM-generated Mermaid diagrams are sanitized via `MermaidSanitizer.cs` to quote complex node labels containing brackets/colons/parentheses, normalize subgraph identifiers, and balance open blocks.
 - **Dossier Artifact:** Every completed audit compiles a standardized `PROJECT_KNOWLEDGE.md` file via `MarkdownDossierBuilder.cs`, uploads it to Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches the markdown in `AuditDocument.DossierMarkdown` in Cosmos DB.
-- **Streaming Endpoints (`POST /api/chat/{id}/stream`):**
-  - Ground the system prompt strictly on the cached `PROJECT_KNOWLEDGE.md`.
-  - Always set response headers: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `X-Accel-Buffering: no`.
-  - Streams tokens as JSON payloads (`data: {"text":"..."}\n\n`) to prevent newline-splitting issues in HTTP proxies.
+- **Chat Endpoints & Stream Resilience (`/api/chat`):**
+  - `POST /api/chat/{id}/stream`: Real-time SSE streaming copilot grounded strictly on `PROJECT_KNOWLEDGE.md`. Sets response headers `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `X-Accel-Buffering: no`. Streams tokens as JSON payloads (`data: {"text":"..."}\n\n`). Stream consumption is wrapped in a resilient try-catch to seamlessly fall back to local grounded answers without dropping connections (preventing 500 errors).
+  - `GET /api/chat/{id}`: Fetches stored conversation messages for audit sessions.
+  - `DELETE /api/chat/{id}`: Purges conversation history for an audit from Cosmos DB / in-memory store.
+- **Chat Presentation & Persistence (`RepoChatSidebar.tsx`):**
+  - Renders assistant responses with `ReactMarkdown` and `remark-gfm` featuring styled typography, syntax-highlighted code blocks, lists, and headers instead of raw text.
+  - Retains conversation state across drawer close/re-open via synchronized `localStorage` (`codelens-chat-${auditId}`) and backend `GET /api/chat/{id}` synchronization.
+  - Features an interactive `[ 🗑️ Clear ]` action in the chat header to reset conversation history both locally and on the server.
 
 ### 3.4 Cosmos DB Free-Tier Efficiency & Local Dev Fallbacks
 
-- Containers in `CosmosRepository.cs`: `users`, `audits`, `messages`.
+- Containers in `CosmosRepository.cs`: `users`, `audits`, `messages` (`ChatSessions`).
 - Always include the Partition Key in point reads and queries to keep operations under 1–2 RUs within the 1,000 RU/s lifetime free tier.
 - **In-Memory Fallbacks:** `InMemoryCosmosRepository` and `InMemoryBlobStorageService` are used automatically when Azure connection strings are omitted or placeholder, enabling zero-setup local development.
 
@@ -87,7 +92,7 @@
 
 - **Landing Page & Routing:** `HomePage.tsx` lives at `/`, serving as a visual product showcase detailing repository telemetry, AST complexity heatmaps, and Gemini-powered architecture synthesis with direct action links to sign in (`/auth/signin`) or open the dashboard (`/dashboard`).
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`). Navigation is streamlined via view tabs (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`) on the home screen.
-- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips and real-time streaming tokens.
+- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button (and top header action) opens a slide-over AI copilot drawer grounded in the repository's `PROJECT_KNOWLEDGE.md`, featuring prompt suggestion chips, conversation persistence, clear chat capability, and real-time streaming tokens.
 - **Trackpad Gestures, Dynamic Zoom & Pan Clamping:**
   - `MermaidViewer.tsx` supports native trackpad pinch-to-zoom (`ctrlKey + wheel` / `gesturestart` / `gesturechange`) and two-finger panning.
   - Dynamic zoom limits calculated based on SVG diagram bounds prevent over-zooming out into invisibility or over-zooming in beyond legibility.
@@ -199,17 +204,22 @@ codelens-ai/
         │   ├── DashboardHeader.tsx                   # Top bar navigation, user profile avatar & sign out
         │   ├── DashboardHeader.module.css            # Header layout, avatar & signout styles
         │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & lazy-loaded view tabs
+        │   ├── AnalysisProgressBar.tsx               # Multi-stage animated pipeline progress bar with shimmer & step indicators
+        │   ├── analysisSteps.ts                      # 6-step analysis stage metadata, icons, and descriptions
         │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
         │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
         │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
         │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+        │   ├── InlineMermaidBlock.tsx                # Flow diagram renderer for AI chat markdown responses
+        │   ├── ThinkingLines.tsx                     # Claude-style multi-line animated thinking shimmer state
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with abort cleanup
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & clear chat
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/
-            └── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE)
+            ├── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE, chat persistence endpoints)
+            └── mermaidUtils.ts                       # Client-side Mermaid syntax normalizer & label quoting
 ```
 
 - **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` provides quick-sample chips linking to lightweight repositories (`shenmareparas/Chess`, `expense_tracker`, `play-store-ai-review`, `Portfolio_NextJS`, `nexu5-music-bot`) and retrieves shared audits in `<50ms` with remote commit staleness detection.

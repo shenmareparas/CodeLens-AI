@@ -20,4 +20,5 @@ public interface ICosmosRepository
     // Chat
     Task<ChatMessageDocument> SaveMessageAsync(ChatMessageDocument message, CancellationToken ct = default);
     Task<IReadOnlyList<ChatMessageDocument>> GetMessagesForAuditAsync(string auditId, CancellationToken ct = default);
+    Task<int> ClearMessagesForAuditAsync(string auditId, CancellationToken ct = default);
 }

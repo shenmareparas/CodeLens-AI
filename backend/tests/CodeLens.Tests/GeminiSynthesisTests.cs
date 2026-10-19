@@ -94,9 +94,9 @@ public class GeminiSynthesisTests
 
         Assert.Contains("# Project Knowledge Dossier: testowner/testrepo", markdown);
         Assert.Contains("Model: Gemini 3.8 Flash", markdown);
-        Assert.Contains("## 1. Explain Like I'm 5 (ELI5)", markdown);
+        Assert.Contains("## 1. Executive Architecture Overview", markdown);
         Assert.Contains("A fast and smart repository auditor.", markdown);
-        Assert.Contains("## 2. Repository Health & Operational Pulse", markdown);
+        Assert.Contains("## 2. Repository Health", markdown);
         Assert.Contains("⭐ 1,200 | 🍴 340", markdown);
         Assert.Contains("Active (Last release: 4 days ago)", markdown);
         Assert.Contains("[5, 12, 18, 25, 20, 15, 30, 42]", markdown);

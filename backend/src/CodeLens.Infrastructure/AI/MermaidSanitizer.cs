@@ -143,23 +143,40 @@ public static partial class MermaidSanitizer
     {
         if (string.IsNullOrWhiteSpace(line)) return line;
 
-        // Quote unquoted labels inside square brackets [Label] that contain troublesome characters
+        // Quote unquoted labels inside square brackets [Label]
+        // e.g. Node[Dynamic Color, FL] -> Node["Dynamic Color, FL"]
         // e.g. Node[API (Core)] -> Node["API (Core)"]
         line = SquareBracketLabelRegex().Replace(line, match =>
         {
-            var inner = match.Groups[1].Value;
+            var inner = match.Groups[1].Value.Trim();
             if (inner.StartsWith("\"") && inner.EndsWith("\""))
             {
                 return match.Value; // Already quoted
             }
 
-            // If label contains parentheses, brackets, commas, colons, ampersands, or quotes
-            if (inner.Any(c => c is '(' or ')' or '{' or '}' or '<' or '>' or ':' or '&' or '/' or '\\' or '"'))
+            // If label contains spaces or troublesome characters (parens, commas, colons, brackets, ampersands, slashes)
+            if (inner.Any(c => char.IsWhiteSpace(c) || c is '(' or ')' or '{' or '}' or '<' or '>' or ':' or '&' or '/' or '\\' or '"' or ',' or '-' or '+'))
             {
                 var escaped = inner.Replace("\"", "'");
                 return $"[\"{escaped}\"]";
             }
 
+            return match.Value;
+        });
+
+        // Quote unquoted labels inside round parentheses Node(Label with spaces or commas)
+        line = Regex.Replace(line, @"([a-zA-Z0-9_-]+)\(([^""\)\n]+)\)", match =>
+        {
+            var id = match.Groups[1].Value;
+            var inner = match.Groups[2].Value.Trim();
+            if (inner.Contains("-->") || inner.Contains("---")) return match.Value;
+            if (inner.StartsWith("\"") && inner.EndsWith("\"")) return match.Value;
+
+            if (inner.Any(c => char.IsWhiteSpace(c) || c is ',' or ':' or '&' or '/' or '\\' or '"'))
+            {
+                var escaped = inner.Replace("\"", "'");
+                return $"{id}(\"{escaped}\")";
+            }
             return match.Value;
         });
 

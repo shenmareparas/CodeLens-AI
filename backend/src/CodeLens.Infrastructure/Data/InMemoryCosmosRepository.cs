@@ -95,4 +95,19 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
 
         return Task.FromResult<IReadOnlyList<ChatMessageDocument>>([]);
     }
+
+    public Task<int> ClearMessagesForAuditAsync(string auditId, CancellationToken ct = default)
+    {
+        if (_messagesByAudit.TryRemove(auditId, out var list))
+        {
+            lock (list)
+            {
+                var count = list.Count;
+                list.Clear();
+                return Task.FromResult(count);
+            }
+        }
+
+        return Task.FromResult(0);
+    }
 }

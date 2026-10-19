@@ -79,6 +79,38 @@ public static class ChatEndpoints
         })
         .WithName("StreamChat")
         .WithSummary("Stream a grounded Gemini response via SSE");
+
+        // GET /api/chat/{auditId} - Fetch prior conversation history
+        group.MapGet("/{auditId}", async (
+            string auditId,
+            ClaimsPrincipal user,
+            [FromServices] ICosmosRepository repository,
+            CancellationToken ct) =>
+        {
+            var messages = await repository.GetMessagesForAuditAsync(auditId, ct);
+            return Results.Ok(messages.Select(m => new
+            {
+                id = m.Id,
+                role = m.Role,
+                content = m.Content,
+                timestamp = m.Timestamp.ToString("HH:mm")
+            }));
+        })
+        .WithName("GetChatHistory")
+        .WithSummary("Fetch stored conversation messages for an audit");
+
+        // DELETE /api/chat/{auditId} - Clear chat history
+        group.MapDelete("/{auditId}", async (
+            string auditId,
+            ClaimsPrincipal user,
+            [FromServices] ICosmosRepository repository,
+            CancellationToken ct) =>
+        {
+            var deleted = await repository.ClearMessagesForAuditAsync(auditId, ct);
+            return Results.Ok(new { cleared = true, count = deleted });
+        })
+        .WithName("ClearChatHistory")
+        .WithSummary("Clear conversation history for an audit");
     }
 }
 

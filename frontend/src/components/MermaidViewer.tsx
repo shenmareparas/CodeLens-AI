@@ -362,7 +362,10 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
           position: "relative",
           cursor: isDragging ? "grabbing" : "grab",
           userSelect: "none",
-          background: "radial-gradient(ellipse at center, rgba(99, 102, 241, 0.05) 0%, #09090b 75%)",
+          background:
+            resolvedTheme === "light"
+              ? "radial-gradient(ellipse at center, rgba(79, 70, 229, 0.04) 0%, #f8fafc 75%)"
+              : "radial-gradient(ellipse at center, rgba(99, 102, 241, 0.05) 0%, #09090b 75%)",
         }}
       >
         {/* Trackpad Gesture Guidance Overlay Hint */}
@@ -377,10 +380,11 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
             display: "flex",
             alignItems: "center",
             gap: "0.35rem",
-            background: "rgba(0, 0, 0, 0.6)",
+            background: resolvedTheme === "light" ? "rgba(255, 255, 255, 0.85)" : "rgba(0, 0, 0, 0.6)",
             padding: "0.2rem 0.5rem",
             borderRadius: "4px",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
+            border: resolvedTheme === "light" ? "1px solid rgba(0, 0, 0, 0.08)" : "1px solid rgba(255, 255, 255, 0.06)",
+            boxShadow: resolvedTheme === "light" ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
           }}
         >
           <span>🖐️</span>

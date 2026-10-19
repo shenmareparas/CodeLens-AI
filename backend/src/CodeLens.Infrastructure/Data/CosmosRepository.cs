@@ -212,4 +212,20 @@ public sealed class CosmosRepository : ICosmosRepository
 
         return results.AsReadOnly();
     }
+
+    public async Task<int> ClearMessagesForAuditAsync(string auditId, CancellationToken ct = default)
+    {
+        var container = GetContainer(_options.ChatContainer);
+        var messages = await GetMessagesForAuditAsync(auditId, ct);
+        var deletedCount = 0;
+
+        foreach (var msg in messages)
+        {
+            await container.DeleteItemAsync<ChatMessageDocument>(
+                msg.Id, new PartitionKey(msg.AuditId), cancellationToken: ct);
+            deletedCount++;
+        }
+
+        return deletedCount;
+    }
 }

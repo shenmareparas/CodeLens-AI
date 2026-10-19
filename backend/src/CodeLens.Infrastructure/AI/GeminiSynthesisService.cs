@@ -47,9 +47,18 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         {
             try
             {
+                var handler = new SocketsHttpHandler
+                {
+                    SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                    {
+                        CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck
+                    }
+                };
+                var httpClient = new HttpClient(handler);
+
                 var builder = Kernel.CreateBuilder();
                 var modelId = string.IsNullOrWhiteSpace(_options.ModelId) ? "gemini-3.8-flash" : _options.ModelId;
-                builder.AddGoogleAIGeminiChatCompletion(modelId, apiKey);
+                builder.AddGoogleAIGeminiChatCompletion(modelId, apiKey, httpClient: httpClient);
 
                 _kernel = builder.Build();
                 _chatService = _kernel.GetRequiredService<IChatCompletionService>();
@@ -132,13 +141,14 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         if (_chatService is not null)
         {
             var systemPrompt = $"""
-            You are CodeLens Copilot, an AI code architecture and onboarding assistant.
+            You are CodeLens AI, an AI code architecture and onboarding assistant.
             You are answering questions from a software developer exploring this codebase.
 
             CRITICAL GROUNDING RULES:
             1. Ground your answers directly in the provided PROJECT_KNOWLEDGE.md dossier below.
             2. If something is not mentioned or cannot be inferred from the dossier, state that clearly and suggest where in the codebase they might check.
-            3. Be direct, technically precise, and concise. Provide code or Mermaid diagrams when appropriate.
+            3. Be direct, technically precise, and concise.
+            4. When explaining workflows, data flows, execution pipelines, or architecture relationships, ALWAYS include a clean, valid Mermaid flowchart starting with ```mermaid\nflowchart TD or flowchart LR. Quote all node labels in brackets, e.g. Node["Label"].
 
             === PROJECT_KNOWLEDGE.MD ===
             {dossierMarkdown}
@@ -176,14 +186,38 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
 
             if (stream is not null)
             {
-                await foreach (var chunk in stream.WithCancellation(ct))
+                var yieldedAny = false;
+                var enumeratorFailed = false;
+                await using var enumerator = stream.WithCancellation(ct).GetAsyncEnumerator();
+                while (true)
                 {
-                    if (!string.IsNullOrEmpty(chunk.Content))
+                    StreamingChatMessageContent? chunk = null;
+                    try
                     {
+                        if (!await enumerator.MoveNextAsync())
+                        {
+                            break;
+                        }
+                        chunk = enumerator.Current;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error while consuming Gemini stream chunks. Falling back to grounded local responder.");
+                        enumeratorFailed = true;
+                        break;
+                    }
+
+                    if (!string.IsNullOrEmpty(chunk?.Content))
+                    {
+                        yieldedAny = true;
                         yield return chunk.Content;
                     }
                 }
-                yield break;
+
+                if (!enumeratorFailed || yieldedAny)
+                {
+                    yield break;
+                }
             }
         }
 

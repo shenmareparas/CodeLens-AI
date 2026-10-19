@@ -99,6 +99,7 @@
 ### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
 - **Model:** `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
+- **macOS SSL & Revocation Resilience:** Semantic Kernel's Gemini connector uses a custom `SocketsHttpHandler` with `CertificateRevocationCheckMode = X509RevocationMode.NoCheck` to bypass macOS TLS revocation lookup failures (`RevocationStatusUnknown`) on Google AI Studio endpoints while preserving complete certificate trust verification.
 - **Prompt Input:** Compact Symbol Manifest (truncated to 8,000 characters for strict context discipline) + deterministic telemetry (complexity hotspots, dependencies, git cadence).
 - **Structured Outputs:**
   1. `ELI5Summary`: High-level purpose and core functionality in simple terms.
@@ -109,13 +110,17 @@
 - **Mermaid Sanitization (`MermaidSanitizer.cs`):** Automatic regex-based AST sanitization stripping wrapping code fences, quoting complex bracketed labels containing parentheses/colons, normalizing subgraph identifiers, and balancing open subgraphs.
 - **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
+- **Chat Copilot API & Session Persistence:**
+  - `POST /api/chat/{id}/stream`: Real-time SSE streaming copilot grounded directly in `PROJECT_KNOWLEDGE.md`. Response enumeration is guarded with try-catch fallback handling to prevent HTTP 500 interruptions.
+  - `GET /api/chat/{id}`: Restores stored conversation messages for the active audit session.
+  - `DELETE /api/chat/{id}`: Purges chat history from storage.
 
 ### 3.4 Modern Landing Page, Unified Dashboard & Theme System
 
 - **Landing Page Showcase (`HomePage.tsx`):** Available at `/` as the primary visitor entrypoint, showcasing interactive hero metrics, architecture highlights, polyglot ecosystem capabilities, and direct navigation into authentication or the dashboard.
 - **Dedicated 404 Not Found Page (`NotFoundPage.tsx`):** Catch-all route handler (`*`) styled in line with the application's glassmorphic aesthetics. Features an ambient radial glow, dynamic status indicators, theme toggle, and context-aware return actions (taking authenticated users to `/dashboard` and unauthenticated visitors to `/`). Supported on Azure SWA via `public/staticwebapp.config.json` navigation fallback.
 - **Unified Home Dashboard:** All audit content (Telemetry Bento Grid, Architecture Diagram, and Knowledge Dossier) lives in the main dashboard view (`/dashboard`) with seamless view switching (`Split Workspace`, `Telemetry Bento`, `Mermaid Diagram`, `Knowledge Dossier`). Heavy viewers (`MermaidViewer` ~92 kB and `DossierViewer` ~159 kB) are dynamically loaded with `React.lazy()` and `<Suspense>` boundaries.
-- **Floating AI Drawer:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`, streaming response tokens via Server-Sent Events (`POST /api/chat/{id}/stream`). Chat SSE requests are managed with an `AbortController` cleanup ref to prevent network leaks on unmount.
+- **Floating AI Drawer & Persistent Copilot:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`. Messages render formatted markdown (headings, code blocks, lists) via `ReactMarkdown` + `remark-gfm`. Chat history is preserved across drawer toggles using dual-layer synchronization (`localStorage` + backend `GET /api/chat/{id}`), with a `[ 🗑️ Clear ]` action to purge chat history on demand. Real-time streaming tokens are ingested over SSE with automatic connection cleanup on unmount.
 - **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` supports trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default framing.
 - **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens. Theme context is memoized with pure state transitions and decoupled `localStorage` synchronization.
 - **Modern User Profile & Navigation Header:** `DashboardHeader.tsx` features an interactive user avatar pill displaying user initials and email address alongside an animated danger-glowing sign out button.
@@ -220,18 +225,24 @@ codelens-ai/
         │   ├── DashboardHeader.tsx                   # Top bar navigation, user profile avatar & sign out
         │   ├── DashboardHeader.module.css            # Header layout, avatar & signout styles
         │   ├── ActiveAuditSection.tsx                # Active audit summary, stale banner & lazy-loaded view tabs
+        │   ├── AnalysisProgressBar.tsx               # Multi-stage animated pipeline progress bar with shimmer & step indicators
+        │   ├── analysisSteps.ts                      # 6-step analysis stage metadata, icons, and descriptions
         │   ├── TelemetryBentoGrid.tsx                # Bento Grid telemetry presentation (stable keys)
         │   ├── DependenciesCard.tsx                  # Polyglot dependency cards with ecosystem filter tabs & search
         │   ├── HotspotTable.tsx                      # Complexity x Churn risk table (memoized filter & sort)
         │   ├── SparklineChart.tsx                    # SVG commit sparkline chart
         │   ├── MermaidViewer.tsx                     # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+        │   ├── InlineMermaidBlock.tsx                # Flow diagram renderer for AI chat markdown responses
+        │   ├── ThinkingLines.tsx                     # Claude-style multi-line animated thinking shimmer state
         │   ├── DossierViewer.tsx                     # Formatted Markdown dossier preview with SAS download
-        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with abort cleanup
+        │   └── RepoChatSidebar.tsx                   # Real-time SSE grounded repo copilot sidebar with markdown, inline diagrams & clear chat
         ├── styles/
         │   └── globals.css                           # Glassmorphism design system, tokens (Plus Jakarta Sans, Inter, JetBrains Mono)
         └── lib/
-            └── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE)
+            ├── api-client.ts                         # Typed REST API & SSE client (sanitized API_BASE, chat persistence endpoints)
+            └── mermaidUtils.ts                       # Client-side Mermaid syntax normalizer & label quoting
 ```
+
 - **Dashboard Quick Samples & Shared Cache:** `DashboardClient.tsx` includes user quick-sample chips and user recent repositories, retrieving shared repository audits in `<50ms` with commit SHA staleness detection.
 
 ---
@@ -242,7 +253,7 @@ codelens-ai/
 
 - **Backend API:** `http://localhost:5050` (Configured in `launchSettings.json`). *Never use port 5000 due to macOS AirPlay collision.*
 - **Scalar OpenAPI Documentation:** `http://localhost:5050/scalar/v1`
-- **Frontend Application:** `http://localhost:3000`
+- **Frontend Application:** `http://localhost:5173` (Vite dev server)
 
 ### 5.2 Common Commands
 
@@ -251,22 +262,22 @@ codelens-ai/
 cd backend
 dotnet restore CodeLens.sln               # Restore NuGet packages
 dotnet build CodeLens.sln                 # Build (Zero warnings required)
-dotnet test CodeLens.sln                  # Run 29 xUnit tests
+dotnet test CodeLens.sln                  # Run 30 xUnit tests
 dotnet run --project src/CodeLens.Api     # Start API server on port 5050
 
 # ── Frontend Operations ─────────────────────────────────────────────
 cd frontend
 bun install                               # Install dependencies via Bun
-bun run dev                               # Start Next.js 16 dev server
-bun run build                             # Verify TypeScript & route compilation
+bun run dev                               # Start Vite React dev server
+bun run build                             # Verify TypeScript & bundle compilation
 bunx react-doctor@latest --scope changed  # Verify React diagnostics
 ```
 
 ### 5.3 Quality & Guardrail Checklist
 
 - [x] Zero warnings on `dotnet build CodeLens.sln`.
-- [x] All 29 xUnit tests passing on `dotnet test CodeLens.sln`.
-- [x] Clean `bun run build` with static & dynamic route compilation.
+- [x] All 30 xUnit tests passing on `dotnet test CodeLens.sln`.
+- [x] Clean `bun run build` with static bundle compilation.
 - [x] React Doctor baseline maintained.
 - [x] Zero hardcoded secrets in source files (always use `.env.local` or gitignored `appsettings.Development.json`).
 - [x] No `git clone` to local disk — all repo ingestion must remain zero-disk in-memory streams.

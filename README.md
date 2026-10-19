@@ -109,17 +109,22 @@ codelens-ai/
 │   │   │   ├── DashboardHeader.tsx     # Top bar navigation, user profile avatar pill & danger signout button
 │   │   │   ├── DashboardHeader.module.css # Header layout, avatar & signout styles
 │   │   │   ├── ActiveAuditSection.tsx  # Active audit summary, stale banner, lazy-loaded Mermaid & Dossier
+│   │   │   ├── AnalysisProgressBar.tsx # Multi-stage animated pipeline progress bar with shimmer & step indicators
+│   │   │   ├── analysisSteps.ts        # 6-step analysis stage metadata, icons, and descriptions
 │   │   │   ├── TelemetryBentoGrid.tsx  # Metrics Bento Grid layout
 │   │   │   ├── DependenciesCard.tsx    # Ecosystem filter tabs (Bun, Pub, npm, NuGet, PyPI), search & badges
 │   │   │   ├── HotspotTable.tsx        # Complexity x Churn risk table (memoized sorting & filter)
 │   │   │   ├── SparklineChart.tsx      # SVG 8-week commit sparklines
 │   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy & a11y region
+│   │   │   ├── InlineMermaidBlock.tsx  # Flow diagram renderer for AI chat markdown responses
+│   │   │   ├── ThinkingLines.tsx       # Claude-style multi-line animated thinking shimmer state
 │   │   │   ├── DossierViewer.tsx       # Formatted Markdown dossier preview with SAS download
-│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot sidebar with cleanup controller
+│   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot with markdown formatting & clear chat
 │   │   ├── styles/
 │   │   │   └── globals.css             # Glassmorphism design system & token definitions (Plus Jakarta Sans, Inter, JetBrains Mono)
 │   │   └── lib/
-│   │       └── api-client.ts           # Typed API client (sanitized API_BASE) + SSE stream reader
+│   │       ├── api-client.ts           # Typed API client (sanitized API_BASE) + SSE stream & chat history endpoints
+│   │       └── mermaidUtils.ts         # Client-side Mermaid syntax normalizer & label quoting
 │   └── package.json
 └── backend/                            # .NET 10 Solution
     ├── CodeLens.sln
@@ -140,6 +145,7 @@ codelens-ai/
 - **JavaScript / TypeScript:** [Bun](https://bun.sh) (`v1.2+`)
 - **Backend SDK:** [.NET 10 SDK](https://dotnet.microsoft.com/download) (`10.0.x`)
 - **GitHub Token (Optional):** Set `GITHUB_TOKEN` in your environment or `appsettings.Development.json` to increase API rate limits from 60/hr to 5,000/hr.
+- **Gemini API Key (Optional):** Set `GEMINI_API_KEY` or `Gemini:ApiKey` in `appsettings.Development.json` to enable Gemini 3.8 Flash synthesis and AI chat.
 
 ---
 
@@ -177,7 +183,7 @@ Ensure `frontend/.env.local` contains:
 
 ```env
 VITE_API_URL=http://localhost:5050
-VITE_APP_URL=http://localhost:3000
+VITE_APP_URL=http://localhost:5173
 ```
 
 Start the development server:
@@ -186,7 +192,7 @@ Start the development server:
 bun run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view the interactive Product Landing Page, or open [http://localhost:3000/auth/signin](http://localhost:3000/auth/signin) to test the tabbed Sign-In, real-time password strength validation, and registration experience.
+Visit [http://localhost:5173](http://localhost:5173) to view the interactive Product Landing Page, or open [http://localhost:5173/auth/signin](http://localhost:5173/auth/signin) to test the tabbed Sign-In, real-time password strength validation, and registration experience.
 
 ---
 

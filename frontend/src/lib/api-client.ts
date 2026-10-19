@@ -243,3 +243,18 @@ export function streamChat(
 
   return controller;
 }
+
+export interface StoredChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
+export async function getChatHistory(auditId: string, token: string): Promise<StoredChatMessage[]> {
+  return apiRequest<StoredChatMessage[]>(`/api/chat/${auditId}`, {}, token);
+}
+
+export async function clearChatHistory(auditId: string, token: string): Promise<{ cleared: boolean; count: number }> {
+  return apiRequest<{ cleared: boolean; count: number }>(`/api/chat/${auditId}`, { method: "DELETE" }, token);
+}

@@ -10,6 +10,7 @@ import {
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ActiveAuditSection } from "@/components/ActiveAuditSection";
 import { RepoChatSidebar } from "@/components/RepoChatSidebar";
+import { AnalysisProgressBar } from "@/components/AnalysisProgressBar";
 
 interface DashboardClientProps {
   userName?: string | null;
@@ -36,6 +37,7 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const [repoUrl, setRepoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isForceRefresh, setIsForceRefresh] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +69,7 @@ export function DashboardClient({
 
     setError(null);
     setIsLoading(true);
+    setIsForceRefresh(forceRefresh);
     setStatusMessage(
       forceRefresh
         ? "Re-analyzing latest commits & generating fresh telemetry..."
@@ -297,8 +300,11 @@ export function DashboardClient({
           ))}
         </div>
 
+        {/* Progress Bar & Stage Indicator */}
+        <AnalysisProgressBar isLoading={isLoading} isForceRefresh={isForceRefresh} />
+
         {/* Status Message */}
-        {statusMessage && (
+        {statusMessage && !isLoading && (
           <div
             style={{
               padding: "0.6rem 1rem",
@@ -419,8 +425,9 @@ export function DashboardClient({
       )}
 
       {/* ── Slide-over Right Side Panel (Drawer) ───────────────────────────── */}
-      {activeAudit && isChatOpen && (
+      {activeAudit && (
         <div
+          aria-hidden={!isChatOpen}
           style={{
             position: "fixed",
             top: 0,
@@ -430,17 +437,22 @@ export function DashboardClient({
             height: "100vh",
             zIndex: 50,
             background: "var(--color-drawer-bg)",
-            boxShadow: "-12px 0 36px rgba(0, 0, 0, 0.4)",
+            boxShadow: isChatOpen ? "-12px 0 36px rgba(0, 0, 0, 0.4)" : "none",
             borderLeft: "1px solid var(--color-drawer-border)",
             display: "flex",
             flexDirection: "column",
-            animation: "slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: isChatOpen ? "translateX(0)" : "translateX(100%)",
+            transition: "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+            pointerEvents: isChatOpen ? "auto" : "none",
+            visibility: isChatOpen ? "visible" : "hidden",
           }}
         >
           <RepoChatSidebar
+            key={activeAudit.auditId}
             auditId={activeAudit.auditId}
             backendToken={backendToken}
             repoName={activeAudit.repoUrl.replace("https://github.com/", "")}
+            isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
           />
         </div>
