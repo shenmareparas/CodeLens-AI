@@ -7,8 +7,9 @@ interface CtaBannerSectionProps {
 
 export function CtaBannerSection({ isAuthenticated }: CtaBannerSectionProps) {
   return (
-    <section className={styles.ctaBanner} aria-label="Get Started with CodeLens AI">
-      <div className={styles.ctaContentWrapper}>
+    <section className={styles.ctaSection} aria-label="Get Started with CodeLens AI">
+      <div className={styles.ctaBanner}>
+        <div className={styles.ctaContentWrapper}>
 
         <h2 className={`${styles.ctaTitle} cta-title`}>
           Ready to Audit Your Architecture in Seconds?
@@ -71,6 +72,7 @@ export function CtaBannerSection({ isAuthenticated }: CtaBannerSectionProps) {
           </span>
         </div>
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // tasteskill / assets: find real, openly licensed pictures of the subject's world, and keep their credits.
 //
 // A page without photographs of its own does not have to draw everything. Archives, museums and open
@@ -8,31 +8,31 @@
 // creator, its licence and a one-line credit. Then it downloads the chosen ones into the project and
 // records their credits, so the page works offline and credits every picture.
 //
-//   node assets.mjs "<query>"                     search every source, licences safe for commercial use
+//   bun assets.mjs "<query>"                     search every source, licences safe for commercial use
 //        [--source all|openverse|commons|aic|met|museums]    one or several, comma-separated
 //        [--license safe|pd|all|cc0,pd,by,by-sa,...]        safe = CC0, public domain, CC BY, CC BY-SA
 //        [--orientation landscape|portrait|square]  [--min-width 1000]  [--width 1920]  [--limit 5]
 //        [--no-check]                              skip checking that each image loads (faster)
 //        [--json]                                  machine-readable results
-//   node assets.mjs "<query>" --video              search for real footage instead (same options, plus
+//   bun assets.mjs "<query>" --video              search for real footage instead (same options, plus
 //        [--res 720]                               the largest rendition to pick, by its short side
 //        [--max-mb 25]                             clips over this are flagged, and --get refuses them
-//   node assets.mjs --get <ref>[,<ref>...] [--to assets] [--name <file name>] [--width 1920] [--res 720] [--max-mb 25]
+//   bun assets.mjs --get <ref>[,<ref>...] [--to assets] [--name <file name>] [--width 1920] [--res 720] [--max-mb 25]
 //                                                  download into the project and record the credit
-//   node assets.mjs --credits [--to assets]        print the credits for the footer and the report
+//   bun assets.mjs --credits [--to assets]        print the credits for the footer and the report
 //
 // Image sources: Openverse (api.openverse.org: Flickr, Wikimedia Commons, museums and libraries in one
 // index), Wikimedia Commons, the Art Institute of Chicago (public-domain works over IIIF) and The
 // Metropolitan Museum of Art (Open Access). Video sources: Wikimedia Commons (with its web-sized webm
 // transcodes), the Internet Archive (its curated Prelinger Archives of films, public domain or Creative
-// Commons) and the NASA Image and Video Library. Zero dependencies, no API keys. Node 18+ (built-in fetch).
+// Commons) and the NASA Image and Video Library. Zero dependencies, no API keys. Bun / Node 18+ (built-in fetch).
 import { readFileSync, writeFileSync, existsSync, mkdirSync, createWriteStream, unlinkSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const UA = 'taste-skill-assets/2.0 (+https://github.com/Leonxlnx/taste-skill)';
 const SELF = fileURLToPath(import.meta.url).split('\\').join('/');
-const CMD = `node ${/\s/.test(SELF) ? `"${SELF}"` : SELF}`;
+const CMD = `bun ${/\s/.test(SELF) ? `"${SELF}"` : SELF}`;
 const SOURCES = {
   openverse: { media: 'image', name: 'Openverse', note: 'one index over Flickr, Wikimedia Commons, museums and libraries' },
   commons: { media: 'both', name: 'Wikimedia Commons', note: 'archival photographs, old maps, scans of prints and books, places as they look now', videoNote: 'video files with web-sized webm transcodes: places, crafts, processes, nature' },
@@ -861,5 +861,5 @@ if (args.help) { console.log(USAGE); process.exit(0); }
 if (args.credits) process.exit(printCredits(o));
 if (args.get) process.exit(await getAll(String(args.get).split(',').map((s) => s.trim()).filter(Boolean), o));
 const query = words.join(' ').trim();
-if (!query) fail('Give a search query, for example: node assets.mjs "ghent postcard"');
+if (!query) fail('Give a search query, for example: bun assets.mjs "ghent postcard"');
 process.exit(await search(query, o));

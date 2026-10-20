@@ -27,19 +27,115 @@ const SAMPLE_REPOS = [
   { name: "Portfolio Next.js", repo: "shenmareparas/Portfolio_NextJS", tag: "Next.js" },
 ] as const;
 
+const NAV_ITEMS = [
+  { id: "preview", label: "Live Demo" },
+  { id: "pipeline", label: "Architecture" },
+  { id: "features", label: "Capabilities" },
+  { id: "ecosystem", label: "Ecosystems" },
+  { id: "comparison", label: "Why CodeLens" },
+] as const;
+
 export function HomePage() {
   const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRepo, setSelectedRepo] = useState<string>("shenmareparas/CodeLens-AI");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
+  const isClickScrollingRef = useRef(false);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    let ticking = false;
+
+    const updateScrollState = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 20);
+      setShowScrollTop(scrollY > 400);
+
+      // If user recently clicked a nav link and smooth scrolling is underway, keep clicked link active
+      if (isClickScrollingRef.current) return;
+
+      const focalPoint = 160;
+      const sectionElements = NAV_ITEMS.map((item) => document.getElementById(item.id));
+
+      const firstRect = sectionElements[0]?.getBoundingClientRect();
+      // If above the first section (in Hero area), no nav item is active
+      if (!firstRect || firstRect.top > focalPoint) {
+        setActiveSection("");
+        return;
+      }
+
+      let currentSection = "";
+
+      for (let i = 0; i < NAV_ITEMS.length; i++) {
+        const el = sectionElements[i];
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+
+        // If this section's top hasn't reached the focal line yet, skip
+        if (rect.top > focalPoint) {
+          continue;
+        }
+
+        const nextEl = sectionElements[i + 1];
+        if (nextEl) {
+          const nextRect = nextEl.getBoundingClientRect();
+          // Active if this section has reached focalPoint and next section hasn't reached it yet
+          if (nextRect.top > focalPoint) {
+            currentSection = NAV_ITEMS[i].id;
+            break;
+          }
+        } else {
+          // Last section ("comparison"): active while its bottom is still below the focal line
+          if (rect.bottom > focalPoint) {
+            currentSection = NAV_ITEMS[i].id;
+          }
+        }
+      }
+
+      setActiveSection(currentSection);
     };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateScrollState();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    const handleUserInteraction = () => {
+      if (isClickScrollingRef.current) {
+        isClickScrollingRef.current = false;
+        if (clickTimeoutRef.current) {
+          clearTimeout(clickTimeoutRef.current);
+          clickTimeoutRef.current = null;
+        }
+        handleScroll();
+      }
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll, { passive: true });
+    window.addEventListener("wheel", handleUserInteraction, { passive: true });
+    window.addEventListener("touchmove", handleUserInteraction, { passive: true });
+
+    updateScrollState();
+    const initTimer = setTimeout(updateScrollState, 150);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("wheel", handleUserInteraction);
+      window.removeEventListener("touchmove", handleUserInteraction);
+      clearTimeout(initTimer);
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
   }, []);
 
   // GSAP Animation Master Orchestrator
@@ -229,6 +325,13 @@ export function HomePage() {
 
   const handleNavScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
+    setActiveSection(targetId);
+    isClickScrollingRef.current = true;
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    clickTimeoutRef.current = setTimeout(() => {
+      isClickScrollingRef.current = false;
+    }, 850);
+
     const element = document.getElementById(targetId);
     if (element) {
       const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -243,6 +346,13 @@ export function HomePage() {
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (window.location.pathname === "/" || window.location.pathname === "") {
       e.preventDefault();
+      setActiveSection("");
+      isClickScrollingRef.current = true;
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = setTimeout(() => {
+        isClickScrollingRef.current = false;
+      }, 850);
+
       const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.scrollTo({
         top: 0,
@@ -250,6 +360,22 @@ export function HomePage() {
       });
       window.history.pushState(null, "", "/");
     }
+  };
+
+  const handleScrollToTop = () => {
+    setActiveSection("");
+    isClickScrollingRef.current = true;
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    clickTimeoutRef.current = setTimeout(() => {
+      isClickScrollingRef.current = false;
+    }, 850);
+
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReduced ? "auto" : "smooth",
+    });
+    window.history.pushState(null, "", window.location.pathname);
   };
 
   return (
@@ -265,41 +391,20 @@ export function HomePage() {
           </Link>
 
           <nav className={styles.navLinks} aria-label="Main Navigation">
-            <a
-              href="#preview"
-              className={styles.navLink}
-              onClick={(e) => handleNavScroll(e, "preview")}
-            >
-              Live Demo
-            </a>
-            <a
-              href="#pipeline"
-              className={styles.navLink}
-              onClick={(e) => handleNavScroll(e, "pipeline")}
-            >
-              Architecture
-            </a>
-            <a
-              href="#features"
-              className={styles.navLink}
-              onClick={(e) => handleNavScroll(e, "features")}
-            >
-              Capabilities
-            </a>
-            <a
-              href="#ecosystem"
-              className={styles.navLink}
-              onClick={(e) => handleNavScroll(e, "ecosystem")}
-            >
-              Ecosystems
-            </a>
-            <a
-              href="#comparison"
-              className={styles.navLink}
-              onClick={(e) => handleNavScroll(e, "comparison")}
-            >
-              Why CodeLens
-            </a>
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                  onClick={(e) => handleNavScroll(e, item.id)}
+                  aria-current={isActive ? "true" : undefined}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
           </nav>
 
           <div className={styles.navActions}>
@@ -370,6 +475,30 @@ export function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile-Only Move to Top Floating Action Button */}
+      <button
+        type="button"
+        onClick={handleScrollToTop}
+        className={`${styles.scrollToTopBtn} ${showScrollTop ? styles.scrollToTopVisible : ""}`}
+        aria-label="Move to top of page"
+        title="Move to top"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        </svg>
+      </button>
     </div>
   );
 }

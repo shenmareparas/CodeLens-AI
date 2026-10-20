@@ -1,6 +1,6 @@
 // Zero-dependency Chrome DevTools Protocol client.
-// Drives an installed Chrome / Edge / Chromium in headless mode over Node's built-in WebSocket.
-// Requires Node 22+. No npm install.
+// Drives an installed Chrome / Edge / Chromium in headless mode over built-in WebSocket.
+// Runs on Bun (or Node 22+). No install required.
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync, readdirSync, statSync, openSync, closeSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -58,7 +58,7 @@ function sweepProfiles(base) {
 export class Browser {
   static async launch({ width = 1440, height = 900, extraArgs = [] } = {}) {
     if (typeof WebSocket === 'undefined') {
-      throw new Error('Node 22+ is required (built-in WebSocket missing). Current: ' + process.version);
+      throw new Error('Bun or Node 22+ is required (built-in WebSocket missing). Current: ' + (process.versions?.bun ? `Bun ${process.versions.bun}` : process.version));
     }
     const exe = findChrome();
     if (!exe) {

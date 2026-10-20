@@ -52,9 +52,9 @@ evals/evals.json         six briefs for testing the skill against a no-skill bas
 
 ## Requirements
 
-Node 22 or newer and an installed Chrome, Edge or Chromium for `inspect.mjs` (it drives the browser
-over the DevTools protocol with Node's built-in WebSocket; nothing is installed). `draw.mjs`,
-`lint.mjs` and `assets.mjs` run on Node 18+; `assets.mjs` needs network access and no API keys. Set
+Bun (or Node 22+) and an installed Chrome, Edge or Chromium for `inspect.mjs` (it drives the browser
+over the DevTools protocol with built-in WebSocket; nothing is installed). `draw.mjs`,
+`lint.mjs` and `assets.mjs` run on Bun (or Node 18+); `assets.mjs` needs network access and no API keys. Set
 `CHROME_PATH` if the browser is somewhere unusual.
 
 ## Install

@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // tasteskill / inspect — render the page in a real browser, measure it, and photograph it.
 //
-//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]
+//   bun inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]
 //
 // --film also photographs the scroll as a visitor sees it (a frame every third of a screen, real wheel
 // input) into desktop-film-NN.jpg, so a scroll scene is judged by its in-between states. A direction
@@ -11,7 +11,7 @@
 // direction dealt with draw.mjs --app switches it on by itself.
 //
 // Exit code 0 = no FAIL findings. Exit code 1 = at least one FAIL (the page is not done).
-// Zero dependencies: drives an installed Chrome/Edge/Chromium. Node 22+.
+// Zero dependencies: drives an installed Chrome/Edge/Chromium. Bun or Node 22+.
 import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync, createReadStream, readdirSync, unlinkSync } from 'node:fs';
 import { resolve, join, relative, dirname, extname, sep } from 'node:path';
 import { createServer } from 'node:http';
@@ -31,7 +31,7 @@ let film = has('film');
 let dealtFonts = []; // the faces the saved sheet dealt, to catch a build that quietly fell back to a default
 const target = args[0];
 if (!target || target === '-h' || target.startsWith('--')) {
-  console.error('usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]');
+  console.error('usage: bun inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]');
   process.exit(2);
 }
 // Allowances granted by the drawn direction (written by draw.mjs) apply automatically.

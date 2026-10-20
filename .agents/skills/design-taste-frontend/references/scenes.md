@@ -117,8 +117,8 @@ say how many pictures and words it takes; these hold for all of them:
 ## 6. Checking it
 
 ```bash
-node <skill>/scripts/scenes.mjs <page>        # every scene at 0, 10 … 100%, desktop and phone, and reduced motion
-node <skill>/scripts/inspect.mjs <page>       # the gate; with scenes on the sheet it also films the scroll
+bun <skill>/scripts/scenes.mjs <page>        # every scene at 0, 10 … 100%, desktop and phone, and reduced motion
+bun <skill>/scripts/inspect.mjs <page>       # the gate; with scenes on the sheet it also films the scroll
 ```
 
 `scenes.mjs` writes one contact sheet per scene and width to `.taste-skill/scenes/`. Read every one.
@@ -170,5 +170,5 @@ with `scenes.mjs` like any other.
 
 ## 9. The catalogue
 
-(Generated from `library/scenes.json`; the draw deals from it. `node <skill>/scripts/draw.mjs --list
+(Generated from `library/scenes.json`; the draw deals from it. `bun <skill>/scripts/draw.mjs --list
 scenes` prints it.)

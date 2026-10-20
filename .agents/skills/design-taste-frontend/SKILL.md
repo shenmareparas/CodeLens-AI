@@ -59,7 +59,7 @@ rules for their insides. Deal the product's app style once, in its own folder, w
 and type kept:
 
 ```bash
-node <skill>/scripts/draw.mjs --app --kind <kind> --brief "<the product>" --keep palette,type --out .taste-skill/app
+bun <skill>/scripts/draw.mjs --app --kind <kind> --brief "<the product>" --keep palette,type --out .taste-skill/app
 ```
 
 and build every fragment the page shows (the hero's live screen, a feature's crop, a chart) as a real
@@ -107,7 +107,7 @@ testimonial, pricing, call to action.
 ### 3. Draw the direction
 
 ```bash
-node <skill>/scripts/draw.mjs --sector <sector> --brief "<one line about the subject>" \
+bun <skill>/scripts/draw.mjs --sector <sector> --brief "<one line about the subject>" \
   --sections <roles in the order of your argument> [--tone <tone>] [--have <assets>] [--keep palette,type] \
   --options 3
 ```
@@ -118,10 +118,10 @@ familiar, and write one line in your notes on why. In testing, a single random d
 suit the subject was the commonest cause of a weak page. Then deal the full sheet:
 
 ```bash
-node <skill>/scripts/draw.mjs <the same arguments, without --options> --direction <chosen id>
+bun <skill>/scripts/draw.mjs <the same arguments, without --options> --direction <chosen id>
 ```
 
-- `--sector`: `node <skill>/scripts/draw.mjs --list sectors`. Pick the closest.
+- `--sector`: `bun <skill>/scripts/draw.mjs --list sectors`. Pick the closest.
 - `--sections`: roles from `--list roles` (features, showcase, how-it-works, testimonial, proof, stats,
   pricing, faq, cta, footer, intro, about, work, gallery, list, contact). The hero is implied.
 - `--tone` (optional): quiet, bold, warm, technical, playful, luxury, editorial. Only pass it when the
@@ -153,7 +153,7 @@ The command prints a **direction sheet**. It is the art direction for this build
   has unmistakable colours of its own (its material, the paint of its street, the landscape outside
   its windows), keep the dealt proportions and take the colours from the subject instead, and say so
   in the report.
-- Reprint it any time with `node <skill>/scripts/draw.mjs --show`. In a long session, re-read it before each
+- Reprint it any time with `bun <skill>/scripts/draw.mjs --show`. In a long session, re-read it before each
   section you build.
 
 ### 4. Find the idea
@@ -240,7 +240,7 @@ not finished. Order of work:
    1. the project's own;
    2. generated, if you have an image tool;
    3. **real pictures of the subject's world from the open collections,** whenever an honest one
-      exists. Search them with `node <skill>/scripts/assets.mjs "<query>"` (Openverse, Wikimedia
+      exists. Search them with `bun <skill>/scripts/assets.mjs "<query>"` (Openverse, Wikimedia
       Commons, the Art Institute of Chicago and the Met; only licences that allow commercial use, by
       default). Search the inventory, not the category: its street in old postcards, an old map of the
       neighbourhood, its material up close, its trade in engravings, a museum object of its kind, a
@@ -304,9 +304,9 @@ behind a decision; the laws below are the short form.
 ### 7. Gate
 
 ```bash
-node <skill>/scripts/lint.mjs <source files or folder>
-node <skill>/scripts/inspect.mjs <url or path/to/index.html>
-node <skill>/scripts/scenes.mjs <url or path/to/index.html>     # when the page has scroll scenes
+bun <skill>/scripts/lint.mjs <source files or folder>
+bun <skill>/scripts/inspect.mjs <url or path/to/index.html>
+bun <skill>/scripts/scenes.mjs <url or path/to/index.html>     # when the page has scroll scenes
 ```
 
 `scenes.mjs` photographs every scroll scene at 0, 10 … 100% of its hold, on desktop and on a phone,

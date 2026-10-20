@@ -82,11 +82,11 @@ URL, the page it comes from, its size, its creator, its licence and a credit lin
   prints, drawings, photographs, textiles and objects, in large scans.
 
 ```bash
-node <skill>/scripts/assets.mjs "ghent postcard"
-node <skill>/scripts/assets.mjs "fig" --source museums --orientation portrait
-node <skill>/scripts/assets.mjs "basalt texture" --min-width 2400 --source openverse,commons
-node <skill>/scripts/assets.mjs --get commons:36649959,met:707892     # download, record the credits
-node <skill>/scripts/assets.mjs --credits                             # footer line and report list
+bun <skill>/scripts/assets.mjs "ghent postcard"
+bun <skill>/scripts/assets.mjs "fig" --source museums --orientation portrait
+bun <skill>/scripts/assets.mjs "basalt texture" --min-width 2400 --source openverse,commons
+bun <skill>/scripts/assets.mjs --get commons:36649959,met:707892     # download, record the credits
+bun <skill>/scripts/assets.mjs --credits                             # footer line and report list
 ```
 
 By default it keeps only licences that allow commercial use (CC0, public domain, CC BY, CC BY-SA) and
@@ -179,7 +179,7 @@ real footage with `--video` (section 11).
 
 - The sheet lists eight from one set so they share a subject and a light. Use three to six.
 - Each line says where the calm area is. Put text there or keep text off the image.
-- More from the same or another set: `node scripts/draw.mjs --photos list`, `--photos <set>`, or
+- More from the same or another set: `bun scripts/draw.mjs --photos list`, `--photos <set>`, or
   `--photos "fog coast"` to search descriptions.
 - URLs have the form `https://picsum.photos/id/<id>/<width>/<height>`. Request the exact pixel size you
   render at twice the CSS size for sharpness, capped around 2400 wide. Add `?grayscale` for
@@ -330,9 +330,9 @@ and NASA (the Earth from orbit, launches, aircraft, laboratories). The rest of t
 left out: anyone can upload there, and the licence claims are unchecked.
 
 ```bash
-node <skill>/scripts/assets.mjs "coffee roasting" --video
-node <skill>/scripts/assets.mjs "river" --video --source commons,nasa --orientation landscape
-node <skill>/scripts/assets.mjs --get commons:49769620        # the clip, a poster frame, the credit
+bun <skill>/scripts/assets.mjs "coffee roasting" --video
+bun <skill>/scripts/assets.mjs "river" --video --source commons,nasa --orientation landscape
+bun <skill>/scripts/assets.mjs --get commons:49769620        # the clip, a poster frame, the credit
 ```
 
 It takes a rendition of 720p or smaller (`--res` changes that), lists short clips first, prints each

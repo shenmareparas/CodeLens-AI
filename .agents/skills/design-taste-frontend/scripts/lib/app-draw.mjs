@@ -1,10 +1,10 @@
 // tasteskill / draw --app — deal a style for an app screen (dashboard, admin, settings, inbox).
 //
-//   node draw.mjs --app --kind <kind> --brief "one line" [--screens overview,list,detail,settings]
+//   bun draw.mjs --app --kind <kind> --brief "one line" [--screens overview,list,detail,settings]
 //                 [--theme light|dark] [--keep palette,type] [--options 3] [--style <id>] [--seed N]
-//   node draw.mjs --show                      reprint the saved sheet
-//   node draw.mjs --redraw style|shell|screen:<name>
-//   node draw.mjs --app --list kinds|styles|screens
+//   bun draw.mjs --show                      reprint the saved sheet
+//   bun draw.mjs --redraw style|shell|screen:<name>
+//   bun draw.mjs --app --list kinds|styles|screens
 //
 // Same idea as the page draw: the script deals, you choose among what it dealt, so two products do not
 // end up in the same default look. The library (library/app.json) was distilled from a study of real
@@ -195,9 +195,9 @@ function render(s) {
   p('Real data for this product, written before the markup: names, amounts that add up, dates in order, units on every figure,');
   p('honest zeros and dashes. One chart answers one question. No gradients, glows, glass, icons in tinted squares, sparklines on KPIs,');
   p('rainbow charts, emoji, lorem or Acme. `<skill>/assets/app.css` and `<skill>/assets/charts.js` are a neutral start set to these');
-  p('rules. Check with `node <skill>/scripts/lint.mjs <files>` and `node <skill>/scripts/inspect.mjs <page>`: this sheet switches both');
+  p('rules. Check with `bun <skill>/scripts/lint.mjs <files>` and `bun <skill>/scripts/inspect.mjs <page>`: this sheet switches both');
   p('to app rules.');
   p();
-  p(`Saved to ${sheetPath.split('\\').join('/')} · reprint with \`node draw.mjs --show\``);
+  p(`Saved to ${sheetPath.split('\\').join('/')} · reprint with \`bun draw.mjs --show\``);
   return o.join('\n');
 }

@@ -267,7 +267,7 @@ ScrollTrigger.getAll().forEach(t => t.kill());
 ScrollTrigger.getById("my-id")?.kill();
 ```
 
-In React, use the `useGSAP()` hook (@gsap/react NPM package) to ensure proper cleanup automatically, or manually kill in a cleanup (e.g. in useEffect return) when the component unmounts.
+In React, use the `useGSAP()` hook (@gsap/react package, installed via `bun add @gsap/react`) to ensure proper cleanup automatically, or manually kill in a cleanup (e.g. in useEffect return) when the component unmounts.
 
 ## Official GSAP best practices
 

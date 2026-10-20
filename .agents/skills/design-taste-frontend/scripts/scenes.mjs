@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // tasteskill / scenes — photograph every scroll scene on a page at exact points of its progress.
 //
-//   node scenes.mjs <url | path/to/file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900]
+//   bun scenes.mjs <url | path/to/file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900]
 //
 // For each <section class="scene"> (references/scenes.md): the screen before it, 0, 10, … 100% of its
 // hold, and the screen after it, on desktop (1440x900) and on a phone (390x844), as labelled contact
@@ -9,7 +9,7 @@
 // timing while the page is wheeled through its scenes, and console errors. Read every sheet it writes.
 //
 // Exit code 0 = every scene ran; 1 = a scene never started, fell back to rest on desktop, or the page
-// logged errors. Zero dependencies: drives an installed Chrome/Edge/Chromium. Node 22+.
+// logged errors. Zero dependencies: drives an installed Chrome/Edge/Chromium. Bun or Node 22+.
 import { existsSync, mkdirSync, statSync, createReadStream } from 'node:fs';
 import { resolve, join, dirname, extname, sep, relative } from 'node:path';
 import { createServer } from 'node:http';
@@ -21,7 +21,7 @@ const outDir = resolve(flag('out', '.taste-skill/scenes'));
 const STEPS = Math.max(2, +flag('steps', 10)), WAIT = +flag('wait', 900);
 const only = flag('scene', '');
 const target = args[0];
-if (!target || target.startsWith('--')) { console.error('usage: node scenes.mjs <url | file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900]'); process.exit(2); }
+if (!target || target.startsWith('--')) { console.error('usage: bun scenes.mjs <url | file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900]'); process.exit(2); }
 
 // A local file is served from 127.0.0.1 (the working directory when the file is inside it, else the
 // file's folder), so relative assets and CDN scripts behave as they will when the page is hosted.

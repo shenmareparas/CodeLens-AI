@@ -231,7 +231,7 @@ Three more lines, each tested:
 ### 2.3 Choose a style
 
 ```bash
-node <skill>/scripts/draw.mjs --app --kind <kind> --brief "<one line about the product>" \
+bun <skill>/scripts/draw.mjs --app --kind <kind> --brief "<one line about the product>" \
   --screens <screens> [--theme light|dark] [--keep palette,type] --options 3
 ```
 
@@ -255,7 +255,7 @@ Choose by how the product is used (long sessions or a quick look, money or media
 person, day or night), not by what is most familiar, and write one line on why. Then deal the sheet:
 
 ```bash
-node <skill>/scripts/draw.mjs --app <the same arguments, without --options> --style <id>
+bun <skill>/scripts/draw.mjs --app <the same arguments, without --options> --style <id>
 ```
 
 The sheet gives the style's tokens and type, its shell and one pattern for each screen you named.
@@ -302,8 +302,8 @@ with full data is half built.
 ### 2.7 The check
 
 ```bash
-node <skill>/scripts/lint.mjs --app <source files or folder>
-node <skill>/scripts/inspect.mjs --app <url or path/to/index.html>
+bun <skill>/scripts/lint.mjs --app <source files or folder>
+bun <skill>/scripts/inspect.mjs --app <url or path/to/index.html>
 ```
 
 A sheet dealt with `--app` switches both tools to the app rules by itself. The inspector opens the

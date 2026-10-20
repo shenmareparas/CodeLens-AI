@@ -273,7 +273,7 @@ could own. (Several use devices this skill bans; take the idea, not the ornament
 | Noho | Awwwards | 8.0 | Furniture sold through people misusing it (wearing, balancing on, hiding behind chairs on flat colour backdrops) while the interface stays quiet. |
 | Juggle | One Page Love | 8.0 | The headline literally drowns: a flat blue field rises to half height and the lines below the waterline change colour. |
 
-Full notes on any studied site: `node scripts/draw.mjs --site <id>` (ids appear on direction sheets).
+Full notes on any studied site: `bun scripts/draw.mjs --site <id>` (ids appear on direction sheets).
 
 ## 11. How the skill was tested
 

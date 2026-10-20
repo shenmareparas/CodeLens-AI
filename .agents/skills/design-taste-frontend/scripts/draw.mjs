@@ -1,24 +1,24 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // tasteskill / draw — deal an art direction from the research library.
 //
 // The script chooses, not the model: a model asked to pick a direction returns the category
 // default every time. The draw is random within what fits the brief, and it remembers recent
 // draws so consecutive projects do not look alike.
 //
-//   node draw.mjs --sector <sector> --brief "one line" [--sections hero,showcase,pricing,footer]
+//   bun draw.mjs --sector <sector> --brief "one line" [--sections hero,showcase,pricing,footer]
 //                 [--tone quiet|bold|warm|technical|playful|luxury|editorial]
 //                 [--have photography,product-photo,product-ui,illustration,video]   assets you really have
 //                 [--keep palette,type]        the brand already fixes these; draw the rest
 //                 [--avoid id,id] [--seed N] [--out DIR]
 //                 [--options 3]                show three dealt directions to choose from, write nothing
 //                 [--direction <id>]           deal the full sheet for the chosen direction
-//   node draw.mjs --show                       reprint the saved direction sheet
-//   node draw.mjs --redraw hero|type|palette|photos|scenes|section:<role>|direction   re-deal one slot
-//   node draw.mjs --list sectors|directions|roles|tones|scenes
-//   node draw.mjs --site <id>                  print one studied reference site in full
-//   node draw.mjs --app --kind <kind> ...      deal a style for an app screen instead (see lib/app-draw.mjs)
+//   bun draw.mjs --show                       reprint the saved direction sheet
+//   bun draw.mjs --redraw hero|type|palette|photos|scenes|section:<role>|direction   re-deal one slot
+//   bun draw.mjs --list sectors|directions|roles|tones|scenes
+//   bun draw.mjs --site <id>                  print one studied reference site in full
+//   bun draw.mjs --app --kind <kind> ...      deal a style for an app screen instead (see lib/app-draw.mjs)
 //
-// Zero dependencies. Node 18+.
+// Zero dependencies. Bun / Node 18+.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,7 +28,7 @@ import { homedir } from 'node:os';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LIB = join(HERE, '..', 'library');
 const ASSETS_PATH = join(HERE, 'assets.mjs').split('\\').join('/');
-const ASSETS_CMD = `node ${/\s/.test(ASSETS_PATH) ? `"${ASSETS_PATH}"` : ASSETS_PATH}`;
+const ASSETS_CMD = `bun ${/\s/.test(ASSETS_PATH) ? `"${ASSETS_PATH}"` : ASSETS_PATH}`;
 const load = (name) => JSON.parse(readFileSync(join(LIB, name + '.json'), 'utf8'));
 
 const argv = process.argv.slice(2);
@@ -142,7 +142,7 @@ if (opt('alternatives')) {
     console.log(`# Other ${role} blueprints (written for other directions; if one fits the content better, take its geometry and set it in this direction's type, colour and manner)\n`);
     for (const s of others) console.log(line(s));
   }
-  console.log(`Choose by what the content really is (how many plans, quotes, items exist), then: node draw.mjs --redraw section:${role}=<id>   and say why in your report.`);
+  console.log(`Choose by what the content really is (how many plans, quotes, items exist), then: bun draw.mjs --redraw section:${role}=<id>   and say why in your report.`);
   process.exit(0);
 }
 if (opt('redraw')) {
@@ -512,13 +512,13 @@ function render(s) {
     ? `\`${ASSETS_CMD} "${qs[0]}"\`${qs.length > 1 ? `, then ${qs.slice(1).map((q) => `"${q}"`).join(' and ')}` : ''}, then queries from your inventory (its street, its materials, its trade's tools and history)`
     : `\`${ASSETS_CMD} "<a place, material or object from your inventory>"\``;
   const MODE = {
-    interface: '**This subject is software and there are no screenshots, so its pictures are its own interface.** Wherever this sheet says photograph, image or object, build a believable fragment of the product in HTML at real size (real labels, numbers that add up, one item hovered or selected) by the app-screen rules (references/app-screens.md: deal its style once with `node <skill>/scripts/draw.mjs --app --kind <kind> --keep palette,type --out .taste-skill/app`, and build it with assets/app.css and assets/charts.js), put the attribute `data-ui` on its root, and crop or scale it the way the blueprint treats a photograph: a full-bleed close crop, a tile, the fixed half of a split. Where a fragment makes no sense, use a flat colour field with type on it. Never a fake dashboard of grey bars, never a device frame. If the product works on something physical (ships, plants, buildings, a city), one real picture of that world can carry a section: find it with `' + ASSETS_CMD + ' "<that world>"`, download it with `--get`, credit it on the page, and never let it pass for the product or its customers.',
+    interface: '**This subject is software and there are no screenshots, so its pictures are its own interface.** Wherever this sheet says photograph, image or object, build a believable fragment of the product in HTML at real size (real labels, numbers that add up, one item hovered or selected) by the app-screen rules (references/app-screens.md: deal its style once with `bun <skill>/scripts/draw.mjs --app --kind <kind> --keep palette,type --out .taste-skill/app`, and build it with assets/app.css and assets/charts.js), put the attribute `data-ui` on its root, and crop or scale it the way the blueprint treats a photograph: a full-bleed close crop, a tile, the fixed half of a split. Where a fragment makes no sense, use a flat colour field with type on it. Never a fake dashboard of grey bars, never a device frame. If the product works on something physical (ships, plants, buildings, a city), one real picture of that world can carry a section: find it with `' + ASSETS_CMD + ' "<that world>"`, download it with `--get`, credit it on the page, and never let it pass for the product or its customers.',
     'no-product-photo': '**There are no photographs of the product and none can be faked.** Wherever this sheet calls for a picture of the object, draw the object: its pieces as flat shapes in inline SVG, large, in one graphic language and in the colours that make it worth buying (a glaze, a finish, a material), never grey placeholders (references/imagery.md §8). **Around the object, use real pictures of its world** from the open collections: its material up close, its town in old postcards, its craft in engravings, a museum piece of the same kind, never one a visitor could take for the product itself (references/imagery.md §3). Start with ' + find + '. Download what you use with `--get` and credit every one on the page (`--credits` prints the footer line). Type at scale and full colour fields carry the rest; the dealt photographs only where they plainly do not pretend to be the product. In your report, say that product photography is needed and which drawings it will replace, and list every found picture with its source and licence.',
     atmosphere: '**The project has no photographs of its own yet.** First choice: **real pictures of the subject\'s world from the open collections**: its city and street in old postcards and photographs, an old map of the neighbourhood, its materials up close, its trade in engravings, museum objects of its kind (references/imagery.md §3). Start with ' + find + '. Download what you use into the project with `--get` and credit every one on the page (`--credits` prints the footer line). They show the world around the client, never the client\'s own room, dish, product, person or team. Second, for what no honest picture exists of: draw the subject\'s own things in code, large, in one flat graphic language and the palette\'s real colours (its tiles, its windows, its objects; references/imagery.md §8). Third: the dealt photographs, only where an honestly generic picture fits (the sea, the weather, a material), never one a visitor could take for the thing itself and never an unrelated scene. One treatment for all of them. If this direction is built on photographs, plan the set before building (four to six pictures of one family) and reuse them at different crops and scales instead of finding or drawing a new picture for every slot; keep drawings as `<symbol>` + `<use>` or generate them with a small script so the page stays light. List every found picture (with its source and licence), every dealt photograph and every drawing that stands in for photography in your report.',
     own: '**Use the images that belong to the project in every picture slot.** For slots they cannot fill, real pictures of the subject\'s world from the open collections come next (start with ' + find + '; credit them on the page), then the dealt photographs.',
   };
   p(MODE[s.imagery || 'atmosphere']); p(); p(d.imagery);
-  p(); p('**Floor (the inspector checks it):** at least four real pictures on the page, usually six to twelve; SVG drawings do not count. One moving picture where an honest clip exists: `node <skill>/scripts/assets.mjs --video "<query>"`, used as a muted loop with a poster frame. Whatever this direction says about pictures, it is carried out with real ones.');
+  p(); p('**Floor (the inspector checks it):** at least four real pictures on the page, usually six to twelve; SVG drawings do not count. One moving picture where an honest clip exists: `bun <skill>/scripts/assets.mjs --video "<query>"`, used as a muted loop with a poster frame. Whatever this direction says about pictures, it is carried out with real ones.');
   if (s.photos) {
     p();
     p(s.imagery === 'interface' ? `Optional atmosphere, two at most, from the "${s.photos.title || s.photos.set}" set (${s.photos.note}). The page does not need them.` : `Photographs dealt for this build, from the "${s.photos.title || s.photos.set}" set (${s.photos.note})`);
@@ -531,7 +531,7 @@ function render(s) {
     for (const ph of s.photos.photos) p(`- \`https://picsum.photos/id/${ph.id}/1600/1000\` — ${ph.alt} · ${ph.tone} tone · ${(ph.colours || []).join(', ')}${ph.mono ? ' · black-and-white' : ''}${ph.lookalike ? ' · **could be taken for the product: never use it as the product**' : ''}${ph.calm && ph.calm !== 'none' ? ` · calm area: ${ph.calm}` : ''} · native ${ph.ratio >= 1.15 ? 'landscape' : ph.ratio <= 0.87 ? 'portrait' : 'square'} · photo: ${ph.by}`);
     p('The last two path numbers are width and height: request the exact crop you render (`/1200/1500` for a 4:5 portrait, `/2400/1350` for a hero) and');
     p('add `?grayscale` to desaturate. ' + (s.imagery === 'interface' ? 'Use at most two.' : 'Use three to six of them, not all eight.') + ' Always set `width`, `height`, `alt` and `loading="lazy"` (not on the hero image).');
-    if (s.photos.others?.length) p(`Other sets that fit this brief: ${s.photos.others.join(', ')} — \`node draw.mjs --photos <set>\` prints one in full; \`--photos list\` shows all sets. Taking photographs from another set is your call and is not a redraw; keep them to one light and one treatment.`);
+    if (s.photos.others?.length) p(`Other sets that fit this brief: ${s.photos.others.join(', ')} — \`bun draw.mjs --photos <set>\` prints one in full; \`--photos list\` shows all sets. Taking photographs from another set is your call and is not a redraw; keep them to one light and one treatment.`);
   } else if (d.photos === false) {
     p(); p('This direction does not lead with photographs; it still carries the picture floor below, with real pictures placed where the direction allows them.');
   }
@@ -550,7 +550,7 @@ function render(s) {
   if (s.motion) { p(`## 8. Motion — ${s.motion.name}`); p(s.motion.description); p('This is the signature move, the one loud moment. Around it the page still needs the rest of the motion layer (SKILL.md step 9): an entrance for the parts of every section, feedback on every control, and one moving picture. The inspector fails a page that barely moves. Recipes: references/motion.md.'); p(); }
   if (s.scenes?.length) {
     p('## 9. Scroll scenes');
-    p(`The page's big moments: ${s.scenes.length} scroll scenes, tested and ready to fill. They are part of the composition, so build them in step 6 with the section they carry, not as a motion afterthought. Each runs on the shared stage (assets/scenes/stage.js and stage.css, with GSAP and Lenis from the pinned CDN lines in stage.js) and ships its own finished composition for reduced motion and for phones that rest. How to put one on a page, fill it and check it: references/scenes.md. Check them with \`node <skill>/scripts/scenes.mjs <page>\` and look at every sheet.`);
+    p(`The page's big moments: ${s.scenes.length} scroll scenes, tested and ready to fill. They are part of the composition, so build them in step 6 with the section they carry, not as a motion afterthought. Each runs on the shared stage (assets/scenes/stage.js and stage.css, with GSAP and Lenis from the pinned CDN lines in stage.js) and ships its own finished composition for reduced motion and for phones that rest. How to put one on a page, fill it and check it: references/scenes.md. Check them with \`bun <skill>/scripts/scenes.mjs <page>\` and look at every sheet.`);
     for (const sc of s.scenes) {
       p();
       p(`### ${sc.name} (\`${sc.id}\`)${sc.carries ? ` — carries the ${sc.carries === 'hero' ? 'first screen' : sc.carries + ' section'}` : ' — a transition between two sections'}`);
@@ -570,7 +570,7 @@ function render(s) {
     p('## 12. Real references');
     p('Studied sites that work this way. Take the principle, never the specifics: no names, copy, images or signature assets of theirs.');
     for (const r of s.references) p(siteCard(r, false));
-    p('Full notes on any of them: `node draw.mjs --site <id>`.'); p();
+    p('Full notes on any of them: `bun draw.mjs --site <id>`.'); p();
   }
   p('## Always');
   p('Headlines two lines or fewer at every width. No eyebrow labels, no monospace, no 01/02/03, no thin rules, no gradients, no shadows at rest,');
@@ -579,6 +579,6 @@ function render(s) {
   p('`inspect.mjs` measures all of it.');
   if (s.allow?.length) p(`This direction is allowed: ${s.allow.join(', ')} (the inspector reads this from the saved sheet).`);
   p();
-  p(`Saved to ${sheetPath.split('\\').join('/')} · reprint with \`node draw.mjs --show\``);
+  p(`Saved to ${sheetPath.split('\\').join('/')} · reprint with \`bun draw.mjs --show\``);
   return o.join('\n');
 }

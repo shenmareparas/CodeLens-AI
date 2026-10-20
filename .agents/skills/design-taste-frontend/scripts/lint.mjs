@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // tasteskill / lint — static scan of source files for the tells this skill bans.
 // Catches them before a render, plus the ones a render cannot see (copy habits, motion values).
 //
-//   node lint.mjs [files or directories ...] [--app] [--json]
+//   bun lint.mjs [files or directories ...] [--app] [--json]
 //
 // Exit code 1 when any FAIL is found. Zero dependencies.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -11,7 +11,7 @@ import { join, extname, relative, resolve } from 'node:path';
 const args = process.argv.slice(2);
 const asJson = args.includes('--json');
 // App screens (references/app-screens.md) keep quiet table and panel lines, faint shadows, data labels
-// and their own typefaces; a sheet dealt with draw.mjs --app switches this on by itself.
+// and their own typefaces; a sheet dealt with bun draw.mjs --app switches this on by itself.
 let appMode = args.includes('--app');
 try { if (JSON.parse(readFileSync('.taste-skill/direction.json', 'utf8')).kind === 'app') appMode = true; } catch {}
 const APP_LEVEL = { hairline: null, 'outlined-box': null, 'default-font': null, numbering: 'WARN', mono: 'WARN', shadow: 'WARN', eyebrow: 'WARN', 'cta-copy': null, 'h-screen': null };
