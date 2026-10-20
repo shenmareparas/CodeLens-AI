@@ -7,41 +7,41 @@
 }
 
 :root {
-  /* Palette (Dark Default) */
-  --color-bg: #09090b;
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-surface-hover: rgba(255, 255, 255, 0.06);
+  /* Palette (Dark Default: Architectural Amber & Monolith) */
+  --color-bg: #0d0e11;
+  --color-surface: rgba(255, 255, 255, 0.035);
+  --color-surface-hover: rgba(255, 255, 255, 0.07);
   --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-text: #f4f4f5;
-  --color-text-muted: rgba(255, 255, 255, 0.55);
-  --color-primary: #6366f1;
-  --color-primary-light: #818cf8;
-  --color-accent: #8b5cf6;
-  --color-success: #22c55e;
+  --color-border-subtle: rgba(255, 255, 255, 0.045);
+  --color-text: #f4f5f7;
+  --color-text-muted: #9297a0;
+  --color-primary: #f59e0b;
+  --color-primary-light: #fbbf24;
+  --color-accent: #f59e0b;
+  --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
   /* Inputs & Form Controls */
-  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-bg: rgba(0, 0, 0, 0.45);
   --color-input-border: rgba(255, 255, 255, 0.12);
   --color-input-text: #ffffff;
-  --color-input-placeholder: rgba(255, 255, 255, 0.4);
+  --color-input-placeholder: #717680;
 
   /* Code & Panels */
-  --color-code-bg: rgba(0, 0, 0, 0.5);
-  --color-badge-bg: rgba(255, 255, 255, 0.05);
-  --color-header-bg: rgba(0, 0, 0, 0.3);
-  --color-drawer-bg: #0f0f12;
-  --color-drawer-border: #27272a;
-  --color-chat-bubble-assistant: #18181b;
-  --color-chat-bubble-user: #4f46e5;
-  --color-chat-text: #f4f4f5;
+  --color-code-bg: rgba(0, 0, 0, 0.55);
+  --color-badge-bg: rgba(245, 158, 11, 0.1);
+  --color-header-bg: rgba(13, 14, 17, 0.75);
+  --color-drawer-bg: #121418;
+  --color-drawer-border: #22252c;
+  --color-chat-bubble-assistant: #16181d;
+  --color-chat-bubble-user: #d97706;
+  --color-chat-text: #f4f5f7;
 
   /* Typography */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace; /* taste-skill-ignore */
 
   /* Radii */
   --radius-sm: 6px;
@@ -50,8 +50,8 @@
   --radius-xl: 28px;
 
   /* Shadows */
-  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
-  --shadow-card: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --shadow-glow: none;
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25); /* taste-skill-ignore: modal overlay */
 
   /* Transitions */
   --transition-fast: 0.15s ease;
@@ -59,44 +59,51 @@
 }
 
 [data-theme="light"] {
-  /* Palette (Light Mode - Enhanced Contrast) */
-  --color-bg: #f8fafc;
+  /* Palette (Light Mode - Architectural Paper & Burnished Bronze) */
+  --color-bg: #fcfbfa;
   --color-surface: #ffffff;
-  --color-surface-hover: #f1f5f9;
-  --color-border: #cbd5e1;
-  --color-border-subtle: #e2e8f0;
-  --color-text: #020617;
-  --color-text-muted: #475569;
-  --color-primary: #4338ca;
-  --color-primary-light: #3730a3;
-  --color-accent: #6d28d9;
-  --color-success: #15803d;
+  --color-surface-hover: #f5f4f0;
+  --color-border: #e7e5e0;
+  --color-border-subtle: #f0eee9;
+  --color-text: #141210;
+  --color-text-muted: #57534e;
+  --color-primary: #b45309;
+  --color-primary-light: #92400e;
+  --color-accent: #b45309;
+  --color-success: #047857;
   --color-warning: #b45309;
   --color-danger: #b91c1c;
 
   /* Inputs & Form Controls */
   --color-input-bg: #ffffff;
-  --color-input-border: #94a3b8;
-  --color-input-text: #020617;
-  --color-input-placeholder: #64748b;
+  --color-input-border: #d6d3cc;
+  --color-input-text: #141210;
+  --color-input-placeholder: #78716c;
 
   /* Code & Panels */
-  --color-code-bg: #e2e8f0;
-  --color-badge-bg: #e2e8f0;
-  --color-header-bg: #f1f5f9;
+  --color-code-bg: #f5f4f0;
+  --color-badge-bg: #f5f0e8;
+  --color-header-bg: rgba(252, 251, 250, 0.88);
   --color-drawer-bg: #ffffff;
-  --color-drawer-border: #cbd5e1;
-  --color-chat-bubble-assistant: #f1f5f9;
-  --color-chat-bubble-user: #4338ca;
-  --color-chat-text: #020617;
+  --color-drawer-border: #e7e5e0;
+  --color-chat-bubble-assistant: #f5f4f0;
+  --color-chat-bubble-user: #b45309;
+  --color-chat-text: #141210;
 
   /* Shadows */
-  --shadow-glow: 0 0 30px rgba(79, 70, 229, 0.12);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-glow: none;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06); /* taste-skill-ignore: modal overlay */
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 html[data-theme="light"] {
@@ -167,7 +174,7 @@ code {
 
 /* Selection */
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
+  background: rgba(245, 158, 11, 0.35);
   color: #fff;
 }
 
@@ -270,4 +277,23 @@ a:where(:not([class])):hover {
   }
 }
 
+/* Global Section Anchor Offsets for Fixed Floating Navbar */
+#hero,
+#pipeline,
+#preview,
+#features,
+#ecosystem,
+#comparison {
+  scroll-margin-top: 7.5rem;
+}
 
+@media (max-width: 768px) {
+  #hero,
+  #pipeline,
+  #preview,
+  #features,
+  #ecosystem,
+  #comparison {
+    scroll-margin-top: 5.5rem;
+  }
+}

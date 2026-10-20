@@ -63,8 +63,8 @@ export function DossierViewer({
               fontSize: "0.7rem",
               padding: "0.15rem 0.45rem",
               borderRadius: "var(--radius-sm)",
-              background: "rgba(99, 102, 241, 0.15)",
-              color: "var(--color-primary-light)",
+              background: "var(--color-badge-bg)",
+              color: "var(--color-primary)",
               fontFamily: "var(--font-mono)",
             }}
           >
@@ -101,9 +101,9 @@ export function DossierViewer({
               style={{
                 padding: "0.3rem 0.75rem",
                 borderRadius: "var(--radius-sm)",
-                border: "1px solid rgba(99, 102, 241, 0.3)",
-                background: "rgba(99, 102, 241, 0.15)",
-                color: "var(--color-primary-light)",
+                border: "1px solid var(--color-border)",
+                background: "var(--color-badge-bg)",
+                color: "var(--color-primary)",
                 cursor: isDownloading ? "not-allowed" : "pointer",
                 fontSize: "0.75rem",
                 fontWeight: 600,

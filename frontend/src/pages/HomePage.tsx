@@ -63,7 +63,7 @@ export function HomePage() {
           // Accessibility: If user prefers reduced motion, set elements immediately visible
           if (reduceMotion) {
             gsap.set(
-              ".landing-nav, .hero-badge, .hero-headline, .hero-subtitle, .hero-samples, .hero-cta, .hero-stats, .preview-window, .pipeline-step-card, .bento-feature-card, .eco-card, .comp-row",
+              ".landing-nav, .hero-headline, .hero-subtitle, .hero-samples, .hero-cta, .hero-stats, .preview-window, .pipeline-step-card, .bento-feature-card, .eco-card, .comp-table",
               {
                 autoAlpha: 1,
                 y: 0,
@@ -77,23 +77,8 @@ export function HomePage() {
           gsap.set(".pipeline-step-card", { autoAlpha: 0, y: 35 });
           gsap.set(".bento-feature-card", { autoAlpha: 0, y: 35 });
           gsap.set(".eco-card", { autoAlpha: 0, y: 25 });
-          gsap.set(".comp-row", { autoAlpha: 0, x: -20 });
 
-          // 1. Ambient Background Floating Glow Orbs
-          gsap.to(".bg-glow-orb", {
-            y: "+=35",
-            x: "-=20",
-            duration: 6,
-            ease: "sine.inOut",
-            repeat: -1,
-            yoyo: true,
-            stagger: {
-              each: 2,
-              from: "random",
-            },
-          });
-
-          // 2. Master Hero Entrance Timeline
+          // 1. Master Hero Entrance Timeline
           const heroTl = gsap.timeline({
             defaults: { ease: "power3.out" },
           });
@@ -106,24 +91,13 @@ export function HomePage() {
               ease: "power2.out",
             })
             .from(
-              ".hero-badge",
-              {
-                autoAlpha: 0,
-                y: -25,
-                scale: 0.9,
-                duration: 0.6,
-                ease: "back.out(1.7)",
-              },
-              "-=0.3"
-            )
-            .from(
               ".hero-headline",
               {
                 autoAlpha: 0,
                 y: 35,
                 duration: 0.8,
               },
-              "-=0.3"
+              "-=0.2"
             )
             .from(
               ".hero-subtitle",
@@ -219,18 +193,17 @@ export function HomePage() {
             start: "top 85%",
           });
 
-          // 7. ScrollTrigger Batch for Comparison Rows
-          ScrollTrigger.batch(".comp-row", {
-            onEnter: (batch) =>
-              gsap.to(batch, {
-                autoAlpha: 1,
-                x: 0,
-                stagger: 0.08,
-                duration: 0.55,
-                ease: "power2.out",
-                overwrite: true,
-              }),
-            start: "top 85%",
+          // 7. ScrollTrigger for Comparison Table (animates entire table together, not line-by-line)
+          gsap.from(".comp-table", {
+            scrollTrigger: {
+              trigger: ".comp-table",
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+            autoAlpha: 0,
+            y: 25,
+            duration: 0.65,
+            ease: "power2.out",
           });
 
           // 8. CTA Section entrance
@@ -254,17 +227,37 @@ export function HomePage() {
     { scope: containerRef }
   );
 
+  const handleNavScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({
+        behavior: prefersReduced ? "auto" : "smooth",
+        block: "start",
+      });
+      window.history.pushState(null, "", `#${targetId}`);
+    }
+  };
+
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      e.preventDefault();
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReduced ? "auto" : "smooth",
+      });
+      window.history.pushState(null, "", "/");
+    }
+  };
+
   return (
     <div ref={containerRef} className={styles.landingContainer}>
-      {/* Ambient background glowing orbs */}
-      <div className={`${styles.bgGlowTop} bg-glow-orb`} aria-hidden="true" />
-      <div className={`${styles.bgGlowMiddle} bg-glow-orb`} aria-hidden="true" />
-      <div className={`${styles.bgGlowBottom} bg-glow-orb`} aria-hidden="true" />
-
       {/* Floating Navigation Bar */}
       <div className={`${styles.navWrapper} landing-nav`}>
         <header className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
-          <Link to="/" className={styles.brandLink}>
+          <Link to="/" className={styles.brandLink} onClick={handleLogoClick}>
             <div className={styles.brandLogo}>
               <BrandLogo size={20} />
             </div>
@@ -272,20 +265,40 @@ export function HomePage() {
           </Link>
 
           <nav className={styles.navLinks} aria-label="Main Navigation">
-            <a href="#pipeline" className={styles.navLink}>
-              Pipeline
+            <a
+              href="#preview"
+              className={styles.navLink}
+              onClick={(e) => handleNavScroll(e, "preview")}
+            >
+              Live Demo
             </a>
-            <a href="#preview" className={styles.navLink}>
-              Dashboard
+            <a
+              href="#pipeline"
+              className={styles.navLink}
+              onClick={(e) => handleNavScroll(e, "pipeline")}
+            >
+              Architecture
             </a>
-            <a href="#features" className={styles.navLink}>
+            <a
+              href="#features"
+              className={styles.navLink}
+              onClick={(e) => handleNavScroll(e, "features")}
+            >
               Capabilities
             </a>
-            <a href="#ecosystem" className={styles.navLink}>
+            <a
+              href="#ecosystem"
+              className={styles.navLink}
+              onClick={(e) => handleNavScroll(e, "ecosystem")}
+            >
               Ecosystems
             </a>
-            <a href="#comparison" className={styles.navLink}>
-              Why Us
+            <a
+              href="#comparison"
+              className={styles.navLink}
+              onClick={(e) => handleNavScroll(e, "comparison")}
+            >
+              Why CodeLens
             </a>
           </nav>
 
@@ -295,12 +308,10 @@ export function HomePage() {
             {isAuthenticated ? (
               <Link to="/dashboard" className={styles.loginBtn}>
                 <span>Open Dashboard</span>
-                <span aria-hidden="true">→</span>
               </Link>
             ) : (
               <Link to="/auth/signin" className={styles.loginBtn}>
                 <span>Sign In</span>
-                <span aria-hidden="true">→</span>
               </Link>
             )}
           </div>

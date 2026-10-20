@@ -43,16 +43,15 @@ export function ComparisonSection() {
   return (
     <section id="comparison" className={styles.comparisonSection} aria-label="Why CodeLens AI">
       <div className={styles.sectionHeader}>
-        <div className={`${styles.sectionEyebrow} comp-eyebrow`}>THE PARADIGM SHIFT</div>
         <h2 className={`${styles.sectionTitle} comp-title`}>
-          Why Modern Teams Switch to CodeLens AI
+          Why Engineering Teams Choose CodeLens
         </h2>
         <p className={`${styles.sectionDesc} comp-desc`}>
-          Say goodbye to sluggish local cloning, context-bloated AI prompts, and unverified architectural assumptions.
+          Eliminate sluggish local clones, bloated AI contexts, and manual documentation drift.
         </p>
       </div>
 
-      <div className={styles.comparisonTableWrapper}>
+      <div className={`${styles.comparisonTableWrapper} comp-table`}>
         <div className={styles.comparisonGrid}>
           {/* Header Row */}
           <div className={styles.comparisonHeaderRow}>
@@ -65,7 +64,7 @@ export function ComparisonSection() {
 
           {/* Rows */}
           {COMPARISONS.map((row) => (
-            <div key={row.dimension} className={`${styles.comparisonRow} comp-row`}>
+            <div key={row.dimension} className={styles.comparisonRow}>
               <div className={styles.compColDimension}>
                 <strong>{row.dimension}</strong>
                 <span className={styles.compAdvantageBadge}>{row.advantage}</span>

@@ -33,7 +33,7 @@ export const PREVIEW_DATA: Record<string, RepoPreviewData> = {
       { name: "Bicep", pct: 8, color: "#0078d4" },
     ],
     secretsStatus: "0 Exposed Keys (Clean)",
-    c4Summary: "Clean Architecture: Client SPA ➔ .NET 10 Web API ➔ Roslyn Ingestion Engine ➔ Cosmos DB & Gemini 3.8 Flash",
+    c4Summary: "Clean Architecture: Client SPA -> .NET 10 Web API -> Roslyn Ingestion Engine -> Cosmos DB & Gemini 3.8 Flash",
     dossierSummary: "System is modularized across 3 core assemblies. Zero-disk streaming via Octokit Zipball avoids local clone overhead. AST symbols grounded in Semantic Kernel.",
     copilotResponse: "CodeLens AI routes GitHub zipballs into System.IO.Compression.ZipArchive in memory, parsing Roslyn AST nodes and lockfiles concurrently before dispatching compact manifests to Gemini 3.8 Flash.",
   },
@@ -52,7 +52,7 @@ export const PREVIEW_DATA: Record<string, RepoPreviewData> = {
       { name: "CMake", pct: 3, color: "#064f8c" },
     ],
     secretsStatus: "0 Exposed Keys (Clean)",
-    c4Summary: "MVVM Architecture: Flutter Widgets ➔ Game Engine ViewModel ➔ Move Validator & Board State Repository",
+    c4Summary: "MVVM Architecture: Flutter Widgets -> Game Engine ViewModel -> Move Validator & Board State Repository",
     dossierSummary: "Clean separation between Flutter rendering widgets and board minimax evaluation logic. Dependencies managed via pubspec.yaml with zero unpinned overrides.",
     copilotResponse: "The Chess repository employs strict MVVM architecture. The MoveValidator class evaluates legal chess moves and checks for checkmate states without mutating UI state directly.",
   },
@@ -71,7 +71,7 @@ export const PREVIEW_DATA: Record<string, RepoPreviewData> = {
       { name: "Shell", pct: 5, color: "#89e051" },
     ],
     secretsStatus: "0 Exposed Keys (Clean)",
-    c4Summary: "Microservice: Scraper Ingest ➔ Sentiment Engine ➔ FastAPI Dispatcher ➔ PostgreSQL Persistence",
+    c4Summary: "Microservice: Scraper Ingest -> Sentiment Engine -> FastAPI Dispatcher -> PostgreSQL Persistence",
     dossierSummary: "PyPI requirements.txt parsed dynamically. Contains background tasks for sentiment clustering with zero memory leak indications.",
     copilotResponse: "The Play Store Review Analyzer uses FastAPI dependency injection to route reviews into the sentiment pipeline. Secrets scanner confirmed zero production credentials leaked in Dockerfiles.",
   },
@@ -90,7 +90,7 @@ export const PREVIEW_DATA: Record<string, RepoPreviewData> = {
       { name: "JavaScript", pct: 4, color: "#f1e05a" },
     ],
     secretsStatus: "0 Exposed Keys (Clean)",
-    c4Summary: "App Router: Server Components ➔ Client Canvas ➔ Tailwind Styling ➔ Vercel Edge Runtime",
+    c4Summary: "App Router: Server Components -> Client Canvas -> Tailwind Styling -> Vercel Edge Runtime",
     dossierSummary: "Modern Next.js App Router codebase. High Lighthouse score profile with zero cyclomatic hotspots identified.",
     copilotResponse: "Portfolio utilizes React Server Components with client boundary leaves for interactive GSAP animations and 3D canvas rendering.",
   },
@@ -109,7 +109,17 @@ export function HeroPreviewTabs({ selectedRepo, onSelectRepo, sampleRepos }: Her
   const data = PREVIEW_DATA[selectedRepo] || PREVIEW_DATA["shenmareparas/CodeLens-AI"];
 
   return (
-    <section id="preview" className={styles.mockSection} aria-label="Interactive Dashboard Preview">
+    <section id="preview" className={styles.mockSection} aria-label="Interactive Codebase Sandbox">
+      {/* Section Header */}
+      <div className={styles.sectionHeader}>
+        <h2 className={`${styles.sectionTitle} preview-title`}>
+          Interactive Codebase Sandbox
+        </h2>
+        <p className={`${styles.sectionDesc} preview-desc`}>
+          Explore real-time AST telemetry, architecture diagrams, and AI dossiers on sample open-source repositories.
+        </p>
+      </div>
+
       {/* Interactive Sample Repo Selector directly above the macOS-like window */}
       <div className={`${styles.sampleReposContainer} hero-samples`}>
         <div className={styles.sampleReposHeader}>
@@ -145,7 +155,7 @@ export function HeroPreviewTabs({ selectedRepo, onSelectRepo, sampleRepos }: Her
         </div>
       </div>
 
-      <div className={`${styles.mockWindow} preview-window`}>
+      <div className={`${styles.mockWindow} preview-window`} data-ui="true">
         {/* Browser Top Navigation Bar */}
         <div className={styles.mockTitleBar}>
           <div className={styles.mockControls}>
@@ -362,7 +372,7 @@ export function HeroPreviewTabs({ selectedRepo, onSelectRepo, sampleRepos }: Her
             </div>
 
             <div className={styles.mockMermaidVisual}>
-              <div className={styles.mermaidNodeBox} style={{ borderColor: "#6366f1" }}>
+              <div className={styles.mermaidNodeBox} style={{ borderColor: "var(--color-primary)" }}>
                 <span className={styles.nodeKind}>CLIENT</span>
                 <strong>React 19 SPA (Vite + Bun)</strong>
                 <span className={styles.nodeMeta}>JWT AuthContext • Tailwind</span>
@@ -373,7 +383,7 @@ export function HeroPreviewTabs({ selectedRepo, onSelectRepo, sampleRepos }: Her
                 <span className={styles.arrowLine} />
               </div>
 
-              <div className={styles.mermaidNodeBox} style={{ borderColor: "#8b5cf6" }}>
+              <div className={styles.mermaidNodeBox} style={{ borderColor: "#d97706" }}>
                 <span className={styles.nodeKind}>API GATEWAY</span>
                 <strong>.NET 10 Web API (Port 5050)</strong>
                 <span className={styles.nodeMeta}>Clean Architecture • Scalar OpenAPI</span>

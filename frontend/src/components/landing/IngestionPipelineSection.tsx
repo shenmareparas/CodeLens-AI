@@ -1,27 +1,24 @@
 import styles from "@/pages/HomePage.module.css";
 
-interface PipelineStep {
-  step: string;
-  tag: string;
-  title: string;
-  subtitle: string;
+interface ArchitectureStage {
+  id: string;
+  name: string;
+  runtimeSpec: string;
   desc: string;
+  artifact: string;
   badge: string;
-  accentGradient: string;
-  accentColor: string;
-  highlights: string[];
-  renderIcon: (color: string) => React.JSX.Element;
+  renderIcon: () => React.JSX.Element;
 }
 
-function StreamIcon({ color }: { color: string }) {
+function StreamIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color}
-      strokeWidth="2"
+      stroke="currentColor"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -33,15 +30,15 @@ function StreamIcon({ color }: { color: string }) {
   );
 }
 
-function AstIcon({ color }: { color: string }) {
+function AstIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color}
-      strokeWidth="2"
+      stroke="currentColor"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -55,15 +52,15 @@ function AstIcon({ color }: { color: string }) {
   );
 }
 
-function MathIcon({ color }: { color: string }) {
+function MathIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color}
-      strokeWidth="2"
+      stroke="currentColor"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -76,15 +73,15 @@ function MathIcon({ color }: { color: string }) {
   );
 }
 
-function GeminiIcon({ color }: { color: string }) {
+function GeminiIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color}
-      strokeWidth="2"
+      stroke="currentColor"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -94,167 +91,91 @@ function GeminiIcon({ color }: { color: string }) {
   );
 }
 
-function CheckIcon({ size = 14, color = "#10b981" }: { size?: number; color?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-const PIPELINE_STEPS: PipelineStep[] = [
+const ARCHITECTURE_STAGES: ArchitectureStage[] = [
   {
-    step: "01",
-    tag: "INGESTION ENGINE",
-    title: "Zero-Disk In-Memory Stream",
-    subtitle: "Octokit Zipball API ➔ RAM ZipArchive",
-    desc: "Never executes local git clone. Repositories stream directly into system RAM via GitHub Zipball API. Non-source files, binary assets, and bloated vendor directories (node_modules, bin, obj, dist, .git) are stripped dynamically on stream iteration.",
-    badge: "0 MB Disk Used",
-    accentGradient: "linear-gradient(135deg, #0ea5e9, #38bdf8)",
-    accentColor: "#38bdf8",
-    highlights: [
-      "Direct RAM decompression via GitHub Zipball stream",
-      "Dynamic filtering strips vendor, build & binary folders",
-      "Zero disk I/O bottlenecks with immediate garbage collection",
-    ],
-    renderIcon: (color) => <StreamIcon color={color} />,
+    id: "stream",
+    name: "Memory Streaming",
+    runtimeSpec: "System.IO.ZipArchive",
+    desc: "Streams repo archives directly into RAM via GitHub's Zipball API. Non-source files, vendor folders, and binaries are dynamically stripped on the fly—zero local clone.",
+    artifact: "System.IO.ZipArchive",
+    badge: "0 MB Disk Footprint",
+    renderIcon: () => <StreamIcon />,
   },
   {
-    step: "02",
-    tag: "STATIC AST PARSING",
-    title: "Roslyn & Polyglot Graph Parsing",
-    subtitle: "C# Syntax Trees & 7+ Manifest Analyzers",
-    desc: "Traverses syntax trees with Microsoft Roslyn to measure cyclomatic branching, method nesting, and interface implementations. Concurrently parses Bun (bun.lock text format), Flutter (pubspec.yaml), .NET (.csproj), Python, Go, and Rust.",
+    id: "ast",
+    name: "Polyglot Syntax Walk",
+    runtimeSpec: "Roslyn AST + Multi-Manifest",
+    desc: "Traverses syntax trees with Microsoft Roslyn for C# while concurrently extracting dependency manifests across Bun, Flutter, Python, Go, and Rust ecosystems.",
+    artifact: "AST Symbol Manifest",
     badge: "Sub-Second Traversal",
-    accentGradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-    accentColor: "#818cf8",
-    highlights: [
-      "Microsoft Roslyn AST walker measures nesting & branching",
-      "Polyglot lockfile & manifest parsers for 7+ modern ecosystems",
-      "Produces compact, high-signal AST Symbol Manifest for AI",
-    ],
-    renderIcon: (color) => <AstIcon color={color} />,
+    renderIcon: () => <AstIcon />,
   },
   {
-    step: "03",
-    tag: "ALGORITHMIC RISK ENGINE",
-    title: "Deterministic Hotspot Scoring",
-    subtitle: "Cyclomatic Complexity × Logarithmic Churn",
-    desc: "Eliminates vague AI guesses. Hotspot risk scores are computed deterministically as Risk = Math.Round(CyclomaticComplexity * Math.Log(ChurnCount + 1), 2), highlighting volatile files that pose genuine regression hazards.",
+    id: "hotspot",
+    name: "Hotspot Risk Scoring",
+    runtimeSpec: "Complexity × ln(Churn + 1)",
+    desc: "Calculates file risk scores objectively as Cyclomatic Complexity × ln(Churn + 1), pinpointing volatile maintenance hotspots where frequent commits meet deep branching.",
+    artifact: "Deterministic Risk Map",
     badge: "Deterministic Math",
-    accentGradient: "linear-gradient(135deg, #10b981, #34d399)",
-    accentColor: "#34d399",
-    highlights: [
-      "Formula: Math.Round(Complexity × Math.Log(Churn + 1), 2)",
-      "Combines code branching with all-time Git churn frequency",
-      "Highlights volatile regression targets with zero hallucination",
-    ],
-    renderIcon: (color) => <MathIcon color={color} />,
+    renderIcon: () => <MathIcon />,
   },
   {
-    step: "04",
-    tag: "AI SYNTHESIS ENGINE",
-    title: "Gemini 3.8 Flash Technical Dossier",
-    subtitle: "Semantic Kernel ➔ PROJECT_KNOWLEDGE.md",
-    desc: "Passes the compact AST Symbol Manifest directly to Google Gemini 3.8 Flash via Microsoft Semantic Kernel. Compiles architectural smells, ELI5 developer onboarding guide, and runbooks into a standardized dossier cached in Cosmos DB.",
-    badge: "Zero Context Bloat",
-    accentGradient: "linear-gradient(135deg, #f43f5e, #ec4899, #a855f7)",
-    accentColor: "#f43f5e",
-    highlights: [
-      "Zero context bloat: passes AST Symbol Manifest + telemetry",
-      "Generates sanitized C4 & architecture Mermaid diagrams",
-      "Caches PROJECT_KNOWLEDGE.md in Cosmos DB for <50ms recalls",
-    ],
-    renderIcon: (color) => <GeminiIcon color={color} />,
+    id: "synthesis",
+    name: "AI Technical Dossier",
+    runtimeSpec: "Gemini 3.8 Flash + SK",
+    desc: "Transfers the compact AST symbol manifest to Google Gemini 3.8 Flash, generating interactive C4 diagrams, architectural smells, and cached dossiers.",
+    artifact: "PROJECT_KNOWLEDGE.md",
+    badge: "Instant <50ms Recall",
+    renderIcon: () => <GeminiIcon />,
   },
 ];
 
 export function IngestionPipelineSection() {
   return (
-    <section id="pipeline" className={styles.pipelineSection} aria-label="Ingestion Pipeline">
+    <section id="pipeline" className={styles.pipelineSection} aria-label="Architecture Pipeline">
       {/* Section Header */}
       <div className={styles.sectionHeader}>
-        <div className={`${styles.sectionEyebrow} pipeline-eyebrow`}>HOW IT WORKS</div>
         <h2 className={`${styles.sectionTitle} pipeline-title`}>
-          The Zero-Disk Intelligence Pipeline
+          The Zero-Clone Engine
         </h2>
         <p className={`${styles.sectionDesc} pipeline-desc`}>
-          From raw GitHub URL to synthesized architectural dossier in seconds—powered by
-          high-throughput .NET 10 compilation, Roslyn syntax analysis, and Google Gemini 3.8 Flash.
+          From raw GitHub repository to complete architectural intelligence in four memory-only phases.
         </p>
       </div>
 
-      {/* 2x2 Connected Pipeline Grid */}
-      <div className={styles.pipelineGrid}>
-        {PIPELINE_STEPS.map((item) => (
-          <div
-            key={item.step}
-            className={`${styles.pipelineCard} pipeline-step-card`}
-            style={{ "--accent-gradient": item.accentGradient } as React.CSSProperties}
-          >
-            {/* Top Accent Gradient Bar */}
+      {/* Unified Architecture Grid */}
+      <div className={styles.pipelineConsole} data-ui="true">
+        <div className={styles.pipelineGrid}>
+          {ARCHITECTURE_STAGES.map((item) => (
             <div
-              className={styles.pipelineCardAccent}
-              style={{ background: item.accentGradient }}
-              aria-hidden="true"
-            />
-
-            {/* Step Header */}
-            <div className={styles.pipelineCardHeader}>
-              <div className={styles.pipelineStepBadge}>
-                <span className={styles.pipelineStepIcon}>{item.renderIcon(item.accentColor)}</span>
-                <span className={styles.pipelineStepNum} style={{ color: item.accentColor }}>
-                  {item.step}
-                </span>
+              key={item.id}
+              className={`${styles.pipelineCard} pipeline-step-card`}
+            >
+              {/* Clean Stage Header */}
+              <div className={styles.pipelineCardHeader}>
+                <div className={styles.pipelineIcon}>
+                  {item.renderIcon()}
+                </div>
+                <span className={styles.pipelineRuntimeSpec}>{item.runtimeSpec}</span>
               </div>
 
-              <div className={styles.pipelineBadge}>
-                <span
-                  className={styles.pipelineBadgeDot}
-                  style={{ background: item.accentColor, boxShadow: `0 0 8px ${item.accentColor}` }}
-                  aria-hidden="true"
-                />
-                <span>{item.badge}</span>
+              {/* Stage Title & Description */}
+              <h3 className={styles.pipelineCardTitle}>{item.name}</h3>
+              <p className={styles.pipelineCardDesc}>{item.desc}</p>
+
+              {/* Engine Artifact & Signal Badge */}
+              <div className={styles.pipelineFooter}>
+                <div className={styles.pipelineArtifactTag}>
+                  <code>{item.artifact}</code>
+                </div>
+
+                <div className={styles.pipelineMetric}>
+                  <span>{item.badge}</span>
+                </div>
               </div>
             </div>
-
-            {/* Step Category Tag */}
-            <div className={styles.pipelineStepTag} style={{ color: item.accentColor }}>
-              {item.tag}
-            </div>
-
-            {/* Step Titles */}
-            <h3 className={styles.pipelineCardTitle}>{item.title}</h3>
-            <div className={styles.pipelineCardSub}>
-              <span>{item.subtitle}</span>
-            </div>
-
-            {/* Step Description */}
-            <p className={styles.pipelineCardDesc}>{item.desc}</p>
-
-            {/* Architectural Highlights List */}
-            <ul className={styles.pipelineHighlights} aria-label={`Key guarantees for ${item.title}`}>
-              {item.highlights.map((point) => (
-                <li key={point} className={styles.pipelineHighlightItem}>
-                  <span className={styles.pipelineHighlightIcon}>
-                    <CheckIcon size={14} color={item.accentColor} />
-                  </span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

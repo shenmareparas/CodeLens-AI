@@ -43,23 +43,23 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       themeVariables: isDark
         ? {
             darkMode: true,
-            background: "#09090b",
-            primaryColor: "#6366f1",
-            primaryTextColor: "#f4f4f5",
-            primaryBorderColor: "rgba(99, 102, 241, 0.4)",
-            lineColor: "#818cf8",
-            secondaryColor: "#1e1b4b",
-            tertiaryColor: "#18181b",
+            background: "#0d0e11",
+            primaryColor: "#f59e0b",
+            primaryTextColor: "#f4f5f7",
+            primaryBorderColor: "rgba(245, 158, 11, 0.4)",
+            lineColor: "#fbbf24",
+            secondaryColor: "#1e1b14",
+            tertiaryColor: "#16181d",
           }
         : {
             darkMode: false,
             background: "#ffffff",
-            primaryColor: "#4f46e5",
-            primaryTextColor: "#0f172a",
-            primaryBorderColor: "#cbd5e1",
-            lineColor: "#6366f1",
-            secondaryColor: "#e0e7ff",
-            tertiaryColor: "#f1f5f9",
+            primaryColor: "#b45309",
+            primaryTextColor: "#141210",
+            primaryBorderColor: "#e7e5e0",
+            lineColor: "#b45309",
+            secondaryColor: "#fef3c7",
+            tertiaryColor: "#f5f4f0",
           },
       securityLevel: "loose",
       fontFamily: "var(--font-mono)",
@@ -411,8 +411,8 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
           userSelect: "none",
           background:
             resolvedTheme === "light"
-              ? "radial-gradient(ellipse at center, rgba(79, 70, 229, 0.04) 0%, #f8fafc 75%)"
-              : "radial-gradient(ellipse at center, rgba(99, 102, 241, 0.05) 0%, #09090b 75%)",
+              ? "radial-gradient(ellipse at center, rgba(180, 83, 9, 0.03) 0%, #fcfbfa 75%)"
+              : "radial-gradient(ellipse at center, rgba(245, 158, 11, 0.04) 0%, #0d0e11 75%)",
         }}
       >
         {/* Trackpad Gesture Guidance Overlay Hint */}

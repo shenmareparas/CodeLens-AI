@@ -189,7 +189,7 @@ export function ActiveAuditSection({
                     display: "flex",
                     alignItems: "center",
                     gap: "0.4rem",
-                    boxShadow: isCurrent ? "0 2px 8px rgba(99, 102, 241, 0.35)" : "none",
+                    boxShadow: isCurrent ? "0 2px 8px rgba(245, 158, 11, 0.35)" : "none",
                     transition: "all 0.2s ease",
                   }}
                 >
@@ -231,9 +231,9 @@ export function ActiveAuditSection({
               fontSize: "0.8rem",
               padding: "0.35rem 0.75rem",
               borderRadius: "var(--radius-sm)",
-              background: "rgba(99, 102, 241, 0.15)",
-              border: "1px solid rgba(99, 102, 241, 0.35)",
-              color: "var(--color-primary-light)",
+              background: "var(--color-badge-bg)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-primary)",
               fontWeight: 600,
               cursor: "pointer",
               display: "flex",

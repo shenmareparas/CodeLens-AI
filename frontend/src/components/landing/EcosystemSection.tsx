@@ -101,12 +101,11 @@ export function EcosystemSection() {
   return (
     <section id="ecosystem" className={styles.ecosystemSection} aria-label="Supported Ecosystems">
       <div className={styles.sectionHeader}>
-        <div className={`${styles.sectionEyebrow} eco-eyebrow`}>POLYGLOT INTELLIGENCE</div>
         <h2 className={`${styles.sectionTitle} eco-title`}>
-          Deep Manifest & Lockfile Parsing
+          Native Ecosystem Support
         </h2>
         <p className={`${styles.sectionDesc} eco-desc`}>
-          Accurately tracks direct, dev, and transitive dependencies across your entire engineering stack.
+          Inspects native lockfiles and dependencies across 7+ modern stacks without running untrusted scripts.
         </p>
       </div>
 

@@ -25,7 +25,7 @@ export function LanguageDistributionCard({
   const primaryPct = entries[0] ? entries[0][1] : 0;
   const activeLang = hoveredLang || primaryLang;
   const activePct = activeLang && languages[activeLang] !== undefined ? languages[activeLang] : 0;
-  const activeColor = activeLang ? languageColors[activeLang] || "#818cf8" : "#818cf8";
+  const activeColor = activeLang ? languageColors[activeLang] || "#f59e0b" : "#f59e0b";
 
   // SVG Circular Donut geometry
   // Radius = 58, Circumference = 2 * PI * 58 = 364.425
@@ -39,7 +39,7 @@ export function LanguageDistributionCard({
     return {
       lang,
       pct,
-      color: languageColors[lang] || "#818cf8",
+      color: languageColors[lang] || "#f59e0b",
       strokeDasharray: `${(pct / 100) * circumference} ${circumference}`,
       strokeDashoffset: -((currentOffset / 100) * circumference),
     };
@@ -176,7 +176,7 @@ export function LanguageDistributionCard({
                         style={{
                           fontSize: "0.68rem",
                           color: "var(--color-primary)",
-                          background: "rgba(99, 102, 241, 0.12)",
+                          background: "var(--color-badge-bg)",
                           padding: "0.1rem 0.35rem",
                           borderRadius: "4px",
                           fontWeight: 500,
@@ -244,7 +244,7 @@ export function LanguageDistributionCard({
                   >
                     {entries.map(([lang, pct]) => {
                       const isHovered = hoveredLang === lang;
-                      const color = languageColors[lang] || "#818cf8";
+                      const color = languageColors[lang] || "#f59e0b";
                       return (
                         <div
                           key={lang}
@@ -270,7 +270,7 @@ export function LanguageDistributionCard({
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
                   {entries.map(([lang, pct]) => {
                     const isHovered = hoveredLang === lang;
-                    const color = languageColors[lang] || "#818cf8";
+                    const color = languageColors[lang] || "#f59e0b";
                     return (
                       <div
                         key={lang}
@@ -454,7 +454,7 @@ export function LanguageDistributionCard({
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                   {entries.map(([lang, pct]) => {
                     const isHovered = hoveredLang === lang;
-                    const color = languageColors[lang] || "#818cf8";
+                    const color = languageColors[lang] || "#f59e0b";
                     return (
                       <button
                         key={lang}

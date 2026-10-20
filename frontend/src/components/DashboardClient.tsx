@@ -144,9 +144,9 @@ export function DashboardClient({
               gap: "0.4rem",
               padding: "0.25rem 0.75rem",
               borderRadius: "9999px",
-              background: "rgba(99, 102, 241, 0.12)",
-              border: "1px solid rgba(99, 102, 241, 0.28)",
-              color: "var(--color-primary-light)",
+              background: "var(--color-badge-bg)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-primary)",
               fontSize: "0.75rem",
               fontWeight: 600,
               marginBottom: "0.6rem",
@@ -218,7 +218,7 @@ export function DashboardClient({
                 padding: "0.85rem 1.65rem",
                 borderRadius: "12px",
                 border: "none",
-                background: isLoading ? "rgba(99, 102, 241, 0.5)" : "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                background: isLoading ? "rgba(245, 158, 11, 0.5)" : "var(--color-primary)",
                 color: "#fff",
                 fontWeight: 600,
                 fontFamily: "var(--font-display)",
@@ -227,7 +227,7 @@ export function DashboardClient({
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                boxShadow: "0 4px 14px rgba(99, 102, 241, 0.35)",
+                boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
                 transition: "all 0.2s ease",
               }}
             >
@@ -308,11 +308,11 @@ export function DashboardClient({
           <div
             style={{
               padding: "0.6rem 1rem",
-              background: "rgba(99, 102, 241, 0.12)",
-              border: "1px solid rgba(99, 102, 241, 0.3)",
+              background: "var(--color-badge-bg)",
+              border: "1px solid var(--color-border)",
               borderRadius: "var(--radius-sm)",
               fontSize: "0.85rem",
-              color: "var(--color-primary-light)",
+              color: "var(--color-primary)",
             }}
           >
             {statusMessage}
@@ -403,12 +403,12 @@ export function DashboardClient({
             gap: "0.6rem",
             padding: "0.85rem 1.35rem",
             borderRadius: "9999px",
-            background: "linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%)",
+            background: "var(--color-primary)",
             color: "#fff",
             fontWeight: 600,
             fontSize: "0.95rem",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
+            boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
             cursor: "pointer",
             transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
           }}

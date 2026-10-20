@@ -81,7 +81,7 @@ export function evaluatePassword(password: string): PasswordEvaluation {
       hasSpecial,
       criteriaCount,
       strengthLabel: "Good",
-      strengthColor: "#6366f1",
+      strengthColor: "#0ea5e9",
       strengthPercent: 80,
     };
   }

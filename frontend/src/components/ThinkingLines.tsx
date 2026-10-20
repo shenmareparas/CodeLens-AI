@@ -72,7 +72,7 @@ export function ThinkingLines({ repoName }: ThinkingLinesProps) {
             borderRadius: "4px",
             width: "92%",
             background:
-              "linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.35) 50%, rgba(99, 102, 241, 0.12) 100%)",
+              "linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.35) 50%, rgba(245, 158, 11, 0.12) 100%)",
             backgroundSize: "200% 100%",
             animation: "claudeThinkingShimmer 1.6s infinite linear",
           }}
@@ -83,7 +83,7 @@ export function ThinkingLines({ repoName }: ThinkingLinesProps) {
             borderRadius: "4px",
             width: "74%",
             background:
-              "linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.35) 50%, rgba(99, 102, 241, 0.12) 100%)",
+              "linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.35) 50%, rgba(245, 158, 11, 0.12) 100%)",
             backgroundSize: "200% 100%",
             animation: "claudeThinkingShimmer 1.6s infinite linear",
             animationDelay: "0.25s",
@@ -95,7 +95,7 @@ export function ThinkingLines({ repoName }: ThinkingLinesProps) {
             borderRadius: "4px",
             width: "50%",
             background:
-              "linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.35) 50%, rgba(99, 102, 241, 0.12) 100%)",
+              "linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.35) 50%, rgba(245, 158, 11, 0.12) 100%)",
             backgroundSize: "200% 100%",
             animation: "claudeThinkingShimmer 1.6s infinite linear",
             animationDelay: "0.5s",

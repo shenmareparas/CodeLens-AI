@@ -57,10 +57,10 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
         flexDirection: "column",
         gap: "0.85rem",
         padding: "1.15rem 1.25rem",
-        background: "rgba(99, 102, 241, 0.08)",
-        border: "1px solid rgba(99, 102, 241, 0.28)",
+        background: "var(--color-badge-bg)",
+        border: "1px solid var(--color-border)",
         borderRadius: "var(--radius-md)",
-        boxShadow: "0 8px 24px rgba(99, 102, 241, 0.12)",
+        boxShadow: "0 8px 24px rgba(245, 158, 11, 0.08)",
         animation: "fadeIn 0.3s ease-out",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
@@ -86,8 +86,8 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
               width: "28px",
               height: "28px",
               borderRadius: "8px",
-              background: "rgba(99, 102, 241, 0.15)",
-              border: "1px solid rgba(99, 102, 241, 0.3)",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
             }}
           >
             {currentStep.icon}
@@ -110,8 +110,8 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
                   fontSize: "0.72rem",
                   padding: "0.15rem 0.45rem",
                   borderRadius: "999px",
-                  background: "rgba(99, 102, 241, 0.2)",
-                  color: "var(--color-primary-light)",
+                  background: "var(--color-badge-bg)",
+                  color: "var(--color-primary)",
                   fontFamily: "var(--font-mono)",
                   fontWeight: 600,
                 }}
@@ -173,11 +173,11 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
           style={{
             height: "100%",
             width: `${percent}%`,
-            background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)",
+            background: "linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)",
             borderRadius: "999px",
             transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             position: "relative",
-            boxShadow: "0 0 12px rgba(139, 92, 246, 0.5)",
+            boxShadow: "0 0 12px rgba(245, 158, 11, 0.5)",
           }}
         >
           {/* Shimmer sweep animation over bar */}

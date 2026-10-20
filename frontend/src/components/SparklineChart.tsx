@@ -19,7 +19,7 @@ export function SparklineChart({
   allTimeTotalCommits,
   width = 380,
   height = 160,
-  strokeColor = "#818cf8",
+  strokeColor = "#f59e0b",
 }: SparklineChartProps) {
   const gradientId = useId();
   const { resolvedTheme } = useTheme();
@@ -183,7 +183,7 @@ export function SparklineChart({
                     style={{
                       fontSize: "0.68rem",
                       color: "var(--color-primary)",
-                      background: "rgba(99, 102, 241, 0.12)",
+                      background: "var(--color-badge-bg)",
                       padding: "0.1rem 0.35rem",
                       borderRadius: "4px",
                       fontWeight: 500,

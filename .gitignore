@@ -23,7 +23,8 @@ backend/src/CodeLens.Api/appsettings.Development.json
 *.swp
 *.swo
 
-# ─── IDE ──────────────────────────────────────────────────────────────────────
+# ─── IDE & Tools ─────────────────────────────────────────────────────────────
 .vscode/settings.json
 .idea/
 *.iml
+.taste-skill/

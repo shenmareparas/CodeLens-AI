@@ -55,9 +55,9 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
     }
     if (lower.includes("nuget")) {
       return {
-        bg: "rgba(99, 102, 241, 0.15)",
-        text: "#a5b4fc",
-        border: "rgba(99, 102, 241, 0.3)",
+        bg: "rgba(2, 132, 199, 0.15)",
+        text: "#38bdf8",
+        border: "rgba(2, 132, 199, 0.3)",
       };
     }
     if (lower.includes("npm")) {
@@ -338,7 +338,7 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
                     color: "var(--color-primary-light)",
                     fontSize: "0.75rem",
                     flexShrink: 0,
-                    background: "rgba(99, 102, 241, 0.08)",
+                    background: "var(--color-badge-bg)",
                     padding: "0.1rem 0.4rem",
                     borderRadius: "4px",
                   }}
