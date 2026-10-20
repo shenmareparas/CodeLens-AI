@@ -9,6 +9,7 @@ interface ThemeContextType {
   theme: ThemeMode;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
   cycleTheme: () => void;
 }
 
@@ -16,6 +17,7 @@ const ThemeContext = createContext<ThemeContextType>({
   theme: "system",
   resolvedTheme: "dark",
   setTheme: () => {},
+  toggleTheme: () => {},
   cycleTheme: () => {},
 });
 
@@ -38,13 +40,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Sync resolved theme to document attribute and handle system preference changes
   useEffect(() => {
-    let effective: ResolvedTheme = "dark";
-    if (theme === "system") {
-      const isLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-      effective = isLight ? "light" : "dark";
-    } else {
-      effective = theme;
-    }
+    const effective: ResolvedTheme =
+      theme === "system"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : theme;
     setResolvedTheme(effective);
     document.documentElement.setAttribute("data-theme", effective);
 
@@ -70,15 +69,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(newTheme);
   }, []);
 
-  const cycleTheme = React.useCallback(() => {
-    setThemeState((current) =>
-      current === "system" ? "dark" : current === "dark" ? "light" : "system"
-    );
+  const toggleTheme = React.useCallback(() => {
+    setThemeState((current) => {
+      const effectiveTheme =
+        current === "system"
+          ? (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+          : current;
+      return effectiveTheme === "dark" ? "light" : "dark";
+    });
   }, []);
 
+  const cycleTheme = toggleTheme;
+
   const contextValue = React.useMemo(
-    () => ({ theme, resolvedTheme, setTheme, cycleTheme }),
-    [theme, resolvedTheme, setTheme, cycleTheme]
+    () => ({ theme, resolvedTheme, setTheme, toggleTheme, cycleTheme }),
+    [theme, resolvedTheme, setTheme, toggleTheme, cycleTheme]
   );
 
   return (

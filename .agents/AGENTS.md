@@ -21,7 +21,8 @@
 - **Vite Config Convention:** Use ESM-native `import.meta.dirname` for path resolution (`path.resolve(import.meta.dirname, "./src")`) inside `vite.config.ts`, not `__dirname`.
 - **API Client Normalization:** `src/lib/api-client.ts` sanitizes `API_BASE` (`RAW_API_BASE.trim().replace(/\/+$/, "")`) to protect against trailing whitespace or carriage returns from CI environment variables.
 - **Hydration & Anti-Flash Safety:** Pre-hydration theme script runs directly inside `frontend/index.html` to eliminate theme flashing.
-- **Verification Command:** Always run `bun run build` inside `frontend/` to verify TypeScript and static bundle compilation before finishing a task.
+- **Verification Commands:** Always run `bun run build` and `bun run lint` inside `frontend/` to verify TypeScript static bundle compilation and zero ESLint errors/warnings before finishing a task.
+- **ESLint 9 Flat Config (`eslint.config.mjs`):** Uses modern flat configuration with `@eslint/js`, `typescript-eslint`, and `eslint-plugin-react-hooks`. Obey canonical React Rules of Hooks (never place hooks after conditional returns; memoize context handlers). Maintain a strict **0-error and 0-warning** linting baseline.
 - **Diagnostics & Quality (`react-doctor`):** Before completing frontend features or committing React code, invoke the workspace skill `react-doctor` (`.agents/skills/react-doctor/SKILL.md`) to verify accessibility, bundle efficiency, and anti-patterns. Maintain a 0-warning baseline.
 
 ### Backend (`backend/`)
@@ -93,6 +94,9 @@
 ### 3.5 GSAP-Powered Modern Landing Page, Unified Dashboard & Theme System
 
 - **GSAP-Powered Modern Landing Page (`HomePage.tsx` & `src/components/landing/`):**
+  - **Floating Island Navigation Bar:** Centered, fixed floating pill navbar (`.navWrapper` + `.nav`) with glassmorphic backdrop (`backdrop-filter: blur(20px) saturate(190%)`), border glow, dynamic scroll elevation (`.navScrolled`), and section scroll margins (`scroll-margin-top: 6.5rem`). Navigation links (*Pipeline*, *Dashboard*, *Capabilities*, *Ecosystems*, *Why Us*) sit directly on the navbar surface without nested container boxes, featuring soft hover pill states (`rgba(255, 255, 255, 0.08)` / light `rgba(0, 0, 0, 0.05)`).
+  - **Official Brand Favicon (`public/favicon.svg`):** High-definition 32x32 SVG squircle with an indigo-to-violet gradient (`#4f46e5` → `#7c3aed`), inner border highlight, drop-shadow depth, and the official CodeLens search/lens crosshair glyph with focal dot. Linked in `index.html` via `rel="icon"` and `rel="apple-touch-icon"`.
+  - **Ingestion Pipeline Presentation (`IngestionPipelineSection.tsx`):** Structured 2x2 grid cards with top accent gradient lines, custom vector SVG icons, step number badges, live status metric pills (*0 MB Disk Used*, *Sub-Second Traversal*, etc.), and key guarantee bullet points. Redundant code preview snippets and overflowing timeline ribbons are omitted for visual clarity.
   - **Orchestration & Performance:** Uses `useGSAP` hook with `gsap.matchMedia()` container scoping. If `prefers-reduced-motion: reduce` is detected, animations are gracefully bypassed to ensure full accessibility.
   - **Ambient & Batch Animations:** Ambient floating background glowing orbs (`sine.inOut`), entrance timeline for hero text/CTAs, and `ScrollTrigger.batch` for stagger reveals on pipeline cards, bento feature cards, ecosystem cards, and comparison rows.
   - **Interactive Sandbox Window (`HeroPreviewTabs.tsx`):** macOS-style window mock with clean `https://codelens.ai/` address bar and 4 interactive preview tabs (*Telemetry Bento*, *Interactive C4 Diagram*, *Knowledge Dossier*, *Grounded Copilot*).
@@ -106,13 +110,14 @@
 - **Trackpad Gestures, Dynamic Zoom & Pan Clamping:**
   - `MermaidViewer.tsx` and `FullscreenMermaidModal.tsx` support native trackpad pinch-to-zoom (`ctrlKey + wheel` / `gesturestart` / `gesturechange`) and two-finger panning.
   - Normalized zoom scale where `1.0` represents 100% fit-to-screen baseline. Zoom out is clamped at `1.0` to prevent diagrams from shrinking into invisibility.
-  - Viewport pan clamping (`clampPan`) prevents the diagram from moving fully out of the container screen during mouse drag or two-finger trackpad panning.
+  - Viewport pan clamping (`clampPan` wrapped in `useCallback`) prevents the diagram from moving fully out of the container screen during mouse drag or two-finger trackpad panning.
   - Quick `[ ↺ Reset ]` action button restores the diagram view to default auto-fit scale (100% / 1.0) and `(0, 0)` pan coordinates.
-- **Theme Architecture (Light / Dark / System):**
-  - `ThemeContext.tsx` handles `light`, `dark`, and `system` modes, dynamically listening to OS color scheme changes (`matchMedia`).
-  - Pre-hydration anti-flash script in `layout.tsx` reads `localStorage` before paint to eliminate light/dark flickering.
+- **Streamlined Theme Architecture (`ThemeContext.tsx` & `ThemeToggle.tsx`):**
+  - **System Default:** Initial state defaults to `"system"`, resolving automatically to the user's OS color scheme via `matchMedia("(prefers-color-scheme: light)")`.
+  - **Binary Dark / Light Toggling:** Removed the 3-step cycle and "system" monitor button from the toggle UI. `toggleTheme()` toggles directly between `"dark"` and `"light"`.
+  - **Icon-Only Button & Floating Tooltip:** [ThemeToggle.tsx](file:///Users/parasshenmare/Developer/other_projects/codelens-ai/frontend/src/components/ThemeToggle.tsx) is rendered as a clean 36×36px circular button with strictly the Sun SVG (in light mode) or Moon SVG (in dark mode). Features an accessible floating glassmorphic tooltip with a triangular top pointer arrow dynamically indicating `"Switch to light mode"` or `"Switch to dark mode"` on `:hover` and keyboard `:focus-visible` (`pointer-events: none`).
+  - Pre-hydration anti-flash script in `index.html` reads `localStorage` before paint to eliminate light/dark flickering.
   - Adaptive CSS variables in `globals.css` provide high contrast for input boxes, placeholders, headings, code blocks, and scrollbars in both dark and light modes.
-  - Sign-in page (`SignInPage.tsx`) provides an accessible header theme cycle button allowing instant preview in any mode.
   - Mermaid diagrams automatically re-render with adapted dark/light color palettes upon theme change.
 - **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` checks `ICosmosRepository.GetLatestAuditByRepoAsync(repoId)` to return cached audit telemetry and synthesized dossiers in `<50ms`. Remote commit SHA staleness detection flags outdated audits and provides a 1-click `[ 🔄 Re-analyze Latest Commits ]` trigger (`forceRefresh: true`).
 

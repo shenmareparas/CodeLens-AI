@@ -82,6 +82,14 @@ export function SparklineChart({
     [totalCommits, timelinePoints.length]
   );
 
+  // Determine selective X-axis labels (first, middle/quarter, last) to keep it clean
+  const labelIndices = useMemo(() => {
+    const len = points.length;
+    if (len <= 4) return points.map((_, i) => i);
+    if (len <= 8) return [0, Math.floor(len / 2), len - 1];
+    return [0, Math.floor(len / 3), Math.floor((len * 2) / 3), len - 1];
+  }, [points]);
+
   if (!points || points.length === 0) {
     return (
       <div
@@ -129,14 +137,6 @@ export function SparklineChart({
   const handleMouseLeave = () => {
     setHoveredIdx(null);
   };
-
-  // Determine selective X-axis labels (first, middle/quarter, last) to keep it clean
-  const labelIndices = useMemo(() => {
-    const len = points.length;
-    if (len <= 4) return points.map((_, i) => i);
-    if (len <= 8) return [0, Math.floor(len / 2), len - 1];
-    return [0, Math.floor(len / 3), Math.floor((len * 2) / 3), len - 1];
-  }, [points]);
 
   return (
     <div

@@ -8,9 +8,11 @@
 ## 🌟 Highlights & Capabilities
 
 - 🌐 **GSAP-Powered Modern Landing Page:** Immersive product showcase at `/` built with official GSAP primitives (`useGSAP`, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety). Features an interactive macOS sandbox window with live demo repository switching across 4 polyglot repos, 4-stage zero-disk streaming pipeline cards, uniform 3x2 bento capabilities, official Simple Icons vector brand logos, and dimension-by-dimension comparison table.
+- 🛸 **Floating Island Navigation Bar:** Centered, fixed floating pill navbar with glassmorphic backdrop blur (`backdrop-filter: blur(20px) saturate(190%)`), dynamic scroll elevation border glow, section anchor offsets (`scroll-margin-top: 6.5rem`), and clean unboxed navigation links sitting directly on the navbar.
+- 🎨 **Official CodeLens Brand Favicon & Visual Identity:** High-resolution SVG favicon (`/favicon.svg`) featuring an indigo-to-violet gradient squircle with internal border highlight, drop-shadow depth, and code lens crosshair glyph, crisp on both dark and light browser tabs and mobile bookmarks.
+- 🌓 **Streamlined Icon-Only Theme Toggle & Floating Tooltip:** Seamless toggling between Dark (Moon) and Light (Sun) modes with `system` OS color scheme defaulting (`prefers-color-scheme`). Features a circular 36px icon-only button and an accessible floating glassmorphic tooltip with triangular pointer arrow indicating *"Switch to light mode"* / *"Switch to dark mode"*.
 - 🚫 **Resilient 404 Not Found Handling & Azure SWA Rewrites:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links, reinforced by Azure Static Web Apps `staticwebapp.config.json` navigation fallback.
 - 🎨 **State-of-the-Art Typography & Aesthetics:** Curated Google Fonts typography stack featuring **Plus Jakarta Sans** for prominent headings, **Inter** for readable body content, and **JetBrains Mono** for AST metrics, code tokens, and file paths.
-- 🌓 **Proper Light / Dark / System Theme & Glassmorphic Switcher:** Unified 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, high-contrast form controls, and an animated glassmorphic quick-switch control.
 - 👤 **Modern Profile Avatar & Authenticated Header:** Dashboard header featuring user initials/avatar pill, user email, and an interactive danger-accented signout action with smooth transitions.
 - 📊 **Commit Velocity, All-Time Chronological Activity Pulse:** Tracks all-time repository commit history grouped by month and year (or spaced lifetime intervals for older/newer repositories) via GitHub Octokit with dynamic X-axis labels, formatted date range hover cards (`X commits (MMM dd, yyyy - MMM dd, yyyy)`), and all-time lifetime totals.
 - 🌐 **Enhanced Language Distribution:** Interactive distribution card with dual visualization modes—compact multi-segment progress bar with proportional rows in Bar mode, and an expanded two-column Donut + Legend layout in Circular mode.
@@ -23,8 +25,8 @@
 - ⚡ **Shared Repo Cache & 1-Click Re-Analysis:** Instantly retrieves previously analyzed repositories in `<50ms`. Automatically compares cached commit SHAs against the GitHub remote default branch to flag outdated audits with 1-click re-analysis (`forceRefresh: true`).
 - 🖥️ **Unified All-in-One Dashboard:** High-contrast Bento Grid telemetry cards, interactive repository selector with quick sample chips, Architecture Diagram canvas, and Knowledge Dossier viewer.
 - 🤖 **Context-Grounded Floating AI Drawer & Live Quota Countdown:** Slide-over AI copilot accessible from a floating bottom-right launcher button or top header, grounded strictly in the synthesized `PROJECT_KNOWLEDGE.md` dossier via real-time SSE streaming. Features prominent top-of-chat rate-limit alerts with a live countdown timer (`Resets in MM:SS` or `Hh MMm`), dynamic `retryDelay` propagation from Google Gemini, instantaneous auto-dismiss upon timer completion, and seamless fallback to the local AST-grounded engine when Gemini Free Tier quota is reached.
-- 🌓 **Proper Light / Dark / System Theme:** Full 3-mode theme system (`System`, `Dark`, `Light`) with automatic OS preference detection, dynamic SVG diagram color shifting, and high-contrast form controls.
 - ☁️ **Zero-Cost Azure Cloud Infrastructure:** Fully automated Infrastructure as Code via Azure Bicep (`infra/main.bicep`) featuring Cosmos DB Lifetime Free Tier (1,000 RU/s, 25 GB), Azure Container Apps with scale-to-zero billing, Azure Static Web Apps, and GitHub Actions CI/CD.
+- 🩺 **Zero-Warning Diagnostics & Lint Policy:** Strict ESLint 9 Flat Config (`@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`) and .NET 10 compiler enforcement ensuring 0 errors and 0 warnings across both frontend and backend.
 
 ---
 
@@ -82,17 +84,19 @@ codelens-ai/
 │       ├── vercel-react-best-practices/# Vercel React & Next.js performance optimization skill
 │       └── gsap-*                      # Official GSAP AI skills (core, react, timeline, scrolltrigger, etc.)
 ├── frontend/                           # React 19 SPA (Vite + Bun)
-│   ├── index.html                      # SPA entry point with anti-flash script
+│   ├── index.html                      # SPA entry point with anti-flash script & favicon link
 │   ├── vite.config.ts                  # Vite ESM configuration (`import.meta.dirname`) & path aliases
+│   ├── eslint.config.mjs               # ESLint 9 Flat Config (React 19 + TypeScript + React Hooks)
 │   ├── staticwebapp.config.json        # Azure SWA client routing rewrite rules
 │   ├── public/
+│   │   ├── favicon.svg                 # Official CodeLens AI gradient brand squircle favicon
 │   │   └── staticwebapp.config.json    # Azure SWA navigation fallback deployed to dist/
 │   ├── src/
 │   │   ├── main.tsx                    # Root React DOM entrypoint
 │   │   ├── App.tsx                     # React Router routes, ProtectedRoute & NotFoundPage catch-all (code-split)
 │   │   ├── context/
-│   │   │   ├── AuthContext.tsx         # Client JWT authentication provider
-│   │   │   └── ThemeContext.tsx        # Pure Light/Dark/System theme provider with memoized context
+│   │   │   ├── AuthContext.tsx         # Client JWT authentication provider with memoized callbacks
+│   │   │   └── ThemeContext.tsx        # Pure Light/Dark/System theme provider with system default & instant toggle
 │   │   ├── pages/
 │   │   │   ├── HomePage.tsx            # Modern Product Landing Page with hero, features & CTA
 │   │   │   ├── HomePage.module.css     # Glassmorphic landing styles & animations
@@ -107,14 +111,14 @@ codelens-ai/
 │   │   │   ├── landing/                # GSAP modular landing page sections
 │   │   │   │   ├── HeroSection.tsx     # Hero introduction, stats ribbon & CTAs
 │   │   │   │   ├── HeroPreviewTabs.tsx # macOS sandbox window with demo repo controls & 4 tabs
-│   │   │   │   ├── IngestionPipelineSection.tsx # 4-stage zero-disk streaming pipeline cards
+│   │   │   │   ├── IngestionPipelineSection.tsx # 4-stage zero-disk streaming pipeline cards (2x2 grid)
 │   │   │   │   ├── BentoFeaturesSection.tsx # 3x2 uniform bento capabilities grid
 │   │   │   │   ├── EcosystemSection.tsx# Polyglot manifest intelligence & official Simple Icons
 │   │   │   │   ├── ComparisonSection.tsx # Dimension-by-dimension comparison table
 │   │   │   │   └── CtaBannerSection.tsx# Conversion CTA banner & community links
 │   │   │   ├── BrandLogo.tsx           # Reusable SVG brand mark component
-│   │   │   ├── ThemeToggle.tsx         # Glassmorphic 3-mode theme toggle button
-│   │   │   ├── ThemeToggle.module.css  # Animated theme toggle styles
+│   │   │   ├── ThemeToggle.tsx         # Icon-only circular theme toggle with floating accessible tooltip
+│   │   │   ├── ThemeToggle.module.css  # Animated theme toggle & glassmorphic tooltip styles
 │   │   │   ├── DashboardClient.tsx     # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
 │   │   │   ├── DashboardHeader.tsx     # Top bar navigation, user profile avatar pill & danger signout button
 │   │   │   ├── DashboardHeader.module.css # Header layout, avatar & signout styles

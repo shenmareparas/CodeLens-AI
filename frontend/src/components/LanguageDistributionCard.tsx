@@ -32,17 +32,16 @@ export function LanguageDistributionCard({
   const radius = 58;
   const circumference = 2 * Math.PI * radius;
 
-  let cumulativePercent = 0;
+  let runningPercent = 0;
   const segments = entries.map(([lang, pct]) => {
-    const strokeDasharray = `${(pct / 100) * circumference} ${circumference}`;
-    const strokeDashoffset = -((cumulativePercent / 100) * circumference);
-    cumulativePercent += pct;
+    const currentOffset = runningPercent;
+    runningPercent += pct;
     return {
       lang,
       pct,
       color: languageColors[lang] || "#818cf8",
-      strokeDasharray,
-      strokeDashoffset,
+      strokeDasharray: `${(pct / 100) * circumference} ${circumference}`,
+      strokeDashoffset: -((currentOffset / 100) * circumference),
     };
   });
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
 import {
   loginWithCredentials,
   registerWithCredentials,
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(getInitialUser);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAuthSuccess = (res: BackendAuthResponse) => {
+  const handleAuthSuccess = useCallback((res: BackendAuthResponse) => {
     const userData: AuthUser = {
       id: res.userId,
       email: res.email,
@@ -65,9 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     localStorage.setItem("codelens-token", res.token);
     localStorage.setItem("codelens-user", JSON.stringify(userData));
-  };
+  }, []);
 
-  const login = async (email: string, pass: string) => {
+  const login = useCallback(async (email: string, pass: string) => {
     setIsLoading(true);
     try {
       const res = await loginWithCredentials(email, pass);
@@ -75,9 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAuthSuccess]);
 
-  const register = async (name: string, email: string, pass: string) => {
+  const register = useCallback(async (name: string, email: string, pass: string) => {
     setIsLoading(true);
     try {
       await registerWithCredentials(name, email, pass);
@@ -86,14 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAuthSuccess]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setBackendToken(null);
     setUser(null);
     localStorage.removeItem("codelens-token");
     localStorage.removeItem("codelens-user");
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
     }),
-    [user, backendToken, isLoading],
+    [user, backendToken, isLoading, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

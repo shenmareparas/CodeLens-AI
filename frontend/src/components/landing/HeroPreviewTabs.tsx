@@ -454,19 +454,6 @@ export function HeroPreviewTabs({ selectedRepo, onSelectRepo, sampleRepos }: Her
         {/* Tab 4: Grounded Copilot Drawer */}
         {activeTab === "copilot" && (
           <div className={`${styles.mockCopilotPane} preview-tab-pane`} role="tabpanel">
-            {/* Rate limit warning banner mock with SVG warning icon */}
-            <div className={styles.mockRateLimitBanner}>
-              <div className={styles.mockRateLimitContent}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                <span><strong>Quota Resilience:</strong> Fallback synthesis active • Resets in 04:32</span>
-              </div>
-              <span className={styles.mockRateLimitBadge}>Auto-Dismiss</span>
-            </div>
-
             <div className={styles.mockChatStream}>
               <div className={styles.chatMessageUser}>
                 <span>How does the zero-disk ingestion stream work for {data.name}?</span>

@@ -47,6 +47,7 @@
 | **Frontend Framework** | React 19 + Vite | React 19, Vite 8 | Ultra-fast client-side SPA, zero Node.js server overhead on edge |
 | **Animation & Motion** | GSAP + @gsap/react | `3.15.0` / `2.1.2` | Master timeline, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety |
 | **Styling & Design** | Tailwind CSS / CSS Modules | Custom Glassmorphism | Dark/Light/System theme token system, smooth transitions |
+| **Code Quality & Linting** | ESLint 9 Flat Config | `9.39.5` | TypeScript-ESLint, React Hooks canonical rules, 0-warning baseline |
 | **Frontend Auth** | Client AuthContext | Custom JWT Hook | Direct authentication against backend JWT endpoints with localStorage session |
 | **Routing** | React Router DOM | `v7` | Client-side routing with `ProtectedRoute` and Azure SWA rewrites |
 | **Backend Framework** | ASP.NET Core Minimal APIs | `.NET 10` (`net10.0`) | High-performance, zero-warning asynchronous API |
@@ -120,11 +121,13 @@
 ### 3.4 GSAP-Powered Modern Landing Page, Unified Dashboard & Theme System
 
 - **GSAP-Powered Modern Landing Page (`HomePage.tsx` & `src/components/landing/`):**
+  - **Floating Island Navigation Bar:** Centered, fixed floating pill navbar (`.navWrapper` + `.nav`) with glassmorphic backdrop (`backdrop-filter: blur(20px) saturate(190%)`), border glow, dynamic scroll elevation (`.navScrolled` after 20px), and section anchor scroll margins (`scroll-margin-top: 6.5rem`). Primary navigation links (*Pipeline*, *Dashboard*, *Capabilities*, *Ecosystems*, *Why Us*) sit directly on the navbar surface without nested container boxes, featuring soft hover pill states (`rgba(255, 255, 255, 0.08)` / light `rgba(0, 0, 0, 0.05)`).
+  - **Official Brand Favicon (`public/favicon.svg`):** High-definition 32x32 SVG squircle with an indigo-to-violet gradient (`#4f46e5` → `#7c3aed`), inner border highlight, drop-shadow depth, and the official CodeLens search/lens crosshair glyph with focal dot. Linked in `index.html` via `rel="icon"` and `rel="apple-touch-icon"`.
   - **Animation Architecture:** Built with official GSAP primitives (`useGSAP`, `ScrollTrigger.batch`, `gsap.matchMedia()`). Automatically verifies `prefers-reduced-motion` to bypass animations for users with vestibular sensitivities while maintaining high aesthetic polish.
   - **Modular Component Breakdown:**
     1. `HeroSection.tsx`: Staggered entrance headline, clean subtitle, CTAs, 4-stat metrics ribbon (`< 50ms`, `0-Disk`, `7+ Ecosystems`, `100% Grounded`), and live emerald pulse badge.
     2. `HeroPreviewTabs.tsx`: Interactive macOS-style sandbox preview window with address bar `https://codelens.ai/` and 4 switchable views (*Telemetry Bento*, *Interactive C4 Diagram*, *Knowledge Dossier*, *Grounded Copilot*). Includes the **Live Demo Repository Selector** pinned directly above the window for 1-click state switching across 4 polyglot repos (`CodeLens-AI`, `Chess Flutter`, `Play Store AI`, `Portfolio Next.js`).
-    3. `IngestionPipelineSection.tsx`: 4-stage zero-disk streaming pipeline cards with syntax-highlighted C# Roslyn and Octokit snippets.
+    3. `IngestionPipelineSection.tsx`: 4-stage zero-disk streaming pipeline cards in a 2x2 grid with step badges, live status metric pills (*0 MB Disk Used*, *Sub-Second Traversal*, etc.), and key guarantee bullet points.
     4. `BentoFeaturesSection.tsx`: Uniform 3x2 bento grid detailing zero-disk streaming, deterministic cyclomatic mathematical scoring (`CC * ln(Churn + 1)`), Gemini 3.8 Flash synthesis, gesture-driven C4 diagrams, grounded copilot, and zero-idle cloud architecture.
     5. `EcosystemSection.tsx`: Polyglot lockfile and manifest intelligence (Bun, Dart/Flutter, .NET 10, Node.js, Python, Go, Rust) with official Simple Icons vector paths.
     6. `ComparisonSection.tsx`: Dimension-by-dimension comparison table comparing legacy manual audits with CodeLens AI.
@@ -135,8 +138,14 @@
 - **All-Time Commits & Chronological Activity Pulse:** `OctokitTelemetryService.FetchTotalCommitsAsync` inspects GitHub API pagination headers (`rel="last"`) with `PageSize=1` to retrieve the true lifetime commit count in 1 API call. `OctokitTelemetryService.FetchCommitActivityAndTimelineAsync` compiles full chronological commit history grouped into month/year buckets (e.g. `Jan 2024`, `Feb 2024`) or spaced lifetime intervals for older/newer repositories, transmitting `CommitTimeline` directly to `SparklineChart.tsx` with date ranges, month/year X-axis labels, and clean hover-only inspection.
 - **Dual-Mode Language Distribution (`LanguageDistributionCard.tsx`):** Features interactive Bar mode (compact multi-segment progress bar + proportional language rows) and Circular mode (two-column Donut chart + scrollable legend) with a dominant stack banner.
 - **Floating AI Drawer & Persistent Copilot:** A floating bottom-right `[ ✨ Ask AI ]` button triggers a slide-over copilot drawer grounded directly in the audit's `PROJECT_KNOWLEDGE.md`. Messages render formatted markdown (headings, code blocks, lists) via `ReactMarkdown` + `remark-gfm`. Chat history is preserved across drawer toggles using dual-layer synchronization (`localStorage` + backend `GET /api/chat/{id}`), with a `[ 🗑️ Clear ]` action to purge chat history on demand. Real-time streaming tokens are ingested over SSE with automatic connection cleanup on unmount.
-- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` and `FullscreenMermaidModal.tsx` support trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, normalized 1.0 = 100% fit baseline, viewport boundary protection (`clampPan`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default 100% framing.
-- **Typography & Theme System:** Premium Google Fonts stack (**Plus Jakarta Sans**, **Inter**, **JetBrains Mono**) paired with a full 3-mode theme system (`System`, `Dark`, `Light`), automatic OS preference detection via media query listeners, pre-hydration anti-flash script in `index.html`, adaptive SVG diagram palette updates, and accessible high-contrast form controls, typography, and scrollbars across both the dashboard and the authentication screens. Theme context is memoized with pure state transitions and decoupled `localStorage` synchronization.
+- **Touchpad Gestures, Dynamic Zoom & Pan Clamping:** `MermaidViewer.tsx` and `FullscreenMermaidModal.tsx` support trackpad pinch-to-zoom and two-finger pan with calculated diagram bounds that dynamically clamp zoom scale, normalized 1.0 = 100% fit baseline, viewport boundary protection (`clampPan` wrapped in `useCallback`) ensuring diagrams never disappear off-screen, an accessible container (`role="region"`), and a dedicated `[ ↺ Reset ]` action button to quickly return to default 100% framing.
+- **Streamlined Theme Architecture (`ThemeContext.tsx` & `ThemeToggle.tsx`):**
+  - **System Default:** Initial state defaults to `"system"`, resolving automatically to the user's OS color scheme via `matchMedia("(prefers-color-scheme: light)")`.
+  - **Binary Dark / Light Toggling:** Removed the 3-step cycle and "system" monitor button from the toggle UI. `toggleTheme()` toggles directly between `"dark"` and `"light"`.
+  - **Icon-Only Button & Floating Tooltip:** [ThemeToggle.tsx](file:///Users/parasshenmare/Developer/other_projects/codelens-ai/frontend/src/components/ThemeToggle.tsx) is rendered as a clean 36×36px circular button with strictly the Sun SVG (in light mode) or Moon SVG (in dark mode). Features an accessible floating glassmorphic tooltip with a triangular top pointer arrow dynamically indicating `"Switch to light mode"` or `"Switch to dark mode"` on `:hover` and keyboard `:focus-visible` (`pointer-events: none`).
+  - Pre-hydration anti-flash script in `index.html` reads `localStorage` before paint to eliminate light/dark flickering.
+  - Adaptive CSS variables in `globals.css` provide high contrast for input boxes, placeholders, headings, code blocks, and scrollbars in both dark and light modes.
+  - Mermaid diagrams automatically re-render with adapted dark/light color palettes upon theme change.
 - **Modern User Profile & Navigation Header:** `DashboardHeader.tsx` features an interactive user avatar pill displaying user initials and email address alongside an animated danger-glowing sign out button.
 - **Shared Repository Cache & 1-Click Re-Analysis:** `POST /api/audit` returns cached audits in `<50ms` and checks remote default branch commit SHAs to detect staleness and offer 1-click re-analysis (`forceRefresh: true`).
 
@@ -211,16 +220,18 @@ codelens-ai/
     ├── package.json
     ├── bun.lock
     ├── vite.config.ts
-    ├── index.html                                    # SPA entrypoint with anti-flash theme script
+    ├── eslint.config.mjs                             # ESLint 9 Flat Config (React 19 + TypeScript + React Hooks)
+    ├── index.html                                    # SPA entrypoint with anti-flash theme script & favicon link
     ├── staticwebapp.config.json                      # Azure SWA navigation fallback & headers
     ├── public/
+    │   ├── favicon.svg                               # Official CodeLens AI gradient brand squircle favicon
     │   └── staticwebapp.config.json                  # Azure SWA navigation fallback deployed to dist/
     └── src/
         ├── main.tsx                                  # React DOM entrypoint
         ├── App.tsx                                   # React Router DOM + ProtectedRoute + code splitting
         ├── context/
-        │   ├── AuthContext.tsx                       # JWT authentication context
-        │   └── ThemeContext.tsx                      # Pure Light/Dark/System theme context with memoized value
+        │   ├── AuthContext.tsx                       # JWT authentication context with memoized callbacks
+        │   └── ThemeContext.tsx                      # Pure Light/Dark/System theme context with system default & instant toggle
         ├── pages/
         │   ├── HomePage.tsx                          # Modern Product Landing Page with hero, features & CTA
         │   ├── HomePage.module.css                   # Glassmorphic landing styles & animations
@@ -236,14 +247,14 @@ codelens-ai/
         │   ├── landing/                              # GSAP modular landing page sections
         │   │   ├── HeroSection.tsx                   # Hero introduction, stats ribbon & CTAs
         │   │   ├── HeroPreviewTabs.tsx               # macOS sandbox window with demo repo controls & 4 tabs
-        │   │   ├── IngestionPipelineSection.tsx      # 4-stage zero-disk streaming pipeline cards
+        │   │   ├── IngestionPipelineSection.tsx      # 4-stage zero-disk streaming pipeline cards (2x2 grid)
         │   │   ├── BentoFeaturesSection.tsx          # 3x2 uniform bento capabilities grid
         │   │   ├── EcosystemSection.tsx              # Polyglot manifest intelligence & official Simple Icons
         │   │   ├── ComparisonSection.tsx             # Dimension-by-dimension comparison table
         │   │   └── CtaBannerSection.tsx              # Conversion CTA banner & community links
         │   ├── BrandLogo.tsx                         # Reusable vector brand logo mark
-        │   ├── ThemeToggle.tsx                       # Universal glassmorphic theme toggle button
-        │   ├── ThemeToggle.module.css                # Animated theme toggle styles
+        │   ├── ThemeToggle.tsx                       # Icon-only circular theme toggle with floating accessible tooltip
+        │   ├── ThemeToggle.module.css                # Animated theme toggle & glassmorphic tooltip styles
         │   ├── DashboardClient.tsx                   # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
         │   ├── DashboardHeader.tsx                   # Top bar navigation, user profile avatar & sign out
         │   ├── DashboardHeader.module.css            # Header layout, avatar & signout styles

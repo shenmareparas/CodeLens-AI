@@ -277,7 +277,7 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
             paddingRight: "0.2rem",
           }}
         >
-          {filteredDependencies.map((dep, idx) => {
+          {filteredDependencies.map((dep) => {
             const badgeStyle = getEcosystemBadgeStyle(dep.ecosystem);
 
             return (

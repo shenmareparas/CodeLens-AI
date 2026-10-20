@@ -120,7 +120,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
   }, [svgContent]);
 
   // Helper to clamp pan offsets so diagram content cannot move out of the container screen
-  const clampPan = (newX: number, newY: number, currentZoom: number) => {
+  const clampPan = useCallback((newX: number, newY: number, currentZoom: number) => {
     const container = containerRef.current;
     const svgEl = svgWrapperRef.current?.querySelector("svg");
     if (!container || !svgEl) return { x: newX, y: newY };
@@ -140,7 +140,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
 
     // If rendered diagram is smaller than or equal to container, keep centered (0)
     // If larger than container, allow panning only up to the diagram edges
-    let clampedX = 0;
+    let clampedX: number;
     if (renderedWidth > containerWidth) {
       const maxPanX = (renderedWidth - containerWidth) / 2 + 30;
       clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
@@ -150,7 +150,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
     }
 
-    let clampedY = 0;
+    let clampedY: number;
     if (renderedHeight > containerHeight) {
       const maxPanY = (renderedHeight - containerHeight) / 2 + 30;
       clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
@@ -160,7 +160,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     }
 
     return { x: clampedX, y: clampedY };
-  };
+  }, [baseFitScale]);
 
   // Touchpad pinch-to-zoom and two-finger scroll panning with dynamic boundaries
   useEffect(() => {
@@ -193,7 +193,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       container.removeEventListener("gesturestart", handleGesture);
       container.removeEventListener("gesturechange", handleGesture);
     };
-  }, [zoomLimits, zoom]);
+  }, [zoomLimits, zoom, clampPan]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;

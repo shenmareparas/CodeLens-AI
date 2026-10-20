@@ -34,7 +34,7 @@ export function sanitizeMermaid(raw: string): string {
     });
 
     // Fix round-corner nodes: A(Round label)
-    l = l.replace(/([a-zA-Z0-9_-]+)\(([^"\)\n]+)\)/g, (_match, id, label) => {
+    l = l.replace(/([a-zA-Z0-9_-]+)\(([^")\n]+)\)/g, (_match, id, label) => {
       // Don't replace if it's already a method call or connection syntax
       if (label.includes("-->") || label.includes("---")) return _match;
       const cleanLabel = label.trim().replace(/"/g, "'");

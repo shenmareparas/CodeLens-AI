@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -31,6 +31,16 @@ export function HomePage() {
   const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRepo, setSelectedRepo] = useState<string>("shenmareparas/CodeLens-AI");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // GSAP Animation Master Orchestrator
   useGSAP(
@@ -53,7 +63,7 @@ export function HomePage() {
           // Accessibility: If user prefers reduced motion, set elements immediately visible
           if (reduceMotion) {
             gsap.set(
-              ".hero-badge, .hero-headline, .hero-subtitle, .hero-samples, .hero-cta, .hero-stats, .preview-window, .pipeline-step-card, .bento-feature-card, .eco-card, .comp-row",
+              ".landing-nav, .hero-badge, .hero-headline, .hero-subtitle, .hero-samples, .hero-cta, .hero-stats, .preview-window, .pipeline-step-card, .bento-feature-card, .eco-card, .comp-row",
               {
                 autoAlpha: 1,
                 y: 0,
@@ -89,13 +99,23 @@ export function HomePage() {
           });
 
           heroTl
-            .from(".hero-badge", {
+            .from(".landing-nav", {
               autoAlpha: 0,
-              y: -25,
-              scale: 0.9,
+              y: -20,
               duration: 0.6,
-              ease: "back.out(1.7)",
+              ease: "power2.out",
             })
+            .from(
+              ".hero-badge",
+              {
+                autoAlpha: 0,
+                y: -25,
+                scale: 0.9,
+                duration: 0.6,
+                ease: "back.out(1.7)",
+              },
+              "-=0.3"
+            )
             .from(
               ".hero-headline",
               {
@@ -241,57 +261,51 @@ export function HomePage() {
       <div className={`${styles.bgGlowMiddle} bg-glow-orb`} aria-hidden="true" />
       <div className={`${styles.bgGlowBottom} bg-glow-orb`} aria-hidden="true" />
 
-      {/* Navigation Bar */}
-      <header className={styles.nav}>
-        <Link to="/" className={styles.brandLink}>
-          <div className={styles.brandLogo}>
-            <BrandLogo size={22} />
+      {/* Floating Navigation Bar */}
+      <div className={`${styles.navWrapper} landing-nav`}>
+        <header className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
+          <Link to="/" className={styles.brandLink}>
+            <div className={styles.brandLogo}>
+              <BrandLogo size={20} />
+            </div>
+            <span className={styles.brandText}>CodeLens AI</span>
+          </Link>
+
+          <nav className={styles.navLinks} aria-label="Main Navigation">
+            <a href="#pipeline" className={styles.navLink}>
+              Pipeline
+            </a>
+            <a href="#preview" className={styles.navLink}>
+              Dashboard
+            </a>
+            <a href="#features" className={styles.navLink}>
+              Capabilities
+            </a>
+            <a href="#ecosystem" className={styles.navLink}>
+              Ecosystems
+            </a>
+            <a href="#comparison" className={styles.navLink}>
+              Why Us
+            </a>
+          </nav>
+
+          <div className={styles.navActions}>
+            <ThemeToggle />
+
+            {isAuthenticated ? (
+              <Link to="/dashboard" className={styles.loginBtn}>
+                <span>Open Dashboard</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : (
+              <Link to="/auth/signin" className={styles.loginBtn}>
+                <span>Sign In</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
           </div>
-          <span className={styles.brandText}>CodeLens AI</span>
-        </Link>
-
-        <nav className={styles.navLinks} aria-label="Main Navigation">
-          <a href="#pipeline" className={styles.navLink}>
-            Pipeline
-          </a>
-          <a href="#preview" className={styles.navLink}>
-            Dashboard
-          </a>
-          <a href="#features" className={styles.navLink}>
-            Capabilities
-          </a>
-          <a href="#ecosystem" className={styles.navLink}>
-            Ecosystems
-          </a>
-          <a href="#comparison" className={styles.navLink}>
-            Why Us
-          </a>
-          <a
-            href="https://github.com/shenmareparas/CodeLens-AI"
-            target="_blank"
-            rel="noreferrer"
-            className={styles.navLink}
-          >
-            GitHub
-          </a>
-        </nav>
-
-        <div className={styles.navActions}>
-          <ThemeToggle />
-
-          {isAuthenticated ? (
-            <Link to="/dashboard" className={styles.loginBtn}>
-              <span>Open Dashboard</span>
-              <span aria-hidden="true">→</span>
-            </Link>
-          ) : (
-            <Link to="/auth/signin" className={styles.loginBtn}>
-              <span>Sign In</span>
-              <span aria-hidden="true">→</span>
-            </Link>
-          )}
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* Main Content Sections */}
       <main>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, memo } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 
 interface FullscreenMermaidModalProps {
@@ -79,7 +79,7 @@ function FullscreenMermaidModalComponent({
   }, [isOpen, svgHtml]);
 
   // Clamp pan offsets so diagram content never moves out of the screen bounds
-  const clampPan = (newX: number, newY: number, currentZoom: number) => {
+  const clampPan = useCallback((newX: number, newY: number, currentZoom: number) => {
     const canvas = canvasRef.current;
     const svgEl = svgWrapperRef.current?.querySelector("svg");
     if (!canvas || !svgEl) return { x: newX, y: newY };
@@ -96,7 +96,7 @@ function FullscreenMermaidModalComponent({
     const renderedWidth = svgWidth * effectiveScale;
     const renderedHeight = svgHeight * effectiveScale;
 
-    let clampedX = 0;
+    let clampedX: number;
     if (renderedWidth > canvasWidth) {
       const maxPanX = (renderedWidth - canvasWidth) / 2 + 40;
       clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
@@ -105,7 +105,7 @@ function FullscreenMermaidModalComponent({
       clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
     }
 
-    let clampedY = 0;
+    let clampedY: number;
     if (renderedHeight > canvasHeight) {
       const maxPanY = (renderedHeight - canvasHeight) / 2 + 40;
       clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
@@ -115,7 +115,7 @@ function FullscreenMermaidModalComponent({
     }
 
     return { x: clampedX, y: clampedY };
-  };
+  }, [baseFitScale]);
 
   // Non-passive wheel event listener to strictly prevent browser page pinch-to-zoom
   useEffect(() => {
@@ -153,7 +153,7 @@ function FullscreenMermaidModalComponent({
       canvas.removeEventListener("gesturestart", handleGesture);
       canvas.removeEventListener("gesturechange", handleGesture);
     };
-  }, [isOpen, fullscreenZoom, baseFitScale]);
+  }, [isOpen, fullscreenZoom, clampPan]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
