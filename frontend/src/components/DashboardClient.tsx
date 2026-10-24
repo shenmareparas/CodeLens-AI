@@ -60,7 +60,10 @@ export function DashboardClient({
       });
   }, [backendToken]);
 
-  const handleAnalyze = async (urlToAnalyze?: string, forceRefresh: boolean = false) => {
+  const handleAnalyze = async (
+    urlToAnalyze?: string,
+    forceRefresh: boolean = false,
+  ) => {
     const targetUrl = (urlToAnalyze ?? repoUrl).trim();
     if (!targetUrl) {
       setError("Please enter a valid GitHub repository URL.");
@@ -89,7 +92,8 @@ export function DashboardClient({
       const refreshed = await getUserAudits(backendToken);
       setRecentAudits(refreshed);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to analyze repository.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to analyze repository.";
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -112,7 +116,16 @@ export function DashboardClient({
   };
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div
+      style={{
+        maxWidth: "1280px",
+        margin: "0 auto",
+        padding: "2rem 1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2rem",
+      }}
+    >
       {/* ── Top Bar ───────────────────────────────────────────────────────── */}
       <DashboardHeader
         userName={userName}
@@ -155,11 +168,30 @@ export function DashboardClient({
             <span>⚡</span>
             <span>Zero-Disk Telemetry & Shared Repo Cache</span>
           </span>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.65rem", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--color-text)", margin: "0 0 0.35rem" }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "1.65rem",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              color: "var(--color-text)",
+              margin: "0 0 0.35rem",
+            }}
+          >
             Scan & Audit GitHub Repository
           </h2>
-          <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", maxWidth: "640px", margin: 0, lineHeight: 1.55 }}>
-            Extract commit sparklines, release cadence, Roslyn AST cyclomatic complexity, hotspot risk scores, dependencies, and sensitive secrets in-memory.
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "var(--color-text-muted)",
+              maxWidth: "640px",
+              margin: 0,
+              lineHeight: 1.55,
+            }}
+          >
+            Extract commit sparklines, release cadence, Roslyn AST cyclomatic
+            complexity, hotspot risk scores, dependencies, and sensitive secrets
+            in-memory.
           </p>
         </div>
 
@@ -168,7 +200,12 @@ export function DashboardClient({
             e.preventDefault();
             handleAnalyze();
           }}
-          style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "stretch" }}
+          style={{
+            display: "flex",
+            gap: "0.75rem",
+            flexWrap: "wrap",
+            alignItems: "stretch",
+          }}
         >
           <div style={{ flex: "1 1 340px", position: "relative" }}>
             <span
@@ -183,7 +220,14 @@ export function DashboardClient({
                 alignItems: "center",
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -218,12 +262,15 @@ export function DashboardClient({
                 padding: "0.85rem 1.65rem",
                 borderRadius: "12px",
                 border: "none",
-                background: isLoading ? "rgba(245, 158, 11, 0.5)" : "var(--color-primary)",
+                background: isLoading
+                  ? "rgba(245, 158, 11, 0.5)"
+                  : "var(--color-primary)",
                 color: "#fff",
                 fontWeight: 600,
                 fontFamily: "var(--font-display)",
                 fontSize: "0.9375rem",
-                cursor: isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
+                cursor:
+                  isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
@@ -233,7 +280,14 @@ export function DashboardClient({
             >
               {isLoading ? (
                 <>
-                  <span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>🔄</span>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  >
+                    🔄
+                  </span>
                   <span>Analyzing Repository...</span>
                 </>
               ) : (
@@ -257,7 +311,8 @@ export function DashboardClient({
                 fontWeight: 600,
                 fontFamily: "var(--font-display)",
                 fontSize: "0.9375rem",
-                cursor: isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
+                cursor:
+                  isLoading || !repoUrl.trim() ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.45rem",
@@ -271,8 +326,18 @@ export function DashboardClient({
         </form>
 
         {/* Quick Sample Links */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", fontSize: "0.8125rem" }}>
-          <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}>Quick sample repos:</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            flexWrap: "wrap",
+            fontSize: "0.8125rem",
+          }}
+        >
+          <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}>
+            Quick sample repos:
+          </span>
           {SAMPLE_REPOS.map((sample) => (
             <button
               key={sample}
@@ -301,7 +366,10 @@ export function DashboardClient({
         </div>
 
         {/* Progress Bar & Stage Indicator */}
-        <AnalysisProgressBar isLoading={isLoading} isForceRefresh={isForceRefresh} />
+        <AnalysisProgressBar
+          isLoading={isLoading}
+          isForceRefresh={isForceRefresh}
+        />
 
         {/* Status Message */}
         {statusMessage && !isLoading && (
@@ -338,14 +406,33 @@ export function DashboardClient({
 
       {/* ── Recent Audits Chips ───────────────────────────────────────────── */}
       {recentAudits.length > 0 && (
-        <section style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <section
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
+          <span
+            style={{
+              fontSize: "0.8rem",
+              color: "var(--color-text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
             Your Recent Repositories
           </span>
-          <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.25rem" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              overflowX: "auto",
+              paddingBottom: "0.25rem",
+            }}
+          >
             {recentAudits.map((audit) => {
               const isSelected = activeAudit?.auditId === audit.auditId;
-              const cleanName = audit.repoUrl.replace("https://github.com/", "");
+              const cleanName = audit.repoUrl.replace(
+                "https://github.com/",
+                "",
+              );
               return (
                 <button
                   key={audit.auditId}
@@ -355,8 +442,12 @@ export function DashboardClient({
                     padding: "0.4rem 0.85rem",
                     borderRadius: "99px",
                     border: "1px solid",
-                    borderColor: isSelected ? "var(--color-primary)" : "var(--color-border)",
-                    background: isSelected ? "var(--color-primary)" : "var(--color-surface)",
+                    borderColor: isSelected
+                      ? "var(--color-primary)"
+                      : "var(--color-border)",
+                    background: isSelected
+                      ? "var(--color-primary)"
+                      : "var(--color-surface)",
                     color: isSelected ? "#ffffff" : "var(--color-text)",
                     fontSize: "0.8rem",
                     fontFamily: "var(--font-mono)",
@@ -408,9 +499,11 @@ export function DashboardClient({
             fontWeight: 600,
             fontSize: "0.95rem",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
+            boxShadow:
+              "0 10px 25px -5px rgba(245, 158, 11, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.4)",
             cursor: "pointer",
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            transition:
+              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";

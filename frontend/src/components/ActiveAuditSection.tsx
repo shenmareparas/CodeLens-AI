@@ -41,14 +41,15 @@ export function ActiveAuditSection({
           borderRadius: "var(--radius-lg)",
         }}
       >
-        Audit status: {audit.status}. Click &quot;Analyze Repository&quot; to begin scanning.
+        Audit status: {audit.status}. Click &quot;Analyze Repository&quot; to
+        begin scanning.
       </div>
     );
   }
 
   const repoName = audit.repoUrl.replace("https://github.com/", "");
-  const mermaidChart =
-    (audit.aiInsights as Record<string, unknown> | undefined)?.mermaidDiagram as string | undefined;
+  const mermaidChart = (audit.aiInsights as Record<string, unknown> | undefined)
+    ?.mermaidDiagram as string | undefined;
 
   const handleDownloadSas = async () => {
     if (!audit.auditId || !backendToken) return;
@@ -57,7 +58,8 @@ export function ActiveAuditSection({
       const { url } = await getDossierDownloadUrl(audit.auditId, backendToken);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to generate download URL";
+      const msg =
+        err instanceof Error ? err.message : "Failed to generate download URL";
       alert(msg);
     } finally {
       setIsDownloading(false);
@@ -65,7 +67,9 @@ export function ActiveAuditSection({
   };
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <section
+      style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+    >
       {/* Outdated Audit Notice Banner */}
       {audit.isStale && (
         <div
@@ -86,13 +90,30 @@ export function ActiveAuditSection({
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <span style={{ fontSize: "1.1rem" }}>⚠️</span>
             <div>
-              <strong>Outdated Audit Notice:</strong> This architecture scan was generated for commit{" "}
-              <code style={{ fontFamily: "var(--font-mono)", background: "rgba(0,0,0,0.3)", padding: "0.1rem 0.35rem", borderRadius: "4px" }}>
+              <strong>Outdated Audit Notice:</strong> This architecture scan was
+              generated for commit{" "}
+              <code
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "0.1rem 0.35rem",
+                  borderRadius: "4px",
+                }}
+              >
                 {audit.commitSha ? audit.commitSha.substring(0, 7) : "older"}
               </code>
               . Newer commits exist on remote (
-              <code style={{ fontFamily: "var(--font-mono)", background: "rgba(0,0,0,0.3)", padding: "0.1rem 0.35rem", borderRadius: "4px" }}>
-                {audit.latestCommitSha ? audit.latestCommitSha.substring(0, 7) : "head"}
+              <code
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "0.1rem 0.35rem",
+                  borderRadius: "4px",
+                }}
+              >
+                {audit.latestCommitSha
+                  ? audit.latestCommitSha.substring(0, 7)
+                  : "head"}
               </code>
               ).
             </div>
@@ -122,10 +143,24 @@ export function ActiveAuditSection({
       )}
 
       {/* Audit Header, Tabs & Actions */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "1rem",
+        }}
+      >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--color-text)" }}>
+            <h2
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color: "var(--color-text)",
+              }}
+            >
               {repoName}
             </h2>
             {audit.commitSha && (
@@ -146,11 +181,19 @@ export function ActiveAuditSection({
             )}
           </div>
           <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-            Audited on {new Date(audit.createdAt).toLocaleString()} • Status: {audit.status}
+            Audited on {new Date(audit.createdAt).toLocaleString()} • Status:{" "}
+            {audit.status}
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            flexWrap: "wrap",
+          }}
+        >
           {/* Section View Tabs */}
           <div
             style={{
@@ -180,7 +223,9 @@ export function ActiveAuditSection({
                     padding: "0.4rem 0.85rem",
                     borderRadius: "8px",
                     border: "none",
-                    background: isCurrent ? "var(--color-primary)" : "transparent",
+                    background: isCurrent
+                      ? "var(--color-primary)"
+                      : "transparent",
                     color: isCurrent ? "#ffffff" : "var(--color-text-muted)",
                     fontWeight: isCurrent ? 600 : 500,
                     fontFamily: "var(--font-display)",
@@ -189,7 +234,9 @@ export function ActiveAuditSection({
                     display: "flex",
                     alignItems: "center",
                     gap: "0.4rem",
-                    boxShadow: isCurrent ? "0 2px 8px rgba(245, 158, 11, 0.35)" : "none",
+                    boxShadow: isCurrent
+                      ? "0 2px 8px rgba(245, 158, 11, 0.35)"
+                      : "none",
                     transition: "all 0.2s ease",
                   }}
                 >
@@ -220,7 +267,14 @@ export function ActiveAuditSection({
               transition: "var(--transition-fast)",
             }}
           >
-            <span style={{ display: "inline-block", animation: isLoading ? "spin 1s linear infinite" : "none" }}>🔄</span>
+            <span
+              style={{
+                display: "inline-block",
+                animation: isLoading ? "spin 1s linear infinite" : "none",
+              }}
+            >
+              🔄
+            </span>
             <span>Re-analyze</span>
           </button>
 
@@ -266,7 +320,10 @@ export function ActiveAuditSection({
 
       {/* Tab 1: Bento Grid Telemetry */}
       {activeTab === "telemetry" && (
-        <TelemetryBentoGrid repoUrl={audit.repoUrl} telemetry={audit.telemetry} />
+        <TelemetryBentoGrid
+          repoUrl={audit.repoUrl}
+          telemetry={audit.telemetry}
+        />
       )}
 
       {/* Tab 2: Knowledge Dossier Preview */}
@@ -275,7 +332,13 @@ export function ActiveAuditSection({
           {audit.dossierMarkdown ? (
             <Suspense
               fallback={
-                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                <div
+                  style={{
+                    padding: "3rem",
+                    textAlign: "center",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
                   Loading Knowledge Dossier...
                 </div>
               }
@@ -309,7 +372,13 @@ export function ActiveAuditSection({
           {mermaidChart ? (
             <Suspense
               fallback={
-                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                <div
+                  style={{
+                    padding: "3rem",
+                    textAlign: "center",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
                   Loading Architecture Diagram...
                 </div>
               }
@@ -337,4 +406,3 @@ export function ActiveAuditSection({
     </section>
   );
 }
-

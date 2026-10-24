@@ -9,15 +9,21 @@ interface DashboardHeaderProps {
   onSignOut: () => void;
 }
 
-export function DashboardHeader({ userName, userEmail, avatarUrl, onSignOut }: DashboardHeaderProps) {
+export function DashboardHeader({
+  userName,
+  userEmail,
+  avatarUrl,
+  onSignOut,
+}: DashboardHeaderProps) {
   const displayName = userName || "Developer";
-  const initials = displayName
-    .split(" ")
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase() || "D";
+  const initials =
+    displayName
+      .split(" ")
+      .map((part) => part[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "D";
 
   return (
     <header className={styles.header}>
@@ -27,12 +33,8 @@ export function DashboardHeader({ userName, userEmail, avatarUrl, onSignOut }: D
         </div>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span className={styles.brandTitle}>
-              CodeLens AI
-            </span>
-            <span className={styles.brandBadge}>
-              Console
-            </span>
+            <span className={styles.brandTitle}>CodeLens AI</span>
+            <span className={styles.brandBadge}>Console</span>
           </div>
           <p className={styles.brandTagline}>
             Architecture Auditor &amp; Onboarding Copilot
@@ -45,10 +47,17 @@ export function DashboardHeader({ userName, userEmail, avatarUrl, onSignOut }: D
         <ThemeToggle />
 
         {/* User Profile Avatar & Identity */}
-        <div className={styles.userProfile} title={`Signed in as ${displayName} (${userEmail})`}>
+        <div
+          className={styles.userProfile}
+          title={`Signed in as ${displayName} (${userEmail})`}
+        >
           <div className={styles.avatar} aria-hidden="true">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className={styles.avatarImg} />
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className={styles.avatarImg}
+              />
             ) : (
               <span>{initials}</span>
             )}

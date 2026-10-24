@@ -3,51 +3,68 @@ import styles from "@/pages/HomePage.module.css";
 const COMPARISONS = [
   {
     dimension: "Repository Ingestion",
-    legacy: "Local git clone dumps 100s of MBs to disk, pulling node_modules and binary assets.",
-    codelens: "Zero-disk in-memory streaming via GitHub Zipball API straight into RAM buffers.",
+    legacy:
+      "Local git clone dumps 100s of MBs to disk, pulling node_modules and binary assets.",
+    codelens:
+      "Zero-disk in-memory streaming via GitHub Zipball API straight into RAM buffers.",
     advantage: "100% In-Memory",
   },
   {
     dimension: "Hotspot Scoring",
-    legacy: "Opaque line-counting or subjective LLM guesses with zero verifiable evidence.",
-    codelens: "Deterministic formula: Risk = Math.Round(CC * Math.Log(Churn + 1), 2) via Roslyn AST.",
+    legacy:
+      "Opaque line-counting or subjective LLM guesses with zero verifiable evidence.",
+    codelens:
+      "Deterministic formula: Risk = Math.Round(CC * Math.Log(Churn + 1), 2) via Roslyn AST.",
     advantage: "Mathematical Precision",
   },
   {
     dimension: "AI Grounding & Context",
-    legacy: "Dumps raw multi-megabyte source files into prompt, hitting token limits and hallucinating.",
-    codelens: "Distills compact AST Symbol Manifests with Gemini 3.8 Flash via Semantic Kernel.",
+    legacy:
+      "Dumps raw multi-megabyte source files into prompt, hitting token limits and hallucinating.",
+    codelens:
+      "Distills compact AST Symbol Manifests with Gemini 3.8 Flash via Semantic Kernel.",
     advantage: "Zero Context Bloat",
   },
   {
     dimension: "Architecture Diagrams",
-    legacy: "Stale static PNG diagrams manually updated in Confluence or draw.io once a year.",
-    codelens: "Auto-generated Mermaid C4 canvas with native trackpad pinch-to-zoom and two-finger pan.",
+    legacy:
+      "Stale static PNG diagrams manually updated in Confluence or draw.io once a year.",
+    codelens:
+      "Auto-generated Mermaid C4 canvas with native trackpad pinch-to-zoom and two-finger pan.",
     advantage: "Live & Interactive",
   },
   {
     dimension: "Copilot Grounding",
-    legacy: "Generic chat bot ungrounded in repo structure, prone to fabricating endpoints.",
-    codelens: "Real-time SSE token stream strictly grounded on synthesized PROJECT_KNOWLEDGE.md.",
+    legacy:
+      "Generic chat bot ungrounded in repo structure, prone to fabricating endpoints.",
+    codelens:
+      "Real-time SSE token stream strictly grounded on synthesized PROJECT_KNOWLEDGE.md.",
     advantage: "Strictly Grounded",
   },
   {
     dimension: "Cloud Infrastructure",
-    legacy: "Expensive always-on VMs and heavy worker clusters charging high idle fees.",
-    codelens: "Scale-to-zero Azure Container Apps + Cosmos DB Lifetime Free Tier (0 idle cost).",
+    legacy:
+      "Expensive always-on VMs and heavy worker clusters charging high idle fees.",
+    codelens:
+      "Scale-to-zero Azure Container Apps + Cosmos DB Lifetime Free Tier (0 idle cost).",
     advantage: "Zero Idle Bill",
   },
 ];
 
 export function ComparisonSection() {
   return (
-    <section id="comparison" className={styles.comparisonSection} aria-label="Why CodeLens AI">
+    <section
+      id="comparison"
+      className={styles.comparisonSection}
+      aria-label="Why CodeLens AI"
+    >
       <div className={styles.sectionHeader}>
         <h2 className={`${styles.sectionTitle} comp-title`}>
           Why Engineering Teams Choose CodeLens
         </h2>
         <p className={`${styles.sectionDesc} comp-desc`}>
-          Eliminate sluggish local clones, bloated AI contexts, and manual documentation drift.
+          Eliminate sluggish local clones, bloated AI contexts, and manual
+          documentation drift.
         </p>
       </div>
 
@@ -67,12 +84,21 @@ export function ComparisonSection() {
             <div key={row.dimension} className={styles.comparisonRow}>
               <div className={styles.compColDimension}>
                 <strong>{row.dimension}</strong>
-                <span className={styles.compAdvantageBadge}>{row.advantage}</span>
+                <span className={styles.compAdvantageBadge}>
+                  {row.advantage}
+                </span>
               </div>
 
               <div className={styles.compColLegacy}>
                 <span className={styles.compCrossIcon} aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -82,7 +108,14 @@ export function ComparisonSection() {
 
               <div className={styles.compColCodeLens}>
                 <span className={styles.compCheckIcon} aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </span>

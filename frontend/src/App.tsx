@@ -12,7 +12,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "var(--color-bg)", color: "var(--color-text)" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "var(--color-bg)",
+          color: "var(--color-text)",
+        }}
+      >
         Loading CodeLens AI...
       </div>
     );

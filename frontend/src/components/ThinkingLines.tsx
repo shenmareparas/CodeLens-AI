@@ -65,7 +65,15 @@ export function ThinkingLines({ repoName }: ThinkingLinesProps) {
       </div>
 
       {/* Claude-like animated skeleton pulse lines */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", width: "100%", maxWidth: "340px" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.4rem",
+          width: "100%",
+          maxWidth: "340px",
+        }}
+      >
         <div
           style={{
             height: "9px",

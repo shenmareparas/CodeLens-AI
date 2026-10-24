@@ -19,7 +19,9 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
   const cleanCode = sanitizeMermaid(code);
   const cacheKey = `${resolvedTheme}:${cleanCode}`;
 
-  const [svgHtml, setSvgHtml] = useState<string>(() => svgRenderCache.get(cacheKey) || "");
+  const [svgHtml, setSvgHtml] = useState<string>(
+    () => svgRenderCache.get(cacheKey) || "",
+  );
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -47,6 +49,7 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
     try {
       mermaid.initialize({
         startOnLoad: false,
+        suppressErrorRendering: true,
         theme: isDark ? "dark" : "default",
         themeVariables: isDark
           ? {
@@ -84,12 +87,16 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
         })
         .catch((err) => {
           if (active && isMountedRef.current) {
-            setError(err instanceof Error ? err.message : "Failed to render flowchart");
+            setError(
+              err instanceof Error ? err.message : "Failed to render flowchart",
+            );
           }
         });
     } catch (e) {
       if (active && isMountedRef.current) {
-        setError(e instanceof Error ? e.message : "Mermaid initialization error");
+        setError(
+          e instanceof Error ? e.message : "Mermaid initialization error",
+        );
       }
     }
 
@@ -130,7 +137,13 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
           overflowX: "auto",
         }}
       >
-        <div style={{ color: "var(--color-warning)", marginBottom: "0.4rem", fontSize: "0.75rem" }}>
+        <div
+          style={{
+            color: "var(--color-warning)",
+            marginBottom: "0.4rem",
+            fontSize: "0.75rem",
+          }}
+        >
           ⚠️ Could not render flowchart (raw Mermaid source below):
         </div>
         <pre style={{ margin: 0, color: "var(--color-text)" }}>
@@ -167,7 +180,9 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
             color: "var(--color-text-muted)",
           }}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span
+            style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}
+          >
             <span>📊</span>
             <span>Flow Diagram</span>
           </span>
@@ -204,7 +219,9 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
                 background: "transparent",
                 border: "1px solid var(--color-border)",
                 borderRadius: "4px",
-                color: copied ? "var(--color-success)" : "var(--color-text-muted)",
+                color: copied
+                  ? "var(--color-success)"
+                  : "var(--color-text-muted)",
                 fontSize: "0.7rem",
                 cursor: "pointer",
                 transition: "var(--transition-fast)",
@@ -235,7 +252,13 @@ function InlineMermaidBlockComponent({ code }: InlineMermaidBlockProps) {
               }}
             />
           ) : (
-            <div style={{ color: "var(--color-text-muted)", fontSize: "0.75rem", fontStyle: "italic" }}>
+            <div
+              style={{
+                color: "var(--color-text-muted)",
+                fontSize: "0.75rem",
+                fontStyle: "italic",
+              }}
+            >
               Rendering flowchart...
             </div>
           )}

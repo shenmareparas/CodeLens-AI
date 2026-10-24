@@ -14,9 +14,23 @@ interface TelemetryBentoGridProps {
 export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
   const getCadenceColor = (status: string) => {
     const s = status.toLowerCase();
-    if (s.includes("healthy") || s.includes("active")) return { bg: "rgba(34, 197, 94, 0.15)", text: "#4ade80", border: "rgba(34, 197, 94, 0.3)" };
-    if (s.includes("stable")) return { bg: "rgba(245, 158, 11, 0.15)", text: "#fbbf24", border: "rgba(245, 158, 11, 0.3)" };
-    return { bg: "rgba(239, 68, 68, 0.15)", text: "#f87171", border: "rgba(239, 68, 68, 0.3)" };
+    if (s.includes("healthy") || s.includes("active"))
+      return {
+        bg: "rgba(34, 197, 94, 0.15)",
+        text: "#4ade80",
+        border: "rgba(34, 197, 94, 0.3)",
+      };
+    if (s.includes("stable"))
+      return {
+        bg: "rgba(245, 158, 11, 0.15)",
+        text: "#fbbf24",
+        border: "rgba(245, 158, 11, 0.3)",
+      };
+    return {
+      bg: "rgba(239, 68, 68, 0.15)",
+      text: "#f87171",
+      border: "rgba(239, 68, 68, 0.3)",
+    };
   };
 
   const cadenceStyle = getCadenceColor(telemetry.releaseStatus);
@@ -38,7 +52,14 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", width: "100%" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.5rem",
+        width: "100%",
+      }}
+    >
       {/* ── Top Metric Cards ──────────────────────────────────────────────── */}
       <div
         style={{
@@ -73,7 +94,13 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
             <span style={cardLabelStyle}>License</span>
             <span style={{ fontSize: "1.1rem" }}>⚖️</span>
           </div>
-          <div style={{ ...cardValueStyle, fontSize: "1.25rem", wordBreak: "break-word" }}>
+          <div
+            style={{
+              ...cardValueStyle,
+              fontSize: "1.25rem",
+              wordBreak: "break-word",
+            }}
+          >
             {telemetry.license || "None / Custom"}
           </div>
           <div style={cardSubtextStyle}>SPDX Identifier</div>
@@ -97,7 +124,9 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
               {telemetry.releaseStatus}
             </span>
           </div>
-          <div style={cardValueStyle}>{telemetry.daysSinceLastRelease}d ago</div>
+          <div style={cardValueStyle}>
+            {telemetry.daysSinceLastRelease}d ago
+          </div>
           <div style={cardSubtextStyle}>Since latest published release/tag</div>
         </div>
       </div>
@@ -119,10 +148,20 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.85rem" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              marginBottom: "0.85rem",
+            }}
+          >
             <span style={{ fontSize: "1.1rem" }}>⚡</span>
             <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>
-              Activity Pulse {telemetry.commitTimeline && telemetry.commitTimeline.length > 0 ? "(All-Time History)" : "(Recent Cadence)"}
+              Activity Pulse{" "}
+              {telemetry.commitTimeline && telemetry.commitTimeline.length > 0
+                ? "(All-Time History)"
+                : "(Recent Cadence)"}
             </h3>
           </div>
           <SparklineChart
@@ -145,19 +184,36 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
       <div
         style={{
           ...cardStyle,
-          borderColor: telemetry.secretAlerts.length > 0 ? "rgba(239, 68, 68, 0.3)" : "rgba(34, 197, 94, 0.25)",
+          borderColor:
+            telemetry.secretAlerts.length > 0
+              ? "rgba(239, 68, 68, 0.3)"
+              : "rgba(34, 197, 94, 0.25)",
           background:
             telemetry.secretAlerts.length > 0
               ? "rgba(239, 68, 68, 0.05)"
               : "rgba(34, 197, 94, 0.03)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            marginBottom: "0.5rem",
+          }}
+        >
           <span style={{ fontSize: "1.25rem" }}>
             {telemetry.secretAlerts.length > 0 ? "⚠️" : "🛡️"}
           </span>
           <div>
-            <h3 style={{ fontSize: "1rem", fontWeight: 600, color: telemetry.secretAlerts.length > 0 ? "#f87171" : "#4ade80" }}>
+            <h3
+              style={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                color:
+                  telemetry.secretAlerts.length > 0 ? "#f87171" : "#4ade80",
+              }}
+            >
               {telemetry.secretAlerts.length > 0
                 ? `${telemetry.secretAlerts.length} Sensitive Security Surface Alerts Detected`
                 : "0 Exposed Secrets Detected"}
@@ -171,7 +227,15 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
         </div>
 
         {telemetry.secretAlerts.length > 0 && (
-          <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.75rem" }}>
+          <ul
+            style={{
+              listStyle: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.4rem",
+              marginTop: "0.75rem",
+            }}
+          >
             {telemetry.secretAlerts.map((alert) => (
               <li
                 key={alert}
@@ -193,14 +257,28 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
 
       {/* ── Hotspot Heatmap Table ────────────────────────────────────────── */}
       <div style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: "1rem",
+          }}
+        >
           <div>
-            <h3 style={sectionHeadingStyle}>Complexity Heatmap & Top Bug Hotspots</h3>
+            <h3 style={sectionHeadingStyle}>
+              Complexity Heatmap & Top Bug Hotspots
+            </h3>
             <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-              Deterministic Risk Score: <code style={{ color: "var(--color-primary-light)" }}>RiskScore = Complexity × ln(Churn + 1)</code>
+              Deterministic Risk Score:{" "}
+              <code style={{ color: "var(--color-primary-light)" }}>
+                RiskScore = Complexity × ln(Churn + 1)
+              </code>
             </p>
           </div>
-          <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+          <span
+            style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}
+          >
             {telemetry.hotspots.length} files analyzed
           </span>
         </div>
@@ -220,14 +298,26 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
 
         {/* Dead Code Candidates */}
         <div style={cardStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h3 style={sectionHeadingStyle}>Candidate Dead Code & Zombie Symbols</h3>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.75rem",
+            }}
+          >
+            <h3 style={sectionHeadingStyle}>
+              Candidate Dead Code & Zombie Symbols
+            </h3>
             <span
               style={{
                 fontSize: "0.75rem",
                 padding: "0.15rem 0.5rem",
                 borderRadius: "99px",
-                background: telemetry.deadCode.length > 0 ? "rgba(245, 158, 11, 0.15)" : "rgba(34, 197, 94, 0.15)",
+                background:
+                  telemetry.deadCode.length > 0
+                    ? "rgba(245, 158, 11, 0.15)"
+                    : "rgba(34, 197, 94, 0.15)",
                 color: telemetry.deadCode.length > 0 ? "#fbbf24" : "#4ade80",
               }}
             >
@@ -236,11 +326,21 @@ export function TelemetryBentoGrid({ telemetry }: TelemetryBentoGridProps) {
           </div>
 
           {telemetry.deadCode.length === 0 ? (
-            <div style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+            <div
+              style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}
+            >
               No dead code candidates detected.
             </div>
           ) : (
-            <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <div
+              style={{
+                maxHeight: "280px",
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.4rem",
+              }}
+            >
               {telemetry.deadCode.map((dc) => (
                 <div
                   key={dc}

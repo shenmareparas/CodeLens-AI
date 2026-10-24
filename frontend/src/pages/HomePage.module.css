@@ -19,7 +19,9 @@
   z-index: 100;
   padding: 0 1.5rem;
   pointer-events: none;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.3s ease;
 }
 
 .nav {
@@ -37,7 +39,9 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); /* taste-skill-ignore: floating navbar overlay */
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .navScrolled {
@@ -107,7 +111,11 @@
   padding: 0.45rem 0.85rem;
   border-radius: 9999px;
   border: 1px solid transparent;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .navLink:hover {
@@ -179,7 +187,9 @@
   text-decoration: none !important;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .loginBtn span {
@@ -296,7 +306,10 @@
   color: var(--color-text);
   font-size: 0.8125rem;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .sampleRepoPill:hover {
@@ -355,7 +368,9 @@
   font-size: 1.05rem;
   font-weight: 600;
   text-decoration: none !important;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .primaryCta span {
@@ -393,7 +408,10 @@
   font-size: 1.05rem;
   font-weight: 500;
   text-decoration: none !important;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .secondaryCta span {
@@ -498,9 +516,15 @@
   border-radius: 50%;
 }
 
-.mockDotRed { background: #ef4444; }
-.mockDotYellow { background: #f59e0b; }
-.mockDotGreen { background: #10b981; }
+.mockDotRed {
+  background: #ef4444;
+}
+.mockDotYellow {
+  background: #f59e0b;
+}
+.mockDotGreen {
+  background: #10b981;
+}
 
 .mockAddressBar {
   display: flex;
@@ -562,7 +586,9 @@
   font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
   white-space: nowrap;
 }
 
@@ -1241,7 +1267,10 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .pipelineCard:hover {
@@ -1266,7 +1295,9 @@
   align-items: center;
   color: var(--color-primary-light, #fbbf24);
   opacity: 0.92;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .pipelineCard:hover .pipelineIcon {
@@ -1366,7 +1397,9 @@
   padding: 2.25rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .bentoCard:hover {
@@ -1422,7 +1455,9 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 1.75rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .ecosystemCard:hover {
@@ -2148,18 +2183,21 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(245, 158, 11, 0.35);
     color: #f59e0b;
-    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 12px -2px rgba(245, 158, 11, 0.25); /* taste-skill-ignore: floating action button */
+    box-shadow:
+      0 8px 24px -4px rgba(0, 0, 0, 0.6),
+      0 0 12px -2px rgba(245, 158, 11, 0.25); /* taste-skill-ignore: floating action button */
     cursor: pointer;
     z-index: 90;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transform: translateY(14px) scale(0.9);
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                visibility 0.25s,
-                background-color 0.2s ease,
-                border-color 0.2s ease;
+    transition:
+      opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0.25s,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
@@ -2185,7 +2223,9 @@
     background: rgba(255, 255, 255, 0.94);
     border-color: rgba(180, 83, 9, 0.35);
     color: #b45309;
-    box-shadow: 0 8px 20px -4px rgba(180, 83, 9, 0.22), 0 2px 8px -2px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: floating action button */
+    box-shadow:
+      0 8px 20px -4px rgba(180, 83, 9, 0.22),
+      0 2px 8px -2px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: floating action button */
   }
 
   [data-theme="light"] .scrollToTopBtn:active {

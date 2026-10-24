@@ -24,8 +24,13 @@ export function LanguageDistributionCard({
   const primaryLang = entries[0] ? entries[0][0] : null;
   const primaryPct = entries[0] ? entries[0][1] : 0;
   const activeLang = hoveredLang || primaryLang;
-  const activePct = activeLang && languages[activeLang] !== undefined ? languages[activeLang] : 0;
-  const activeColor = activeLang ? languageColors[activeLang] || "#f59e0b" : "#f59e0b";
+  const activePct =
+    activeLang && languages[activeLang] !== undefined
+      ? languages[activeLang]
+      : 0;
+  const activeColor = activeLang
+    ? languageColors[activeLang] || "#f59e0b"
+    : "#f59e0b";
 
   // SVG Circular Donut geometry
   // Radius = 58, Circumference = 2 * PI * 58 = 364.425
@@ -66,9 +71,13 @@ export function LanguageDistributionCard({
             marginBottom: "0.85rem",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}
+          >
             <span style={{ fontSize: "1.1rem" }}>🌐</span>
-            <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>Language Distribution</h3>
+            <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>
+              Language Distribution
+            </h3>
           </div>
 
           {entries.length > 0 && (
@@ -91,8 +100,10 @@ export function LanguageDistributionCard({
                   padding: "0.22rem 0.6rem",
                   borderRadius: "4px",
                   border: "none",
-                  background: viewMode === "bar" ? "var(--color-primary)" : "transparent",
-                  color: viewMode === "bar" ? "#ffffff" : "var(--color-text-muted)",
+                  background:
+                    viewMode === "bar" ? "var(--color-primary)" : "transparent",
+                  color:
+                    viewMode === "bar" ? "#ffffff" : "var(--color-text-muted)",
                   fontSize: "0.74rem",
                   cursor: "pointer",
                   display: "flex",
@@ -113,8 +124,14 @@ export function LanguageDistributionCard({
                   padding: "0.22rem 0.6rem",
                   borderRadius: "4px",
                   border: "none",
-                  background: viewMode === "donut" ? "var(--color-primary)" : "transparent",
-                  color: viewMode === "donut" ? "#ffffff" : "var(--color-text-muted)",
+                  background:
+                    viewMode === "donut"
+                      ? "var(--color-primary)"
+                      : "transparent",
+                  color:
+                    viewMode === "donut"
+                      ? "#ffffff"
+                      : "var(--color-text-muted)",
                   fontSize: "0.74rem",
                   cursor: "pointer",
                   display: "flex",
@@ -143,7 +160,9 @@ export function LanguageDistributionCard({
             No language files detected in this repository.
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
             {/* ── Active / Dominant Focus Banner ─────────────────────────────── */}
             <div
               style={{
@@ -156,7 +175,9 @@ export function LanguageDistributionCard({
                 border: "1px solid var(--color-border-subtle)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}
+              >
                 <span
                   style={{
                     width: "10px",
@@ -167,8 +188,20 @@ export function LanguageDistributionCard({
                   }}
                 />
                 <div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
-                    <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text)" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "0.95rem",
+                        color: "var(--color-text)",
+                      }}
+                    >
                       {activeLang}
                     </span>
                     {hoveredLang ? (
@@ -197,7 +230,13 @@ export function LanguageDistributionCard({
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--color-text-muted)",
+                      marginTop: "0.1rem",
+                    }}
+                  >
                     {activeLang === primaryLang
                       ? `Makes up the majority codebase volume`
                       : `Secondary language in active use`}
@@ -217,7 +256,13 @@ export function LanguageDistributionCard({
                 >
                   {activePct}%
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+                <div
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-text-muted)",
+                    marginTop: "0.2rem",
+                  }}
+                >
                   of total source bytes
                 </div>
               </div>
@@ -225,7 +270,13 @@ export function LanguageDistributionCard({
 
             {/* ── View Mode: Stacked Bar & Progress Breakdown ─────────────────── */}
             {viewMode === "bar" ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.85rem",
+                }}
+              >
                 {/* Visual Multi-Segment Bar */}
                 <div>
                   <div
@@ -257,7 +308,8 @@ export function LanguageDistributionCard({
                             borderRadius: "4px",
                             opacity: hoveredLang && !isHovered ? 0.35 : 1,
                             transform: isHovered ? "scaleY(1.15)" : "scaleY(1)",
-                            transition: "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+                            transition:
+                              "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
                             cursor: "pointer",
                           }}
                         />
@@ -267,7 +319,13 @@ export function LanguageDistributionCard({
                 </div>
 
                 {/* Individual Language Progress Rows filling available space */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.55rem",
+                  }}
+                >
                   {entries.map(([lang, pct]) => {
                     const isHovered = hoveredLang === lang;
                     const color = languageColors[lang] || "#f59e0b";
@@ -282,15 +340,31 @@ export function LanguageDistributionCard({
                           gap: "0.25rem",
                           padding: "0.35rem 0.55rem",
                           borderRadius: "var(--radius-sm)",
-                          background: isHovered ? "var(--color-surface-hover)" : "transparent",
+                          background: isHovered
+                            ? "var(--color-surface-hover)"
+                            : "transparent",
                           border: "1px solid",
-                          borderColor: isHovered ? "var(--color-border)" : "transparent",
+                          borderColor: isHovered
+                            ? "var(--color-border)"
+                            : "transparent",
                           transition: "all 0.15s ease",
                           cursor: "pointer",
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.45rem",
+                            }}
+                          >
                             <span
                               style={{
                                 width: "8px",
@@ -315,7 +389,9 @@ export function LanguageDistributionCard({
                               fontSize: "0.78rem",
                               fontFamily: "var(--font-mono)",
                               fontWeight: 600,
-                              color: isHovered ? color : "var(--color-text-muted)",
+                              color: isHovered
+                                ? color
+                                : "var(--color-text-muted)",
                             }}
                           >
                             {pct}%
@@ -359,7 +435,14 @@ export function LanguageDistributionCard({
                 }}
               >
                 {/* SVG Donut Chart */}
-                <div style={{ position: "relative", width: "140px", height: "140px", margin: "0 auto" }}>
+                <div
+                  style={{
+                    position: "relative",
+                    width: "140px",
+                    height: "140px",
+                    margin: "0 auto",
+                  }}
+                >
                   <svg
                     viewBox="0 0 140 140"
                     style={{
@@ -400,7 +483,8 @@ export function LanguageDistributionCard({
                           onMouseLeave={() => setHoveredLang(null)}
                           style={{
                             cursor: "pointer",
-                            transition: "stroke-width 0.18s ease, opacity 0.18s ease",
+                            transition:
+                              "stroke-width 0.18s ease, opacity 0.18s ease",
                           }}
                         >
                           <title>{`${seg.lang}: ${seg.pct}%`}</title>
@@ -451,7 +535,13 @@ export function LanguageDistributionCard({
                 </div>
 
                 {/* Right-hand side legend list in circular mode */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.4rem",
+                  }}
+                >
                   {entries.map(([lang, pct]) => {
                     const isHovered = hoveredLang === lang;
                     const color = languageColors[lang] || "#f59e0b";
@@ -461,22 +551,35 @@ export function LanguageDistributionCard({
                         type="button"
                         onMouseEnter={() => setHoveredLang(lang)}
                         onMouseLeave={() => setHoveredLang(null)}
-                        onClick={() => setHoveredLang(hoveredLang === lang ? null : lang)}
+                        onClick={() =>
+                          setHoveredLang(hoveredLang === lang ? null : lang)
+                        }
                         style={{
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "0.35rem 0.6rem",
                           borderRadius: "var(--radius-sm)",
-                          background: isHovered ? "var(--color-surface-hover)" : "var(--color-badge-bg)",
+                          background: isHovered
+                            ? "var(--color-surface-hover)"
+                            : "var(--color-badge-bg)",
                           border: "1px solid",
-                          borderColor: isHovered ? color : "var(--color-border-subtle)",
+                          borderColor: isHovered
+                            ? color
+                            : "var(--color-border-subtle)",
                           cursor: "pointer",
                           transition: "var(--transition-fast)",
                           textAlign: "left",
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", overflow: "hidden" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.45rem",
+                            overflow: "hidden",
+                          }}
+                        >
                           <span
                             style={{
                               width: "8px",
@@ -504,7 +607,9 @@ export function LanguageDistributionCard({
                             fontSize: "0.75rem",
                             fontFamily: "var(--font-mono)",
                             fontWeight: 600,
-                            color: isHovered ? color : "var(--color-text-muted)",
+                            color: isHovered
+                              ? color
+                              : "var(--color-text-muted)",
                             marginLeft: "0.5rem",
                           }}
                         >
@@ -535,9 +640,12 @@ export function LanguageDistributionCard({
           }}
         >
           <span>
-            {entries.length} {entries.length === 1 ? "language" : "languages"} detected
+            {entries.length} {entries.length === 1 ? "language" : "languages"}{" "}
+            detected
           </span>
-          <span>{primaryLang ? `Primary: ${primaryLang} (${primaryPct}%)` : ""}</span>
+          <span>
+            {primaryLang ? `Primary: ${primaryLang} (${primaryPct}%)` : ""}
+          </span>
         </div>
       )}
     </div>

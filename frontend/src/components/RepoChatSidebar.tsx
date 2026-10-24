@@ -81,8 +81,12 @@ const ChatMessageItem = memo(
           style={{
             padding: isUser ? "0.65rem 0.95rem" : "0.85rem 1.1rem",
             borderRadius: "var(--radius-md)",
-            background: isUser ? "var(--color-chat-bubble-user)" : "var(--color-chat-bubble-assistant)",
-            border: isUser ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+            background: isUser
+              ? "var(--color-chat-bubble-user)"
+              : "var(--color-chat-bubble-assistant)",
+            border: isUser
+              ? "1px solid var(--color-primary)"
+              : "1px solid var(--color-border)",
             color: isUser ? "#ffffff" : "var(--color-text)",
             fontSize: "0.85rem",
             lineHeight: "1.6",
@@ -97,42 +101,78 @@ const ChatMessageItem = memo(
               components={{
                 h1: ({ ...props }) => (
                   <h1
-                    style={{ fontSize: "1.1rem", fontWeight: 700, margin: "0.6rem 0 0.3rem", color: "var(--color-text)" }}
+                    style={{
+                      fontSize: "1.1rem",
+                      fontWeight: 700,
+                      margin: "0.6rem 0 0.3rem",
+                      color: "var(--color-text)",
+                    }}
                     {...props}
                   />
                 ),
                 h2: ({ ...props }) => (
                   <h2
-                    style={{ fontSize: "0.98rem", fontWeight: 600, margin: "0.5rem 0 0.25rem", color: "var(--color-text)" }}
+                    style={{
+                      fontSize: "0.98rem",
+                      fontWeight: 600,
+                      margin: "0.5rem 0 0.25rem",
+                      color: "var(--color-text)",
+                    }}
                     {...props}
                   />
                 ),
                 h3: ({ ...props }) => (
                   <h3
-                    style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0.4rem 0 0.2rem", color: "var(--color-primary)" }}
+                    style={{
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                      margin: "0.4rem 0 0.2rem",
+                      color: "var(--color-primary)",
+                    }}
                     {...props}
                   />
                 ),
                 p: ({ ...props }) => (
-                  <p style={{ margin: "0 0 0.5rem 0", color: "inherit", lineHeight: "1.6" }} {...props} />
+                  <p
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      color: "inherit",
+                      lineHeight: "1.6",
+                    }}
+                    {...props}
+                  />
                 ),
                 ul: ({ ...props }) => (
-                  <ul style={{ margin: "0.3rem 0 0.5rem 1.1rem", padding: 0 }} {...props} />
+                  <ul
+                    style={{ margin: "0.3rem 0 0.5rem 1.1rem", padding: 0 }}
+                    {...props}
+                  />
                 ),
                 ol: ({ ...props }) => (
-                  <ol style={{ margin: "0.3rem 0 0.5rem 1.1rem", padding: 0 }} {...props} />
+                  <ol
+                    style={{ margin: "0.3rem 0 0.5rem 1.1rem", padding: 0 }}
+                    {...props}
+                  />
                 ),
                 li: ({ ...props }) => (
                   <li style={{ margin: "0.15rem 0" }} {...props} />
                 ),
                 hr: () => (
-                  <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "0.8rem 0" }} />
+                  <hr
+                    style={{
+                      border: "none",
+                      borderTop: "1px solid var(--color-border)",
+                      margin: "0.8rem 0",
+                    }}
+                  />
                 ),
                 code: ({ className, children, ...props }) => {
                   const isInline = !className;
                   const rawCode = String(children).replace(/\n$/, "");
                   const matchLanguage = /language-(\w+)/.exec(className || "");
-                  const lang = matchLanguage ? matchLanguage[1].toLowerCase() : "";
+                  const lang = matchLanguage
+                    ? matchLanguage[1].toLowerCase()
+                    : "";
 
                   const isMermaid =
                     lang === "mermaid" ||
@@ -209,7 +249,13 @@ const ChatMessageItem = memo(
     prev.repoName === next.repoName,
 );
 
-export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClose }: RepoChatSidebarProps) {
+export function RepoChatSidebar({
+  auditId,
+  backendToken,
+  repoName,
+  isOpen,
+  onClose,
+}: RepoChatSidebarProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(`codelens-chat-${auditId}`);
@@ -273,7 +319,10 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
   // Persist messages to localStorage on change
   useEffect(() => {
     try {
-      localStorage.setItem(`codelens-chat-${auditId}`, JSON.stringify(messages));
+      localStorage.setItem(
+        `codelens-chat-${auditId}`,
+        JSON.stringify(messages),
+      );
     } catch {
       // Ignore quota errors
     }
@@ -328,7 +377,10 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
     setInput("");
 
     const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const formattedTime = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     const userMessage: ChatMessage = {
       id: `user-${crypto.randomUUID()}`,
@@ -372,7 +424,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
         activeStreamControllerRef.current = null;
       },
       (retryAfter) => {
-        const cooldown = (retryAfter && retryAfter > 0 ? retryAfter : 60) * 1000;
+        const cooldown =
+          (retryAfter && retryAfter > 0 ? retryAfter : 60) * 1000;
         setRateLimitUntil(Date.now() + cooldown);
       },
     );
@@ -404,10 +457,18 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ fontSize: "1.1rem" }}>🤖</span>
           <div>
-            <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-text)" }}>
+            <div
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: "var(--color-text)",
+              }}
+            >
               Repo AI
             </div>
-            <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}>
+            <div
+              style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}
+            >
               Grounded strictly in {repoName} dossier
             </div>
           </div>
@@ -427,7 +488,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
                 gap: "0.3rem",
               }}
             >
-              <span style={{ animation: "pulse 1.5s infinite" }}>●</span> Streaming
+              <span style={{ animation: "pulse 1.5s infinite" }}>●</span>{" "}
+              Streaming
             </span>
           )}
 
@@ -507,25 +569,42 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
             animation: "fadeIn 0.2s ease-out",
           }}
         >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+          <div
+            style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}
+          >
             <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>⚠️</span>
             <div>
               <div
                 id="clear-chat-title"
-                style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-text)" }}
+                style={{
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  color: "var(--color-text)",
+                }}
               >
                 Clear entire conversation?
               </div>
               <div
                 id="clear-chat-desc"
-                style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.15rem" }}
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--color-text-muted)",
+                  marginTop: "0.15rem",
+                }}
               >
-                This will delete all saved chat messages for this repository. This action cannot be undone.
+                This will delete all saved chat messages for this repository.
+                This action cannot be undone.
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              justifyContent: "flex-end",
+            }}
+          >
             <button
               type="button"
               disabled={isClearing}
@@ -575,7 +654,8 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
           aria-live="polite"
           style={{
             padding: "0.75rem 1.15rem",
-            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)",
             borderBottom: "1px solid rgba(245, 158, 11, 0.35)",
             display: "flex",
             alignItems: "center",
@@ -584,10 +664,32 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
             animation: "fadeIn 0.25s ease-out",
           }}
         >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", flex: 1 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "0.6rem",
+              flex: 1,
+            }}
+          >
             <span style={{ fontSize: "1.1rem", lineHeight: 1.2 }}>⏳</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
-              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f59e0b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.15rem",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  color: "#f59e0b",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                }}
+              >
                 <span>Gemini API Quota Exhausted</span>
                 <span
                   style={{
@@ -603,8 +705,15 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
                   Free Tier (15 RPM)
                 </span>
               </div>
-              <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>
-                Rate limit reached. Answers are actively answered by the local AST grounded engine.
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-muted)",
+                  lineHeight: 1.4,
+                }}
+              >
+                Rate limit reached. Answers are actively answered by the local
+                AST grounded engine.
               </div>
             </div>
           </div>
@@ -618,7 +727,14 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
                 fontFamily: "var(--font-mono, monospace)",
               }}
             >
-              <span style={{ fontSize: "0.62rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  color: "var(--color-text-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
                 Resets in
               </span>
               <span
@@ -677,12 +793,27 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
           >
             <div>
               Ask any architectural or onboarding questions about{" "}
-              <strong style={{ color: "var(--color-text)" }}>{repoName}</strong>. Answers are grounded in AST telemetry and dossier facts.
+              <strong style={{ color: "var(--color-text)" }}>{repoName}</strong>
+              . Answers are grounded in AST telemetry and dossier facts.
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem", marginTop: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.85rem",
+                marginTop: "0.5rem",
+              }}
+            >
               {SUGGESTED_PROMPT_GROUPS.map((group) => (
-                <div key={group.category} style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                <div
+                  key={group.category}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.35rem",
+                  }}
+                >
                   <span
                     style={{
                       fontSize: "0.72rem",
@@ -695,7 +826,13 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
                   >
                     {group.category}
                   </span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.35rem",
+                    }}
+                  >
                     {group.prompts.map((question) => (
                       <button
                         key={question}
@@ -717,15 +854,21 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
                           lineHeight: "1.4",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "var(--color-surface-hover)";
-                          e.currentTarget.style.borderColor = "var(--color-primary)";
+                          e.currentTarget.style.background =
+                            "var(--color-surface-hover)";
+                          e.currentTarget.style.borderColor =
+                            "var(--color-primary)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "var(--color-surface)";
-                          e.currentTarget.style.borderColor = "var(--color-border)";
+                          e.currentTarget.style.background =
+                            "var(--color-surface)";
+                          e.currentTarget.style.borderColor =
+                            "var(--color-border)";
                         }}
                       >
-                        <span style={{ color: "var(--color-primary)" }}>💬</span>
+                        <span style={{ color: "var(--color-primary)" }}>
+                          💬
+                        </span>
                         <span>{question}</span>
                       </button>
                     ))}
@@ -796,8 +939,14 @@ export function RepoChatSidebar({ auditId, backendToken, repoName, isOpen, onClo
           style={{
             padding: "0.6rem 1rem",
             borderRadius: "var(--radius-sm)",
-            background: isStreaming || !input.trim() ? "var(--color-surface-hover)" : "var(--color-primary)",
-            color: isStreaming || !input.trim() ? "var(--color-text-muted)" : "#ffffff",
+            background:
+              isStreaming || !input.trim()
+                ? "var(--color-surface-hover)"
+                : "var(--color-primary)",
+            color:
+              isStreaming || !input.trim()
+                ? "var(--color-text-muted)"
+                : "#ffffff",
             border: "none",
             fontWeight: 600,
             cursor: isStreaming || !input.trim() ? "not-allowed" : "pointer",

@@ -15,13 +15,15 @@ export const ANALYSIS_STEPS: readonly AnalysisStep[] = [
   {
     id: "telemetry",
     label: "Streaming In-Memory Zipball & Telemetry",
-    detail: "Streaming GitHub repo stream into memory & fetching commit history...",
+    detail:
+      "Streaming GitHub repo stream into memory & fetching commit history...",
     icon: "📦",
   },
   {
     id: "ast",
     label: "AST & Polyglot Complexity Analysis",
-    detail: "Parsing symbols, calculating cyclomatic hotspots & detecting dead code...",
+    detail:
+      "Parsing symbols, calculating cyclomatic hotspots & detecting dead code...",
     icon: "🔬",
   },
   {

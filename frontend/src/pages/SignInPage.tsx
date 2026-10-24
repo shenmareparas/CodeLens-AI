@@ -105,10 +105,10 @@ export function SignInPage() {
         {/* Credentials Form (keyed by activeTab to clear validation errors and transient inputs on tab switch) */}
         <CredentialsForm key={activeTab} activeTab={activeTab} />
 
-
         {/* Legal & privacy guarantee */}
         <p className={styles.legal}>
-          By continuing, you agree to our terms of service and private code analysis policy.
+          By continuing, you agree to our terms of service and private code
+          analysis policy.
         </p>
       </div>
     </div>

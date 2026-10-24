@@ -6,7 +6,10 @@ interface AnalysisProgressBarProps {
   isForceRefresh?: boolean;
 }
 
-export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: AnalysisProgressBarProps) {
+export function AnalysisProgressBar({
+  isLoading,
+  isForceRefresh = false,
+}: AnalysisProgressBarProps) {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [percent, setPercent] = useState(12);
 
@@ -173,7 +176,8 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
           style={{
             height: "100%",
             width: `${percent}%`,
-            background: "linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)",
+            background:
+              "linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)",
             borderRadius: "999px",
             transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             position: "relative",
@@ -230,7 +234,9 @@ export function AnalysisProgressBar({ isLoading, isForceRefresh = false }: Analy
                       ? "var(--color-primary-light)"
                       : "rgba(255, 255, 255, 0.1)",
                   transition: "background 0.3s ease",
-                  boxShadow: isCurrent ? "0 0 6px var(--color-primary-light)" : "none",
+                  boxShadow: isCurrent
+                    ? "0 0 6px var(--color-primary-light)"
+                    : "none",
                 }}
               />
               <span

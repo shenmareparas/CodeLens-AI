@@ -25,15 +25,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window === "undefined") return "system";
     const saved = localStorage.getItem("codelens-theme") as ThemeMode | null;
-    return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    return saved === "light" || saved === "dark" || saved === "system"
+      ? saved
+      : "system";
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
     if (typeof window === "undefined") return "dark";
     const saved = localStorage.getItem("codelens-theme") as ThemeMode | null;
-    const mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    const mode =
+      saved === "light" || saved === "dark" || saved === "system"
+        ? saved
+        : "system";
     if (mode === "system") {
-      return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      return window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
     }
     return mode;
   });
@@ -42,7 +49,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const effective: ResolvedTheme =
       theme === "system"
-        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        ? window.matchMedia("(prefers-color-scheme: light)").matches
+          ? "light"
+          : "dark"
         : theme;
     setResolvedTheme(effective);
     document.documentElement.setAttribute("data-theme", effective);
@@ -73,7 +82,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState((current) => {
       const effectiveTheme =
         current === "system"
-          ? (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+          ? typeof window !== "undefined" &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark"
           : current;
       return effectiveTheme === "dark" ? "light" : "dark";
     });
@@ -83,7 +95,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = React.useMemo(
     () => ({ theme, resolvedTheme, setTheme, toggleTheme, cycleTheme }),
-    [theme, resolvedTheme, setTheme, toggleTheme, cycleTheme]
+    [theme, resolvedTheme, setTheme, toggleTheme, cycleTheme],
   );
 
   return (

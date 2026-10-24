@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.Google;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -60,7 +61,11 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                         CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck
                     }
                 };
-                var httpClient = new HttpClient(handler);
+                var timeoutSeconds = _options.TimeoutSeconds > 0 ? _options.TimeoutSeconds : 30;
+                var httpClient = new HttpClient(handler)
+                {
+                    Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+                };
 
                 var builder = Kernel.CreateBuilder();
                 var modelId = string.IsNullOrWhiteSpace(_options.ModelId) ? "gemini-3.8-flash" : _options.ModelId;
@@ -68,7 +73,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
 
                 _kernel = builder.Build();
                 _chatService = _kernel.GetRequiredService<IChatCompletionService>();
-                _logger.LogInformation("Semantic Kernel Gemini connector initialized successfully with model {ModelId}", modelId);
+                _logger.LogInformation("Semantic Kernel Gemini connector initialized successfully with model {ModelId} (Timeout: {TimeoutSeconds}s)", modelId, timeoutSeconds);
             }
             catch (Exception ex)
             {
@@ -108,7 +113,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
             {
               "eli5Summary": "2-4 sentences explaining what the repository is, its main problem domain, and core mechanics in clear English.",
               "licenseVerdict": "Commercial usability analysis of the license (e.g. permissive, copyleft, dual-licensing, or proprietary risks).",
-              "mermaidDiagram": "A valid Mermaid.js flowchart (starting with flowchart TD) illustrating the system architecture, major components, and data flow. All node labels MUST be quoted in square brackets, e.g. Node[\"Label\"].",
+              "mermaidDiagram": "A valid Mermaid.js flowchart (starting with flowchart TD) illustrating system architecture. Every single node label MUST be strictly on one line and quoted in square brackets, e.g. Node[\"Label\"]. Never leave an unclosed bracket or break a node definition across multiple lines.",
               "codeSmells": "3-5 bullet points analyzing architectural bottlenecks, high complexity churn hotspots, or potential anti-patterns based on telemetry.",
               "onboardingRunbook": "A step-by-step 3-5 item Day-1 developer onboarding runbook (prerequisites, setup commands, core entrypoints, testing instructions)."
             }
@@ -120,6 +125,8 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
             chatHistory.AddSystemMessage(systemPrompt);
             chatHistory.AddUserMessage(userPrompt);
 
+            var executionSettings = CreateExecutionSettings();
+
             // Attempt with exponential backoff on 429 rate limit
             ChatMessageContent? response = null;
             const int maxRetries = 3;
@@ -129,6 +136,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                 {
                     response = await _chatService.GetChatMessageContentAsync(
                         chatHistory,
+                        executionSettings,
                         cancellationToken: ct);
                     break;
                 }
@@ -137,6 +145,18 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                     var delaySeconds = Math.Pow(2, attempt); // 2s, 4s
                     _logger.LogWarning("Gemini rate limit (429) encountered on attempt {Attempt}/{MaxRetries}. Retrying in {Delay}s...", attempt, maxRetries, delaySeconds);
                     await Task.Delay(TimeSpan.FromSeconds(delaySeconds), ct);
+                }
+                catch (HttpOperationException httpEx) when (httpEx.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
+                                                            httpEx.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)
+                {
+                    _logger.LogWarning("Gemini service is currently unavailable ({StatusCode}) due to high upstream demand. Falling back to deterministic synthesis immediately.", httpEx.StatusCode);
+                    break;
+                }
+                catch (TaskCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    var timeoutSec = _options.TimeoutSeconds > 0 ? _options.TimeoutSeconds : 30;
+                    _logger.LogWarning("Gemini synthesis request timed out after {Timeout}s. Falling back to deterministic synthesis immediately.", timeoutSec);
+                    break;
                 }
             }
 
@@ -200,11 +220,13 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
 
             history.AddUserMessage(userMessage);
 
+            var executionSettings = CreateExecutionSettings();
             IAsyncEnumerable<StreamingChatMessageContent>? stream = null;
             try
             {
                 stream = _chatService.GetStreamingChatMessageContentsAsync(
                     history,
+                    executionSettings,
                     cancellationToken: ct);
             }
             catch (Exception ex)
@@ -278,6 +300,19 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
             yield return chunk;
             await Task.Delay(30, ct);
         }
+    }
+
+    private GeminiPromptExecutionSettings CreateExecutionSettings()
+    {
+        return new GeminiPromptExecutionSettings
+        {
+            Temperature = _options.Temperature,
+            MaxTokens = _options.MaxTokens,
+            ThinkingConfig = new GeminiThinkingConfig
+            {
+                ThinkingLevel = string.IsNullOrWhiteSpace(_options.ThinkingLevel) ? "low" : _options.ThinkingLevel
+            }
+        };
     }
 
     private static string BuildUserPrompt(string owner, string repo, TelemetryData telemetry)

@@ -8,14 +8,14 @@
 ## 🌟 Highlights & Capabilities
 
 - 🌐 **GSAP-Powered Modern Landing Page:** Immersive product showcase at `/` built with official GSAP primitives (`useGSAP`, `ScrollTrigger`, `matchMedia` reduced-motion safety). Features an interactive macOS sandbox window with live demo repository switching across 4 polyglot repos, The Zero-Clone Engine architecture console, a uniform 3×2 bento capabilities grid, official Simple Icons vector brand logos, and a single-unit dimension comparison table.
-- 🎯 **Centered Viewport Hero (Section 1):** Full-height `100dvh` centered viewport layout (`display: flex; justify-content: center; align-items: center`) providing optical balance beneath the fixed floating navbar, accompanied by live emerald pulse status, responsive headline typography, and a secondary smooth-scroll CTA (*See How It Works*).
-- 🛸 **Floating Island Navigation & Silky Smooth Scrolling:** Centered, fixed floating pill navbar with glassmorphic backdrop blur (`backdrop-filter: blur(20px) saturate(190%)`), dynamic scroll elevation border glow, and unboxed navigation links. Primary navigation links (*Live Demo*, *Architecture*, *Capabilities*, *Ecosystems*, *Why CodeLens*) match the natural sequential flow of the page, accompanied by an unadorned Sign In action pill. Implements hardware-accelerated smooth section scrolling via `scroll-behavior: smooth` in `globals.css` and JavaScript `scrollIntoView({ behavior: "smooth" })`, locking seamlessly onto each full-screen section without title clipping.
+- 🎯 **Centered Viewport Hero (Section 1):** Full-height `100dvh` centered viewport layout (`display: flex; justify-content: center; align-items: center`) providing optical balance beneath the fixed floating navbar, accompanied by live emerald pulse status, responsive headline typography, and a secondary smooth-scroll CTA (_See How It Works_).
+- 🛸 **Floating Island Navigation & Silky Smooth Scrolling:** Centered, fixed floating pill navbar with glassmorphic backdrop blur (`backdrop-filter: blur(20px) saturate(190%)`), dynamic scroll elevation border glow, and unboxed navigation links. Primary navigation links (_Live Demo_, _Architecture_, _Capabilities_, _Ecosystems_, _Why CodeLens_) match the natural sequential flow of the page, accompanied by an unadorned Sign In action pill. Implements hardware-accelerated smooth section scrolling via `scroll-behavior: smooth` in `globals.css` and JavaScript `scrollIntoView({ behavior: "smooth" })`, locking seamlessly onto each full-screen section without title clipping.
 - ⚡ **The Zero-Clone Engine Architecture (`IngestionPipelineSection.tsx`):** Anti-slop, developer-grade architecture presentation strictly adhering to `@design-taste-frontend`. Eliminates decorative index numbering (`01/02/03`), fake status dots, card drop shadows, top color accent bars, and flow arrows. Features bare vector SVG icons alongside real runtime engine specs (`System.IO.ZipArchive`, `Roslyn AST + Multi-Manifest`, `Complexity × ln(Churn + 1)`, `Gemini 3.8 Flash + SK`), tangible engine artifact chips (`<code>System.IO.ZipArchive</code>`, `<code>AST Symbol Manifest</code>`, etc.), and deterministic performance metric pills (`0 MB Disk Footprint`, `Sub-Second Traversal`, etc.) inside a flat console marked `data-ui="true"`.
 - 📐 **Symmetrical 3×2 Capability Bento Grid:** Standardized single-column geometry across all 6 core capability cards—including Deterministic Cyclomatic Hotspots—eliminating awkward spans and maintaining visual harmony across dark and light themes.
 - 📊 **Unified Comparison Table Reveal (`ComparisonSection.tsx`):** Dimension-by-dimension comparison table comparing legacy manual audits against CodeLens AI, designed to reveal smoothly as a single cohesive unit on scroll, eliminating disruptive line-by-line staggered entry.
 - 📏 **Full-Screen Viewport Stages (`min-height: 100dvh`):** Every landing page section commands its own dedicated, vertically centered full-screen stage (`min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;`) with `padding: 6rem 1.5rem 3.5rem` providing clear breathing room beneath the fixed floating navbar.
 - 🎨 **Official CodeLens Brand Favicon & Visual Identity:** High-resolution SVG favicon (`/favicon.svg`) featuring an architectural amber-to-bronze gradient squircle (`#f59e0b` → `#b45309`) with internal border highlight, drop-shadow depth, and code lens crosshair glyph, crisp on both dark and light browser tabs and mobile bookmarks.
-- 🌓 **Streamlined Icon-Only Theme Toggle & Floating Tooltip:** Seamless toggling between Dark (Moon) and Light (Sun) modes with `system` OS color scheme defaulting (`prefers-color-scheme`). Features a circular 36px icon-only button and an accessible floating glassmorphic tooltip with triangular pointer arrow indicating *"Switch to light mode"* / *"Switch to dark mode"*.
+- 🌓 **Streamlined Icon-Only Theme Toggle & Floating Tooltip:** Seamless toggling between Dark (Moon) and Light (Sun) modes with `system` OS color scheme defaulting (`prefers-color-scheme`). Features a circular 36px icon-only button and an accessible floating glassmorphic tooltip with triangular pointer arrow indicating _"Switch to light mode"_ / _"Switch to dark mode"_.
 - 🚫 **Resilient 404 Not Found Handling & Azure SWA Rewrites:** Dedicated, theme-aware 404 page at unknown paths featuring glassmorphic error card, contextual redirect to dashboard or home, browser back action, and quick navigation links, reinforced by Azure Static Web Apps `staticwebapp.config.json` navigation fallback.
 - 🎨 **State-of-the-Art Typography & Aesthetics:** Curated Google Fonts typography stack featuring **Plus Jakarta Sans** for prominent headings, **Inter** for readable body content, and **JetBrains Mono** for AST metrics, code tokens, and file paths.
 - 👤 **Modern Profile Avatar & Authenticated Header:** Dashboard header featuring user initials/avatar pill, user email, and an interactive danger-accented signout action with smooth transitions.
@@ -23,7 +23,8 @@
 - 🌐 **Enhanced Language Distribution:** Interactive distribution card with dual visualization modes—compact multi-segment progress bar with proportional rows in Bar mode, and an expanded two-column Donut + Legend layout in Circular mode.
 - 🔥 **Complexity Heatmaps:** Computes cyclomatic complexity and cross-references git churn to identify high-risk bug hotspots (automatically ignoring `.agents/` and configuration tooling).
 - 📦 **Polyglot Dependency Intelligence:** Parses Bun (`bun.lock`), Node.js (`package.json`), Dart/Flutter (`pubspec.yaml`), .NET (`.csproj`), Python (`requirements.txt`), Go (`go.mod`), and Rust (`Cargo.toml`) with interactive real-time ecosystem filtering and search.
-- 🌳 **Architecture Explorer & Touchpad Gestures:** Generates interactive Mermaid.js C4 and component dependency diagrams with trackpad pinch-to-zoom, two-finger pan, dynamic size-aware zoom limits, viewport pan clamping (preventing diagrams from escaping off-screen), a 1-click 100% view reset button, and SVG export.
+- 🌳 **Auto-Healing Architecture Explorer & Touchpad Gestures:** Generates interactive Mermaid.js C4 and component dependency diagrams with trackpad pinch-to-zoom, two-finger pan, dynamic size-aware zoom limits, viewport pan clamping (preventing diagrams from escaping off-screen), a 1-click 100% view reset button, and SVG export. Features an auto-healing sanitization engine that rejoins split multi-line declarations, auto-balances unclosed delimiters, preserves complex shapes (Cylinders, Stadiums, Subroutines, Hexagons, Double Circles), suppresses raw parser error SVGs in the DOM (`suppressErrorRendering: true`), and falls back seamlessly to an auto-generated C4 model on unrecoverable syntax anomalies.
+- 🧠 **Gemini 3.8 Flash Dynamic Low-Reasoning & Fail-Fast Resilience:** Enforces `ThinkingLevel: "low"` via `GeminiThinkingConfig` on Semantic Kernel to eliminate prolonged reasoning latency spikes (reducing wait times from 230s+ to sub-second / few seconds) during synthesis and copilot chat. Equipped with a 30-second fail-fast timeout and upstream `503 Service Unavailable` / `504 Gateway Timeout` detection to instantly transition to high-fidelity deterministic AST telemetry fallback without blocking users.
 - 🧹 **Dead Code & Zombie Files:** Pinpoints unreferenced internal symbols and dormant legacy files.
 - 🛡️ **Zero-Allocation Secret Scanner:** Scans for exposed API keys, private keys, `.pem`, and environment secrets using compiled .NET 10 `[GeneratedRegex]`, with smart filtering for benign `.env.example` templates.
 - 🔐 **Secure Password Authentication:** Built-in email/password credentials with PBKDF2 (HMAC-SHA512 + 100,000 iterations), strict password strength verification, and signed HS256 JWT sessions.
@@ -56,16 +57,16 @@
     └─────────────────────────────┘    └─────────────────────────────┘
 ```
 
-| Layer | Technologies | Details |
-| :--- | :--- | :--- |
-| **Frontend** | React 19, Vite, Bun, TypeScript, React Router | Ultra-fast client-side SPA, Light/Dark/System theme system, client JWT auth, dedicated 404 page |
-| **Animation & Motion** | GSAP (`gsap@^3.15.0`), `@gsap/react`, ScrollTrigger | Master entrance timeline, `ScrollTrigger.batch` reveals, `matchMedia` accessibility |
-| **Workspace UI** | Mermaid.js, React Markdown, Lucide Icons | Trackpad gestures, size-aware zoom, Markdown dossier viewer, AI chat drawer |
-| **Backend** | .NET 10 (`net10.0`), C# 13, ASP.NET Core | Minimal APIs, Scalar OpenAPI, PBKDF2 cryptography, port 5050 |
-| **Analysis** | Roslyn C# Compiler, Polyglot AST, Octokit | In-memory zipball parsing, complexity & hotspot calculation (ignoring `.agents/`), commit staleness |
-| **AI Synthesis** | Microsoft Semantic Kernel (`1.81.0`), Gemini | Google AI Studio `gemini-3.8-flash` integration & fallback engine |
-| **Data & Cloud** | Azure Cosmos DB, Azure Blob Storage | Fallback in-memory providers for local development; Bicep IaC for Azure |
-| **DevOps & CI/CD** | GitHub Actions, Docker, Azure Bicep | Scale-to-zero ACA container deployment, GHCR images, SWA deployment |
+| Layer                  | Technologies                                        | Details                                                                                             |
+| :--------------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| **Frontend**           | React 19, Vite, Bun, TypeScript, React Router       | Ultra-fast client-side SPA, Light/Dark/System theme system, client JWT auth, dedicated 404 page     |
+| **Animation & Motion** | GSAP (`gsap@^3.15.0`), `@gsap/react`, ScrollTrigger | Master entrance timeline, `ScrollTrigger.batch` reveals, `matchMedia` accessibility                 |
+| **Workspace UI**       | Mermaid.js, React Markdown, Lucide Icons            | Trackpad gestures, size-aware zoom, Markdown dossier viewer, AI chat drawer                         |
+| **Backend**            | .NET 10 (`net10.0`), C# 13, ASP.NET Core            | Minimal APIs, Scalar OpenAPI, PBKDF2 cryptography, port 5050                                        |
+| **Analysis**           | Roslyn C# Compiler, Polyglot AST, Octokit           | In-memory zipball parsing, complexity & hotspot calculation (ignoring `.agents/`), commit staleness |
+| **AI Synthesis**       | Microsoft Semantic Kernel (`1.81.0`), Gemini        | Google AI Studio `gemini-3.8-flash` integration & fallback engine                                   |
+| **Data & Cloud**       | Azure Cosmos DB, Azure Blob Storage                 | Fallback in-memory providers for local development; Bicep IaC for Azure                             |
+| **DevOps & CI/CD**     | GitHub Actions, Docker, Azure Bicep                 | Scale-to-zero ACA container deployment, GHCR images, SWA deployment                                 |
 
 ---
 
@@ -177,7 +178,7 @@ From the project root:
 ```bash
 cd backend
 dotnet restore CodeLens.sln
-dotnet test CodeLens.sln               # Run all 31 xUnit tests
+dotnet test CodeLens.sln               # Run all 34 xUnit tests
 dotnet run --project src/CodeLens.Api
 ```
 
@@ -241,14 +242,14 @@ az deployment group create \
 
 Pushing to `main` automatically triggers:
 
-- [`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml): Runs all 30 xUnit tests, builds Docker container, publishes to GitHub Container Registry (`ghcr.io`), and deploys to Azure Container Apps.
+- [`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml): Runs all 34 xUnit tests, builds Docker container, publishes to GitHub Container Registry (`ghcr.io`), and deploys to Azure Container Apps.
 - [`.github/workflows/deploy-frontend.yml`](.github/workflows/deploy-frontend.yml): Builds Vite React SPA with Bun and deploys static artifacts directly to Azure Static Web Apps edge CDN.
 
 ---
 
 ## 🧩 Implemented Core Capabilities
 
-- [x] **Foundation & Infrastructure:** ASP.NET Core .NET 10 Minimal API, React 19 Vite SPA, Scalar OpenAPI UI, zero-warning build, 30 passing xUnit tests.
+- [x] **Foundation & Infrastructure:** ASP.NET Core .NET 10 Minimal API, React 19 Vite SPA, Scalar OpenAPI UI, zero-warning build, 34 passing xUnit tests.
 - [x] **Secure Password Authentication:** PBKDF2 Email/Password cryptography, real-time criteria checks, dynamic strength meter, show/hide toggles, and dedicated auth page theme toggling.
 - [x] **Deterministic Telemetry & Static Analysis:** Zero-disk in-memory zipball streaming, Octokit commit sparklines, Roslyn AST cyclomatic complexity, hotspot calculation (with `.agents/` exclusion), polyglot package parsing, compiled regex secret scanner (with `.env.example` filtering), and Telemetry Bento Grid.
 - [x] **Gemini 3.8 Flash Dossier Synthesis:** Semantic Kernel connector, structured outputs (ELI5, License, Architecture Smells, Runbook), Mermaid diagram syntax sanitization, and standardized `PROJECT_KNOWLEDGE.md` compilation with Azure Blob SAS tokens.

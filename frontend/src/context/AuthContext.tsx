@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   loginWithCredentials,
   registerWithCredentials,
@@ -50,7 +56,9 @@ function getInitialUser(): AuthUser | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [backendToken, setBackendToken] = useState<string | null>(getInitialToken);
+  const [backendToken, setBackendToken] = useState<string | null>(
+    getInitialToken,
+  );
   const [user, setUser] = useState<AuthUser | null>(getInitialUser);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,26 +75,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("codelens-user", JSON.stringify(userData));
   }, []);
 
-  const login = useCallback(async (email: string, pass: string) => {
-    setIsLoading(true);
-    try {
-      const res = await loginWithCredentials(email, pass);
-      handleAuthSuccess(res);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handleAuthSuccess]);
+  const login = useCallback(
+    async (email: string, pass: string) => {
+      setIsLoading(true);
+      try {
+        const res = await loginWithCredentials(email, pass);
+        handleAuthSuccess(res);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleAuthSuccess],
+  );
 
-  const register = useCallback(async (name: string, email: string, pass: string) => {
-    setIsLoading(true);
-    try {
-      await registerWithCredentials(name, email, pass);
-      const loginRes = await loginWithCredentials(email, pass);
-      handleAuthSuccess(loginRes);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handleAuthSuccess]);
+  const register = useCallback(
+    async (name: string, email: string, pass: string) => {
+      setIsLoading(true);
+      try {
+        await registerWithCredentials(name, email, pass);
+        const loginRes = await loginWithCredentials(email, pass);
+        handleAuthSuccess(loginRes);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleAuthSuccess],
+  );
 
   const logout = useCallback(() => {
     setBackendToken(null);

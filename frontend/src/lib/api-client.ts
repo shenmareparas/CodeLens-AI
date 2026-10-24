@@ -80,11 +80,13 @@ export async function loginWithCredentials(
   });
 }
 
-
 /**
  * Add or update local password for currently logged in user.
  */
-export async function setAccountPassword(password: string, token: string): Promise<BackendAuthResponse> {
+export async function setAccountPassword(
+  password: string,
+  token: string,
+): Promise<BackendAuthResponse> {
   return apiRequest<BackendAuthResponse>(
     "/api/auth/set-password",
     {
@@ -162,8 +164,14 @@ export async function startAudit(
   );
 }
 
-export async function getAudit(auditId: string, token: string, repositoryId?: string): Promise<AuditResponse> {
-  const query = repositoryId ? `?repositoryId=${encodeURIComponent(repositoryId)}` : "";
+export async function getAudit(
+  auditId: string,
+  token: string,
+  repositoryId?: string,
+): Promise<AuditResponse> {
+  const query = repositoryId
+    ? `?repositoryId=${encodeURIComponent(repositoryId)}`
+    : "";
   return apiRequest<AuditResponse>(`/api/audits/${auditId}${query}`, {}, token);
 }
 
@@ -172,8 +180,14 @@ export async function getDossierDownloadUrl(
   token: string,
   repositoryId?: string,
 ): Promise<{ url: string }> {
-  const query = repositoryId ? `?repositoryId=${encodeURIComponent(repositoryId)}` : "";
-  return apiRequest<{ url: string }>(`/api/audits/${auditId}/download${query}`, {}, token);
+  const query = repositoryId
+    ? `?repositoryId=${encodeURIComponent(repositoryId)}`
+    : "";
+  return apiRequest<{ url: string }>(
+    `/api/audits/${auditId}/download${query}`,
+    {},
+    token,
+  );
 }
 
 // ── SSE Chat ──────────────────────────────────────────────────────────────────
@@ -265,10 +279,20 @@ export interface StoredChatMessage {
   timestamp: string;
 }
 
-export async function getChatHistory(auditId: string, token: string): Promise<StoredChatMessage[]> {
+export async function getChatHistory(
+  auditId: string,
+  token: string,
+): Promise<StoredChatMessage[]> {
   return apiRequest<StoredChatMessage[]>(`/api/chat/${auditId}`, {}, token);
 }
 
-export async function clearChatHistory(auditId: string, token: string): Promise<{ cleared: boolean; count: number }> {
-  return apiRequest<{ cleared: boolean; count: number }>(`/api/chat/${auditId}`, { method: "DELETE" }, token);
+export async function clearChatHistory(
+  auditId: string,
+  token: string,
+): Promise<{ cleared: boolean; count: number }> {
+  return apiRequest<{ cleared: boolean; count: number }>(
+    `/api/chat/${auditId}`,
+    { method: "DELETE" },
+    token,
+  );
 }

@@ -25,4 +25,16 @@ public sealed class GeminiOptions
     /// Maximum response tokens.
     /// </summary>
     public int MaxTokens { get; set; } = 4096;
+
+    /// <summary>
+    /// HTTP client timeout in seconds for Gemini API calls. Defaults to 30 seconds.
+    /// Prevents hanging the analysis pipeline when Google Gemini API experiences high demand or temporary outages.
+    /// </summary>
+    public int TimeoutSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Reasoning effort / thinking level for Gemini 3 series models ("minimal", "low", "medium", "high").
+    /// Defaults strictly to "low" to minimize latency, reduce token consumption, and eliminate prolonged reasoning timeouts.
+    /// </summary>
+    public string ThinkingLevel { get; set; } = "low";
 }

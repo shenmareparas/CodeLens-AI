@@ -5,12 +5,17 @@ import mermaid from "mermaid";
 import { useTheme } from "@/context/ThemeContext";
 import { FullscreenMermaidModal } from "./FullscreenMermaidModal";
 
+import { sanitizeMermaid, buildFallbackDiagram } from "@/lib/mermaidUtils";
+
 interface MermaidViewerProps {
   chart: string;
   title?: string;
 }
 
-export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Component)" }: MermaidViewerProps) {
+export function MermaidViewer({
+  chart,
+  title = "Architecture Diagram (C4 Component)",
+}: MermaidViewerProps) {
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
@@ -39,6 +44,7 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     const isDark = resolvedTheme === "dark";
     mermaid.initialize({
       startOnLoad: false,
+      suppressErrorRendering: true,
       theme: isDark ? "dark" : "default",
       themeVariables: isDark
         ? {
@@ -67,19 +73,42 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
 
     const renderChart = async () => {
       if (!chart || !chart.trim()) return;
+      const cleanChart = sanitizeMermaid(chart, title);
+      const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+
       try {
         setRenderError(null);
-        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
-        const { svg } = await mermaid.render(id, chart.trim());
+        const { svg } = await mermaid.render(id, cleanChart);
         setSvgContent(svg);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to render Mermaid diagram";
-        setRenderError(message);
+        // Fallback: If cleanChart still fails, auto-render the clean architecture fallback diagram
+        try {
+          const fallbackChart = buildFallbackDiagram(title || "Repository");
+          const fallbackId = `mermaid-fb-${Math.random().toString(36).substring(2, 9)}`;
+          const { svg: fallbackSvg } = await mermaid.render(
+            fallbackId,
+            fallbackChart,
+          );
+          setSvgContent(fallbackSvg);
+          setRenderError(null);
+        } catch {
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Failed to render Mermaid diagram";
+          setRenderError(message);
+        }
+      } finally {
+        // Remove any stray error container that Mermaid may have attached to DOM
+        const strayEl = document.getElementById(id);
+        if (strayEl?.parentNode) {
+          strayEl.parentNode.removeChild(strayEl);
+        }
       }
     };
 
     renderChart();
-  }, [chart, resolvedTheme]);
+  }, [chart, resolvedTheme, title]);
 
   // Measure rendered SVG and calculate proportional fit-to-screen scale
   useEffect(() => {
@@ -94,8 +123,10 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       const containerHeight = container.clientHeight || 500;
 
       // Extract natural SVG dimensions
-      let svgWidth = svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
-      let svgHeight = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
+      let svgWidth =
+        svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
+      let svgHeight =
+        svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
 
       if (!svgWidth || svgWidth <= 0) svgWidth = 800;
       if (!svgHeight || svgHeight <= 0) svgHeight = 500;
@@ -120,47 +151,52 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
   }, [svgContent]);
 
   // Helper to clamp pan offsets so diagram content cannot move out of the container screen
-  const clampPan = useCallback((newX: number, newY: number, currentZoom: number) => {
-    const container = containerRef.current;
-    const svgEl = svgWrapperRef.current?.querySelector("svg");
-    if (!container || !svgEl) return { x: newX, y: newY };
+  const clampPan = useCallback(
+    (newX: number, newY: number, currentZoom: number) => {
+      const container = containerRef.current;
+      const svgEl = svgWrapperRef.current?.querySelector("svg");
+      if (!container || !svgEl) return { x: newX, y: newY };
 
-    const containerWidth = container.clientWidth || 800;
-    const containerHeight = container.clientHeight || 500;
+      const containerWidth = container.clientWidth || 800;
+      const containerHeight = container.clientHeight || 500;
 
-    let svgWidth = svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
-    let svgHeight = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
-    if (!svgWidth || svgWidth <= 0) svgWidth = 800;
-    if (!svgHeight || svgHeight <= 0) svgHeight = 500;
+      let svgWidth =
+        svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
+      let svgHeight =
+        svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
+      if (!svgWidth || svgWidth <= 0) svgWidth = 800;
+      if (!svgHeight || svgHeight <= 0) svgHeight = 500;
 
-    // Visual dimensions of the rendered diagram based on baseFitScale * zoom
-    const effectiveScale = baseFitScale * currentZoom;
-    const renderedWidth = svgWidth * effectiveScale;
-    const renderedHeight = svgHeight * effectiveScale;
+      // Visual dimensions of the rendered diagram based on baseFitScale * zoom
+      const effectiveScale = baseFitScale * currentZoom;
+      const renderedWidth = svgWidth * effectiveScale;
+      const renderedHeight = svgHeight * effectiveScale;
 
-    // If rendered diagram is smaller than or equal to container, keep centered (0)
-    // If larger than container, allow panning only up to the diagram edges
-    let clampedX: number;
-    if (renderedWidth > containerWidth) {
-      const maxPanX = (renderedWidth - containerWidth) / 2 + 30;
-      clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
-    } else {
-      // Allow minor wiggle room (max 20px) but snap back within view
-      const maxMargin = Math.max(0, (containerWidth - renderedWidth) / 4);
-      clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
-    }
+      // If rendered diagram is smaller than or equal to container, keep centered (0)
+      // If larger than container, allow panning only up to the diagram edges
+      let clampedX: number;
+      if (renderedWidth > containerWidth) {
+        const maxPanX = (renderedWidth - containerWidth) / 2 + 30;
+        clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
+      } else {
+        // Allow minor wiggle room (max 20px) but snap back within view
+        const maxMargin = Math.max(0, (containerWidth - renderedWidth) / 4);
+        clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
+      }
 
-    let clampedY: number;
-    if (renderedHeight > containerHeight) {
-      const maxPanY = (renderedHeight - containerHeight) / 2 + 30;
-      clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
-    } else {
-      const maxMargin = Math.max(0, (containerHeight - renderedHeight) / 4);
-      clampedY = Math.max(-maxMargin, Math.min(maxMargin, newY));
-    }
+      let clampedY: number;
+      if (renderedHeight > containerHeight) {
+        const maxPanY = (renderedHeight - containerHeight) / 2 + 30;
+        clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
+      } else {
+        const maxMargin = Math.max(0, (containerHeight - renderedHeight) / 4);
+        clampedY = Math.max(-maxMargin, Math.min(maxMargin, newY));
+      }
 
-    return { x: clampedX, y: clampedY };
-  }, [baseFitScale]);
+      return { x: clampedX, y: clampedY };
+    },
+    [baseFitScale],
+  );
 
   // Touchpad pinch-to-zoom and two-finger scroll panning with dynamic boundaries
   useEffect(() => {
@@ -172,7 +208,10 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       e.stopPropagation();
       if (e.ctrlKey || e.metaKey) {
         const zoomDelta = -e.deltaY * 0.008;
-        const nextZoom = Math.min(Math.max(zoomLimits.min, zoom + zoomDelta), zoomLimits.max);
+        const nextZoom = Math.min(
+          Math.max(zoomLimits.min, zoom + zoomDelta),
+          zoomLimits.max,
+        );
         setZoom(nextZoom);
         setPan((currentPan) => clampPan(currentPan.x, currentPan.y, nextZoom));
       } else {
@@ -185,8 +224,12 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
-    container.addEventListener("gesturestart", handleGesture, { passive: false });
-    container.addEventListener("gesturechange", handleGesture, { passive: false });
+    container.addEventListener("gesturestart", handleGesture, {
+      passive: false,
+    });
+    container.addEventListener("gesturechange", handleGesture, {
+      passive: false,
+    });
 
     return () => {
       container.removeEventListener("wheel", handleWheel);
@@ -224,8 +267,10 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.15, zoomLimits.max));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.15, zoomLimits.min));
+  const handleZoomIn = () =>
+    setZoom((prev) => Math.min(prev + 0.15, zoomLimits.max));
+  const handleZoomOut = () =>
+    setZoom((prev) => Math.max(prev - 0.15, zoomLimits.min));
 
   return (
     <div
@@ -253,7 +298,13 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ fontSize: "1.1rem" }}>🗺️</span>
-          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-text)" }}>
+          <span
+            style={{
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "var(--color-text)",
+            }}
+          >
             {title}
           </span>
         </div>
@@ -272,12 +323,19 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
               type="button"
               onClick={handleZoomOut}
               disabled={zoom <= zoomLimits.min}
-              title={zoom <= zoomLimits.min ? "Minimum zoom (Fit to Screen)" : "Zoom Out"}
+              title={
+                zoom <= zoomLimits.min
+                  ? "Minimum zoom (Fit to Screen)"
+                  : "Zoom Out"
+              }
               style={{
                 padding: "0.25rem 0.6rem",
                 background: "transparent",
                 border: "none",
-                color: zoom <= zoomLimits.min ? "var(--color-text-muted)" : "var(--color-text)",
+                color:
+                  zoom <= zoomLimits.min
+                    ? "var(--color-text-muted)"
+                    : "var(--color-text)",
                 cursor: zoom <= zoomLimits.min ? "not-allowed" : "pointer",
                 fontSize: "0.85rem",
                 fontWeight: 600,
@@ -372,7 +430,9 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
               padding: "0.3rem 0.75rem",
               borderRadius: "var(--radius-sm)",
               border: "1px solid var(--color-border)",
-              background: copied ? "rgba(34, 197, 94, 0.15)" : "var(--color-surface)",
+              background: copied
+                ? "rgba(34, 197, 94, 0.15)"
+                : "var(--color-surface)",
               color: copied ? "var(--color-success)" : "var(--color-text)",
               cursor: "pointer",
               fontSize: "0.75rem",
@@ -427,15 +487,26 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
             display: "flex",
             alignItems: "center",
             gap: "0.35rem",
-            background: resolvedTheme === "light" ? "rgba(255, 255, 255, 0.85)" : "rgba(0, 0, 0, 0.6)",
+            background:
+              resolvedTheme === "light"
+                ? "rgba(255, 255, 255, 0.85)"
+                : "rgba(0, 0, 0, 0.6)",
             padding: "0.2rem 0.5rem",
             borderRadius: "4px",
-            border: resolvedTheme === "light" ? "1px solid rgba(0, 0, 0, 0.08)" : "1px solid rgba(255, 255, 255, 0.06)",
-            boxShadow: resolvedTheme === "light" ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
+            border:
+              resolvedTheme === "light"
+                ? "1px solid rgba(0, 0, 0, 0.08)"
+                : "1px solid rgba(255, 255, 255, 0.06)",
+            boxShadow:
+              resolvedTheme === "light"
+                ? "0 2px 8px rgba(0, 0, 0, 0.05)"
+                : "none",
           }}
         >
           <span>🖐️</span>
-          <span>Pinch trackpad to zoom • Two-finger drag or drag mouse to pan</span>
+          <span>
+            Pinch trackpad to zoom • Two-finger drag or drag mouse to pan
+          </span>
         </div>
 
         {renderError ? (
@@ -451,8 +522,12 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
               fontFamily: "var(--font-mono)",
             }}
           >
-            <div>Unable to render interactive diagram. Raw definition below:</div>
-            <pre style={{ marginTop: "0.5rem", whiteSpace: "pre-wrap" }}>{chart}</pre>
+            <div>
+              Unable to render interactive diagram. Raw definition below:
+            </div>
+            <pre style={{ marginTop: "0.5rem", whiteSpace: "pre-wrap" }}>
+              {chart}
+            </pre>
           </div>
         ) : svgContent ? (
           <div
@@ -469,7 +544,9 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
             dangerouslySetInnerHTML={{ __html: svgContent }}
           />
         ) : (
-          <div style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+          <div
+            style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}
+          >
             Rendering architecture diagram...
           </div>
         )}
@@ -487,4 +564,3 @@ export function MermaidViewer({ chart, title = "Architecture Diagram (C4 Compone
     </div>
   );
 }
-

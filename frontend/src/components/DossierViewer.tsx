@@ -55,7 +55,13 @@ export function DossierViewer({
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ fontSize: "1.1rem" }}>📄</span>
-          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-text)" }}>
+          <span
+            style={{
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "var(--color-text)",
+            }}
+          >
             PROJECT_KNOWLEDGE.md
           </span>
           <span
@@ -80,8 +86,12 @@ export function DossierViewer({
               padding: "0.3rem 0.75rem",
               borderRadius: "var(--radius-sm)",
               border: "1px solid var(--color-border)",
-              background: copied ? "rgba(34, 197, 94, 0.15)" : "rgba(255, 255, 255, 0.04)",
-              color: copied ? "var(--color-success)" : "var(--color-text-muted)",
+              background: copied
+                ? "rgba(34, 197, 94, 0.15)"
+                : "rgba(255, 255, 255, 0.04)",
+              color: copied
+                ? "var(--color-success)"
+                : "var(--color-text-muted)",
               cursor: "pointer",
               fontSize: "0.75rem",
               display: "flex",
@@ -113,7 +123,9 @@ export function DossierViewer({
               }}
             >
               <span>{isDownloading ? "⏳" : "⬇️"}</span>
-              <span>{isDownloading ? "Generating SAS..." : "Download .md"}</span>
+              <span>
+                {isDownloading ? "Generating SAS..." : "Download .md"}
+              </span>
             </button>
           )}
         </div>
@@ -171,7 +183,10 @@ export function DossierViewer({
               />
             ),
             p: ({ ...props }) => (
-              <p style={{ marginBottom: "0.85rem", color: "var(--color-text)" }} {...props} />
+              <p
+                style={{ marginBottom: "0.85rem", color: "var(--color-text)" }}
+                {...props}
+              />
             ),
             code: ({ className, children, ...props }) => {
               const isInline = !className;
@@ -257,12 +272,20 @@ export function DossierViewer({
               />
             ),
             ul: ({ ...props }) => (
-              <ul style={{ paddingLeft: "1.5rem", marginBottom: "0.85rem" }} {...props} />
+              <ul
+                style={{ paddingLeft: "1.5rem", marginBottom: "0.85rem" }}
+                {...props}
+              />
             ),
             ol: ({ ...props }) => (
-              <ol style={{ paddingLeft: "1.5rem", marginBottom: "0.85rem" }} {...props} />
+              <ol
+                style={{ paddingLeft: "1.5rem", marginBottom: "0.85rem" }}
+                {...props}
+              />
             ),
-            li: ({ ...props }) => <li style={{ marginBottom: "0.3rem" }} {...props} />,
+            li: ({ ...props }) => (
+              <li style={{ marginBottom: "0.3rem" }} {...props} />
+            ),
           }}
         >
           {markdown}

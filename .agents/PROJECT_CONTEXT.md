@@ -1,6 +1,6 @@
 # CodeLens AI — Project Context & Architectural Specification
 
-> **Frameworks:** .NET 10 (`net10.0`), React 19 (Vite SPA), Bun runtime, Google Gemini 3.8 Flash  
+> **Frameworks:** .NET 10 (`net10.0`), React 19 (Vite SPA), Bun runtime, Google Gemini 3.8 Flash
 
 ---
 
@@ -41,25 +41,25 @@
      └─────────────────────────────┘    └─────────────────────────────┘
 ```
 
-| Layer | Technology | Version / Spec | Key Role |
-| :--- | :--- | :--- | :--- |
-| **Frontend Runtime** | [Bun](https://bun.sh) | `1.2+` | Package manager and script runner (**NEVER** use npm/npx/yarn) |
-| **Frontend Framework** | React 19 + Vite | React 19, Vite 8 | Ultra-fast client-side SPA, zero Node.js server overhead on edge |
-| **Animation & Motion** | GSAP + @gsap/react | `3.15.0` / `2.1.2` | Master timeline, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety |
-| **Styling & Design** | Tailwind CSS / CSS Modules | Custom Glassmorphism | Dark/Light/System theme token system, smooth transitions |
-| **Code Quality & Linting** | ESLint 9 Flat Config | `9.39.5` | TypeScript-ESLint, React Hooks canonical rules, 0-warning baseline |
-| **Frontend Auth** | Client AuthContext | Custom JWT Hook | Direct authentication against backend JWT endpoints with localStorage session |
-| **Routing** | React Router DOM | `v7` | Client-side routing with `ProtectedRoute` and Azure SWA rewrites |
-| **Backend Framework** | ASP.NET Core Minimal APIs | `.NET 10` (`net10.0`) | High-performance, zero-warning asynchronous API |
-| **Backend Language** | C# 13 | NetCoreApp 10.0 | Pattern matching, records, primary constructors |
-| **API Documentation** | Scalar OpenAPI | `/scalar/v1` | Modern interactive API documentation |
-| **AST & Code Analysis** | Roslyn C# Compiler + Polyglot | Roslyn 4.12+ | Zero-disk syntax parsing, cyclomatic complexity |
-| **Git Ingestion Engine** | Octokit.NET | `14.0.0` | GitHub REST client, commit churn, zipball stream |
-| **Database** | Azure Cosmos DB NoSQL | SDK `3.47.0` | Free-Tier partition key indexing (`users`, `audits`, `messages`) |
-| **Blob Storage** | Azure Blob Storage | SDK `12.23.0` | Container `project-dossiers`, 15-minute SAS tokens |
-| **Local Fallbacks** | In-Memory Repository & Storage | Built-in | Zero-setup local development without Azure credentials |
-| **AI Orchestration** | Microsoft Semantic Kernel | `1.81.0` | Gemini 3.8 Flash connector and structured prompt engine |
-| **AI Model** | Google Gemini 3.8 Flash | `gemini-3.8-flash` | ELI5 summary, Mermaid C4 diagram, architecture smells |
+| Layer                      | Technology                     | Version / Spec        | Key Role                                                                                            |
+| :------------------------- | :----------------------------- | :-------------------- | :-------------------------------------------------------------------------------------------------- |
+| **Frontend Runtime**       | [Bun](https://bun.sh)          | `1.2+`                | Package manager and script runner (**NEVER** use npm/npx/yarn)                                      |
+| **Frontend Framework**     | React 19 + Vite                | React 19, Vite 8      | Ultra-fast client-side SPA, zero Node.js server overhead on edge                                    |
+| **Animation & Motion**     | GSAP + @gsap/react             | `3.15.0` / `2.1.2`    | Master timeline, `ScrollTrigger.batch`, `matchMedia` reduced-motion safety                          |
+| **Styling & Design**       | Tailwind CSS / CSS Modules     | Custom Glassmorphism  | Dark/Light/System theme token system, smooth transitions                                            |
+| **Code Quality & Linting** | ESLint 9 Flat Config           | `9.39.5`              | TypeScript-ESLint, React Hooks canonical rules, 0-warning baseline                                  |
+| **Frontend Auth**          | Client AuthContext             | Custom JWT Hook       | Direct authentication against backend JWT endpoints with localStorage session                       |
+| **Routing**                | React Router DOM               | `v7`                  | Client-side routing with `ProtectedRoute` and Azure SWA rewrites                                    |
+| **Backend Framework**      | ASP.NET Core Minimal APIs      | `.NET 10` (`net10.0`) | High-performance, zero-warning asynchronous API                                                     |
+| **Backend Language**       | C# 13                          | NetCoreApp 10.0       | Pattern matching, records, primary constructors                                                     |
+| **API Documentation**      | Scalar OpenAPI                 | `/scalar/v1`          | Modern interactive API documentation                                                                |
+| **AST & Code Analysis**    | Roslyn C# Compiler + Polyglot  | Roslyn 4.12+          | Zero-disk syntax parsing, cyclomatic complexity                                                     |
+| **Git Ingestion Engine**   | Octokit.NET                    | `14.0.0`              | GitHub REST client, commit churn, zipball stream                                                    |
+| **Database**               | Azure Cosmos DB NoSQL          | SDK `3.47.0`          | Free-Tier partition key indexing (`users`, `audits`, `messages`)                                    |
+| **Blob Storage**           | Azure Blob Storage             | SDK `12.23.0`         | Container `project-dossiers`, 15-minute SAS tokens                                                  |
+| **Local Fallbacks**        | In-Memory Repository & Storage | Built-in              | Zero-setup local development without Azure credentials                                              |
+| **AI Orchestration**       | Microsoft Semantic Kernel      | `1.81.0`              | Gemini 3.8 Flash connector, GeminiPromptExecutionSettings & structured prompt engine                |
+| **AI Model**               | Google Gemini 3.8 Flash        | `gemini-3.8-flash`    | Dynamic low reasoning (ThinkingLevel: "low"), ELI5 summary, Mermaid C4 diagram, architecture smells |
 
 ---
 
@@ -90,17 +90,24 @@
   - GitHub personal access tokens (`ghp_[0-9a-zA-Z]{36}`, `github_pat_...`)
   - Generic private keys (`-----BEGIN PRIVATE KEY-----`, `-----BEGIN RSA PRIVATE KEY-----`)
   - Connection strings and `.env` passwords
-  - *Benign Template Filtering:* Dummy placeholder keys in `.env.example`, `.env.sample`, and `.env.template` are skipped to prevent false-positive security warnings.
+  - _Benign Template Filtering:_ Dummy placeholder keys in `.env.example`, `.env.sample`, and `.env.template` are skipped to prevent false-positive security warnings.
 - **GitHub Rate Limit Quota Management:**
   - Unauthenticated IP rate limit is 60 requests/hr.
   - Providing a `GITHUB_TOKEN` in `appsettings.Development.json` or environment variables unlocks 5,000 requests/hr.
   - `OctokitTelemetryService.cs` checks `GetLastApiInfo().RateLimit.Remaining` and automatically budgets per-commit churn requests if the quota is low.
   - Tested on production repositories: `facebook/react` (1,046 files, 234K LOC) and `fastapi/fastapi` (2,751 files, 379K LOC).
-- **Test Suite:** 31 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, Mermaid sanitization, total commit calculation, and dossier compilation.
+- **Test Suite:** 34 unit tests in `tests/CodeLens.Tests/` covering telemetry parsing, shared repo cache, polyglot analysis, Pub/Dart dependencies, Bun lockfile & packageManager parsing, secret scanning & example file filtering, repository persistence, Semantic Kernel connector, low-reasoning execution settings, auto-healing Mermaid sanitization, total commit calculation, and dossier compilation.
 
 ### 3.3 Gemini 3.8 Flash Synthesis & Dossier Builder
 
 - **Model:** `gemini-3.8-flash` via `Microsoft.SemanticKernel` (`1.81.0`).
+- **Dynamic Low-Reasoning Configuration (`ThinkingLevel: "low"`):**
+  - Gemini 3 series models default to `high` dynamic reasoning depth, which can trigger prolonged thinking delays (200s+) and timeouts during upstream Google API traffic spikes.
+  - Sets `ThinkingLevel: "low"` via `GeminiThinkingConfig` on `GeminiPromptExecutionSettings` across both structured repository synthesis (`SynthesizeRepositoryAsync`) and real-time streaming copilot chat (`StreamChatResponseAsync`).
+  - Slashes latency to sub-second / few-second responses and reduces token consumption while preserving architectural reasoning depth.
+- **Fail-Fast Timeout & Upstream Load Resilience:**
+  - `GeminiOptions.TimeoutSeconds` (default: `30` seconds) configures `HttpClient.Timeout` to prevent hanging on Google API outages or the default 100-second .NET timeout.
+  - The synthesis retry loop explicitly catches `HttpOperationException` for `503 Service Unavailable`, `504 Gateway Timeout`, and `TaskCanceledException`, failing fast directly to deterministic fallback synthesis without delaying the user.
 - **macOS SSL & Revocation Resilience:** Semantic Kernel's Gemini connector uses a custom `SocketsHttpHandler` with `CertificateRevocationCheckMode = X509RevocationMode.NoCheck` to bypass macOS TLS revocation lookup failures (`RevocationStatusUnknown`) on Google AI Studio endpoints while preserving complete certificate trust verification.
 - **Prompt Input:** Compact Symbol Manifest (truncated to 8,000 characters for strict context discipline) + deterministic telemetry (complexity hotspots, dependencies, git cadence).
 - **Structured Outputs:**
@@ -109,8 +116,12 @@
   3. `MermaidDiagram`: Sanitized C4/component architecture diagram.
   4. `ArchitecturalSmells`: Critical structural flaws, circular references, or bloat.
   5. `OnboardingRunbook`: Step-by-step onboarding guide for newcomers.
-- **Mermaid Sanitization (`MermaidSanitizer.cs`):** Automatic regex-based AST sanitization stripping wrapping code fences, quoting complex bracketed labels containing parentheses/colons, normalizing subgraph identifiers, and balancing open subgraphs.
-- **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
+- **Auto-Healing & Shape-Preserving Mermaid Engine (`MermaidSanitizer.cs` & `mermaidUtils.ts`):**
+  - Multi-line buffer joining and delimiter balancing (`openBrackets > closeBrackets`, `openParens > closeParens`) to auto-close unclosed node declarations before parsing (eliminating Mermaid 12.2.0 `got '1'` syntax errors).
+  - Boundary-aware regexes preserving Cylinder `[("...")]`, Stadium `(["..."])`, Subroutine `[["..."]]`, Hexagon `{{"..."}}`, Double Circle `((...))`, and rectangular nodes with parenthetical labels without collision.
+  - Automatic `subgraph` balancing and entity escaping.
+  - Client-side error suppression (`suppressErrorRendering: true`) in `MermaidViewer.tsx` preventing raw parser error SVGs in the DOM, with graceful fallback to an auto-generated C4 model.
+- **Resilient Fallback Synthesis:** When `Gemini:ApiKey` or `GEMINI_API_KEY` is not supplied, or when upstream services time out or return 503, `GeminiSynthesisService.cs` computes high-fidelity deterministic insights from AST and package metrics, ensuring complete local offline functionality and test stability.
 - **Artifact Generation (`MarkdownDossierBuilder.cs`):** Compiles the standardized `PROJECT_KNOWLEDGE.md`, stores it in Azure Blob Storage (`project-dossiers` container) via `IBlobStorageService`, and caches markdown in `AuditDocument.DossierMarkdown`.
 - **Chat Copilot API & Session Persistence:**
   - `POST /api/chat/{id}/stream`: Real-time SSE streaming copilot grounded directly in `PROJECT_KNOWLEDGE.md`. Response enumeration is guarded with try-catch fallback handling to prevent HTTP 500 interruptions.
@@ -121,14 +132,14 @@
 ### 3.4 GSAP-Powered Modern Landing Page, Unified Dashboard & Theme System
 
 - **GSAP-Powered Modern Landing Page (`HomePage.tsx` & `src/components/landing/`):**
-  - **Floating Island Navigation Bar & Silky Smooth Scrolling:** Centered, fixed floating pill navbar (`.navWrapper` + `.nav`) with glassmorphic backdrop (`backdrop-filter: blur(20px) saturate(190%)`), border glow, dynamic scroll elevation (`.navScrolled` after 20px), and calibrated section anchor scroll margins (`scroll-margin-top: 0` desktop and mobile across `#hero`, `#preview`, `#pipeline`, `#features`, `#ecosystem`, and `#comparison`). Primary navigation links (*Live Demo*, *Architecture*, *Capabilities*, *Ecosystems*, *Why CodeLens*) sit directly on the navbar surface without nested container boxes, matching the natural sequential flow of the page, featuring soft hover pill states (`rgba(255, 255, 255, 0.08)` / light `rgba(0, 0, 0, 0.05)`) and an unadorned Sign In action pill (trailing arrows removed). Hardware-accelerated smooth section scrolling is powered by `scroll-behavior: smooth` in `globals.css` (with `@media (prefers-reduced-motion: reduce)` accessibility override) and JavaScript `scrollIntoView({ behavior: "smooth" })` via `handleNavScroll` and `handleLogoClick` in `HomePage.tsx`.
+  - **Floating Island Navigation Bar & Silky Smooth Scrolling:** Centered, fixed floating pill navbar (`.navWrapper` + `.nav`) with glassmorphic backdrop (`backdrop-filter: blur(20px) saturate(190%)`), border glow, dynamic scroll elevation (`.navScrolled` after 20px), and calibrated section anchor scroll margins (`scroll-margin-top: 0` desktop and mobile across `#hero`, `#preview`, `#pipeline`, `#features`, `#ecosystem`, and `#comparison`). Primary navigation links (_Live Demo_, _Architecture_, _Capabilities_, _Ecosystems_, _Why CodeLens_) sit directly on the navbar surface without nested container boxes, matching the natural sequential flow of the page, featuring soft hover pill states (`rgba(255, 255, 255, 0.08)` / light `rgba(0, 0, 0, 0.05)`) and an unadorned Sign In action pill (trailing arrows removed). Hardware-accelerated smooth section scrolling is powered by `scroll-behavior: smooth` in `globals.css` (with `@media (prefers-reduced-motion: reduce)` accessibility override) and JavaScript `scrollIntoView({ behavior: "smooth" })` via `handleNavScroll` and `handleLogoClick` in `HomePage.tsx`.
   - **Full-Screen Viewport Stages (`min-height: 100dvh`):** Every section on the landing page commands its own dedicated, vertically centered full-screen stage (`min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;`) with `padding: 6rem 1.5rem 3.5rem` providing optimal breathing room beneath the fixed floating navbar (0 lint violations across all views).
   - **Symmetrical 3×2 Capability Bento Grid (`BentoFeaturesSection.tsx`):** Standardized single-column geometry across all 6 core capability cards—including Deterministic Cyclomatic Hotspots—eliminating oversized 2-column span asymmetry (`.bentoCardFeatured` removed) to achieve uniform visual balance across dark and light themes.
   - **Official Brand Favicon (`public/favicon.svg`):** High-definition 32x32 SVG squircle with an architectural amber-to-bronze gradient (`#f59e0b` → `#b45309`), inner border highlight, drop-shadow depth, and the official CodeLens search/lens crosshair glyph with focal spark. Linked in `index.html` via `rel="icon"` and `rel="apple-touch-icon"`.
   - **Animation Architecture:** Built with official GSAP primitives (`useGSAP`, `ScrollTrigger.batch`, `gsap.matchMedia()`). Automatically verifies `prefers-reduced-motion` to bypass animations for users with vestibular sensitivities while maintaining high aesthetic polish.
   - **Modular Component Breakdown:**
     1. `HeroSection.tsx`: Centered `100dvh` viewport introduction, staggered headline, clean subtitle, CTAs, 4-stat metrics ribbon (`< 50ms`, `0-Disk`, `7+ Ecosystems`, `100% Grounded`), and live emerald pulse badge.
-    2. `HeroPreviewTabs.tsx`: Interactive macOS-style sandbox preview window with address bar `https://codelens.ai/`, section header (*Interactive Codebase Sandbox* at `#preview`), and 4 switchable views (*Telemetry Bento*, *Interactive C4 Diagram*, *Knowledge Dossier*, *Grounded Copilot*). Includes the **Live Demo Repository Selector** pinned directly above the window for 1-click state switching across 4 polyglot repos (`CodeLens-AI`, `Chess Flutter`, `Play Store AI`, `Portfolio Next.js`). Fully responsive on mobile with swipeable horizontal sample repo chips, compact tab badges (`Telemetry`, `C4 Diagram`, `Dossier`, `Copilot`), horizontal swipeable architecture canvas (eliminating broken rotated arrows), and tightened card typography.
+    2. `HeroPreviewTabs.tsx`: Interactive macOS-style sandbox preview window with address bar `https://codelens.ai/`, section header (_Interactive Codebase Sandbox_ at `#preview`), and 4 switchable views (_Telemetry Bento_, _Interactive C4 Diagram_, _Knowledge Dossier_, _Grounded Copilot_). Includes the **Live Demo Repository Selector** pinned directly above the window for 1-click state switching across 4 polyglot repos (`CodeLens-AI`, `Chess Flutter`, `Play Store AI`, `Portfolio Next.js`). Fully responsive on mobile with swipeable horizontal sample repo chips, compact tab badges (`Telemetry`, `C4 Diagram`, `Dossier`, `Copilot`), horizontal swipeable architecture canvas (eliminating broken rotated arrows), and tightened card typography.
     3. `IngestionPipelineSection.tsx`: The Zero-Clone Engine 4-phase architecture console (`#pipeline`) adhering to `@design-taste-frontend`. Eliminates decorative index numbers (`01/02/03`), fake status dots, card drop shadows at rest, top color accent bars, and directional flow arrows. Renders bare vector SVG icons directly alongside runtime specs (`System.IO.ZipArchive`, `Roslyn AST + Multi-Manifest`, `Complexity × ln(Churn + 1)`, `Gemini 3.8 Flash + SK`), tangible engine artifact chips (`<code>System.IO.ZipArchive</code>`, `<code>AST Symbol Manifest</code>`, etc.), and performance metrics inside a clean console marked `data-ui="true"` with flat surfaces.
     4. `BentoFeaturesSection.tsx`: Symmetrical 3x2 bento grid detailing zero-disk streaming, deterministic cyclomatic mathematical scoring (`CC * ln(Churn + 1)`), Gemini 3.8 Flash synthesis, gesture-driven C4 diagrams, grounded copilot, and zero-idle cloud architecture.
     5. `EcosystemSection.tsx`: Polyglot lockfile and manifest intelligence (Bun, Dart/Flutter, .NET 10, Node.js, Python, Go, Rust) with official Simple Icons vector paths.
@@ -161,7 +172,7 @@
   - Azure Static Web Apps (`swa-codelens-app`) on Free SKU for Vite React SPA.
   - Azure Cosmos DB NoSQL Lifetime Free Tier (1,000 RU/s, 25 GB storage) with containers `Users`, `Audits`, and `ChatSessions`.
   - Azure Blob Storage (`stcodelens...`) with container `project-dossiers` for dossier markdown and 15-minute SAS tokens.
-- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running 30/30 xUnit tests, building Docker images to GHCR with lowercase tags (`shenmareparas/codelens-api`), and deploying to Azure Container Apps and Azure Static Web Apps.
+- **CI/CD Automation:** GitHub Actions workflows (`deploy-backend.yml`, `deploy-frontend.yml`) running 34/34 xUnit tests, building Docker images to GHCR with lowercase tags (`shenmareparas/codelens-api`), and deploying to Azure Container Apps and Azure Static Web Apps.
 
 ---
 
@@ -188,7 +199,7 @@ codelens-ai/
 │   ├── CodeLens.sln                                  # .NET 10 solution file
 │   ├── Dockerfile                                    # Multi-stage production container build (port 5050)
 │   ├── tests/
-│   │   └── CodeLens.Tests/                           # 31 xUnit tests
+│   │   └── CodeLens.Tests/                           # 34 xUnit tests
 │   │       ├── OctokitTelemetryTests.cs              # Sparkline, URL parsing, release tests
 │   │       ├── RoslynAndPolyglotAnalyzerTests.cs     # Complexity, Symbol Manifest, Pub & Bun tests
 │   │       ├── SecretScannerTests.cs                 # [GeneratedRegex] secret detection tests
@@ -290,7 +301,7 @@ codelens-ai/
 
 ### 5.1 Local Ports & Networking
 
-- **Backend API:** `http://localhost:5050` (Configured in `launchSettings.json`). *Never use port 5000 due to macOS AirPlay collision.*
+- **Backend API:** `http://localhost:5050` (Configured in `launchSettings.json`). _Never use port 5000 due to macOS AirPlay collision._
 - **Scalar OpenAPI Documentation:** `http://localhost:5050/scalar/v1`
 - **Frontend Application:** `http://localhost:5173` (Vite dev server)
 

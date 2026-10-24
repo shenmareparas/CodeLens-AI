@@ -39,11 +39,15 @@ export function NotFoundPage() {
           <h1 className={styles.errorCode}>404</h1>
           <h2 className={styles.title}>Lost in the codebase?</h2>
           <p className={styles.description}>
-            The repository, route, or architecture page you are looking for does not exist or has been moved.
+            The repository, route, or architecture page you are looking for does
+            not exist or has been moved.
           </p>
 
           <div className={styles.actionGroup}>
-            <Link to={isAuthenticated ? "/dashboard" : "/"} className={styles.primaryBtn}>
+            <Link
+              to={isAuthenticated ? "/dashboard" : "/"}
+              className={styles.primaryBtn}
+            >
               <svg
                 width="18"
                 height="18"
@@ -58,7 +62,9 @@ export function NotFoundPage() {
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-              <span>{isAuthenticated ? "Go to Dashboard" : "Back to Home"}</span>
+              <span>
+                {isAuthenticated ? "Go to Dashboard" : "Back to Home"}
+              </span>
             </Link>
 
             <button
@@ -87,7 +93,9 @@ export function NotFoundPage() {
           <div className={styles.quickNavContainer}>
             <span className={styles.quickNavTitle}>Quick Navigation</span>
             <div className={styles.quickNavLinks}>
-              <Link to="/" className={styles.textLink}>Home Overview</Link>
+              <Link to="/" className={styles.textLink}>
+                Home Overview
+              </Link>
               <Link to="/auth/signin" className={styles.textLink}>
                 {isAuthenticated ? "Switch Account" : "Sign In / Register"}
               </Link>
@@ -105,7 +113,10 @@ export function NotFoundPage() {
       </main>
 
       <footer className={styles.footer}>
-        <p>&copy; {new Date().getFullYear()} CodeLens AI &bull; Repository Intelligence &amp; Architecture Copilot</p>
+        <p>
+          &copy; {new Date().getFullYear()} CodeLens AI &bull; Repository
+          Intelligence &amp; Architecture Copilot
+        </p>
       </footer>
     </div>
   );

@@ -209,7 +209,10 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
                 selectedEcosystem === "ALL"
                   ? "var(--color-primary)"
                   : "var(--color-surface)",
-              color: selectedEcosystem === "ALL" ? "#fff" : "var(--color-text-muted)",
+              color:
+                selectedEcosystem === "ALL"
+                  ? "#fff"
+                  : "var(--color-text-muted)",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -238,7 +241,9 @@ export function DependenciesCard({ dependencies }: DependenciesCardProps) {
                   background: isSelected
                     ? badgeStyle.bg
                     : "var(--color-surface)",
-                  color: isSelected ? badgeStyle.text : "var(--color-text-muted)",
+                  color: isSelected
+                    ? badgeStyle.text
+                    : "var(--color-text-muted)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                 }}

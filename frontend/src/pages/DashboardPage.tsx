@@ -5,7 +5,13 @@ export function DashboardPage() {
   const { user, backendToken, logout } = useAuth();
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--color-bg)", color: "var(--color-text)" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "var(--color-bg)",
+        color: "var(--color-text)",
+      }}
+    >
       <DashboardClient
         userName={user?.name}
         userEmail={user?.email}

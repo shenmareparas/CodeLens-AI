@@ -4,8 +4,6 @@ using CodeLens.Core.Entities;
 using CodeLens.Infrastructure.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Xunit;
-
 public class GeminiSynthesisTests
 {
     [Fact]
@@ -45,6 +43,58 @@ public class GeminiSynthesisTests
         Assert.DoesNotContain("```", sanitized);
         Assert.Contains("[\"Web Client (Next.js)\"]", sanitized);
         Assert.Contains("[\"Core API (v1)\"]", sanitized);
+        Assert.Contains("[(\"Azure Cosmos (NoSQL)\")]", sanitized);
+    }
+
+    [Fact]
+    public void MermaidSanitizer_HealsUnclosedBracketsAndMalformedLines()
+    {
+        // Tests the exact scenario from user's parse error:
+        // Parse error on line 5: ...iew Visual Spending
+        // Parse error on line 7: ...ve Data to Device &
+        var malformedDiagram = """
+        flowchart TD
+          subgraph UI Interface
+            App[Mobile App]
+          end
+          A[View Visual Spending 
+          subgraph Data Storage
+            B[Save Data to Device & 
+          end
+        """;
+
+        var sanitized = MermaidSanitizer.Sanitize(malformedDiagram, "expense_tracker");
+
+        Assert.Contains("A[\"View Visual Spending\"]", sanitized);
+        Assert.Contains("B[\"Save Data to Device &\"]", sanitized);
+        Assert.Contains("subgraph UI_Interface[\"UI Interface\"]", sanitized);
+        Assert.Contains("subgraph Data_Storage[\"Data Storage\"]", sanitized);
+    }
+
+    [Fact]
+    public void MermaidSanitizer_SanitizesAllShapesAndArrowLabels()
+    {
+        var complexDiagram = """
+        flowchart TD
+          A[(Database Storage)] --> B([Start / Stop])
+          B --> C[[Subroutine Call]]
+          C --> D{{Decision Hexagon}}
+          D --> E((Circle Point))
+          E --> F[Standard Rectangle]
+          F --> G(Rounded Node)
+          G -->|Connected with Arrow & Special| A
+        """;
+
+        var sanitized = MermaidSanitizer.Sanitize(complexDiagram, "test");
+
+        Assert.Contains("A[(\"Database Storage\")]", sanitized);
+        Assert.Contains("B([\"Start / Stop\"])", sanitized);
+        Assert.Contains("C[[\"Subroutine Call\"]]", sanitized);
+        Assert.Contains("D{{\"Decision Hexagon\"}}", sanitized);
+        Assert.Contains("E((\"Circle Point\"))", sanitized);
+        Assert.Contains("F[\"Standard Rectangle\"]", sanitized);
+        Assert.Contains("G(\"Rounded Node\")", sanitized);
+        Assert.Contains("|\"Connected with Arrow & Special\"|", sanitized);
     }
 
     [Fact]
@@ -197,6 +247,21 @@ public class GeminiSynthesisTests
         var fullResponse = string.Concat(tokens);
         Assert.NotEmpty(tokens);
         Assert.Contains("hotspot", fullResponse, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void GeminiPromptExecutionSettings_ConfiguresThinkingLevelLow()
+    {
+        var settings = new Microsoft.SemanticKernel.Connectors.Google.GeminiPromptExecutionSettings
+        {
+            ThinkingConfig = new Microsoft.SemanticKernel.Connectors.Google.GeminiThinkingConfig
+            {
+                ThinkingLevel = "low"
+            }
+        };
+
+        Assert.NotNull(settings.ThinkingConfig);
+        Assert.Equal("low", settings.ThinkingConfig.ThinkingLevel);
     }
 }
 

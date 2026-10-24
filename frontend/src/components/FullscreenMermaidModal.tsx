@@ -22,7 +22,10 @@ function FullscreenMermaidModalComponent({
 }: FullscreenMermaidModalProps) {
   const [fullscreenZoom, setFullscreenZoom] = useState(1);
   const [baseFitScale, setBaseFitScale] = useState(1);
-  const [fullscreenPan, setFullscreenPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [fullscreenPan, setFullscreenPan] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [copied, setCopied] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -60,8 +63,10 @@ function FullscreenMermaidModalComponent({
       const canvasWidth = canvas.clientWidth || window.innerWidth || 1200;
       const canvasHeight = canvas.clientHeight || window.innerHeight || 800;
 
-      let svgWidth = svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
-      let svgHeight = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
+      let svgWidth =
+        svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
+      let svgHeight =
+        svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
 
       if (!svgWidth || svgWidth <= 0) svgWidth = 800;
       if (!svgHeight || svgHeight <= 0) svgHeight = 500;
@@ -79,43 +84,48 @@ function FullscreenMermaidModalComponent({
   }, [isOpen, svgHtml]);
 
   // Clamp pan offsets so diagram content never moves out of the screen bounds
-  const clampPan = useCallback((newX: number, newY: number, currentZoom: number) => {
-    const canvas = canvasRef.current;
-    const svgEl = svgWrapperRef.current?.querySelector("svg");
-    if (!canvas || !svgEl) return { x: newX, y: newY };
+  const clampPan = useCallback(
+    (newX: number, newY: number, currentZoom: number) => {
+      const canvas = canvasRef.current;
+      const svgEl = svgWrapperRef.current?.querySelector("svg");
+      if (!canvas || !svgEl) return { x: newX, y: newY };
 
-    const canvasWidth = canvas.clientWidth || window.innerWidth || 1200;
-    const canvasHeight = canvas.clientHeight || window.innerHeight || 800;
+      const canvasWidth = canvas.clientWidth || window.innerWidth || 1200;
+      const canvasHeight = canvas.clientHeight || window.innerHeight || 800;
 
-    let svgWidth = svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
-    let svgHeight = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
-    if (!svgWidth || svgWidth <= 0) svgWidth = 800;
-    if (!svgHeight || svgHeight <= 0) svgHeight = 500;
+      let svgWidth =
+        svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width;
+      let svgHeight =
+        svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height;
+      if (!svgWidth || svgWidth <= 0) svgWidth = 800;
+      if (!svgHeight || svgHeight <= 0) svgHeight = 500;
 
-    const effectiveScale = baseFitScale * currentZoom;
-    const renderedWidth = svgWidth * effectiveScale;
-    const renderedHeight = svgHeight * effectiveScale;
+      const effectiveScale = baseFitScale * currentZoom;
+      const renderedWidth = svgWidth * effectiveScale;
+      const renderedHeight = svgHeight * effectiveScale;
 
-    let clampedX: number;
-    if (renderedWidth > canvasWidth) {
-      const maxPanX = (renderedWidth - canvasWidth) / 2 + 40;
-      clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
-    } else {
-      const maxMargin = Math.max(0, (canvasWidth - renderedWidth) / 4);
-      clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
-    }
+      let clampedX: number;
+      if (renderedWidth > canvasWidth) {
+        const maxPanX = (renderedWidth - canvasWidth) / 2 + 40;
+        clampedX = Math.max(-maxPanX, Math.min(maxPanX, newX));
+      } else {
+        const maxMargin = Math.max(0, (canvasWidth - renderedWidth) / 4);
+        clampedX = Math.max(-maxMargin, Math.min(maxMargin, newX));
+      }
 
-    let clampedY: number;
-    if (renderedHeight > canvasHeight) {
-      const maxPanY = (renderedHeight - canvasHeight) / 2 + 40;
-      clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
-    } else {
-      const maxMargin = Math.max(0, (canvasHeight - renderedHeight) / 4);
-      clampedY = Math.max(-maxMargin, Math.min(maxMargin, newY));
-    }
+      let clampedY: number;
+      if (renderedHeight > canvasHeight) {
+        const maxPanY = (renderedHeight - canvasHeight) / 2 + 40;
+        clampedY = Math.max(-maxPanY, Math.min(maxPanY, newY));
+      } else {
+        const maxMargin = Math.max(0, (canvasHeight - renderedHeight) / 4);
+        clampedY = Math.max(-maxMargin, Math.min(maxMargin, newY));
+      }
 
-    return { x: clampedX, y: clampedY };
-  }, [baseFitScale]);
+      return { x: clampedX, y: clampedY };
+    },
+    [baseFitScale],
+  );
 
   // Non-passive wheel event listener to strictly prevent browser page pinch-to-zoom
   useEffect(() => {
@@ -130,12 +140,19 @@ function FullscreenMermaidModalComponent({
       if (e.ctrlKey || e.metaKey) {
         // Trackpad pinch-to-zoom or Ctrl + mouse wheel (min 1.0 = fit to screen)
         const zoomFactor = -e.deltaY * 0.006;
-        const nextZoom = Math.min(Math.max(fullscreenZoom + zoomFactor, 1.0), 4.0);
+        const nextZoom = Math.min(
+          Math.max(fullscreenZoom + zoomFactor, 1.0),
+          4.0,
+        );
         setFullscreenZoom(nextZoom);
-        setFullscreenPan((currentPan) => clampPan(currentPan.x, currentPan.y, nextZoom));
+        setFullscreenPan((currentPan) =>
+          clampPan(currentPan.x, currentPan.y, nextZoom),
+        );
       } else {
         // Two-finger scroll or wheel panning
-        setFullscreenPan((prev) => clampPan(prev.x - e.deltaX, prev.y - e.deltaY, fullscreenZoom));
+        setFullscreenPan((prev) =>
+          clampPan(prev.x - e.deltaX, prev.y - e.deltaY, fullscreenZoom),
+        );
       }
     };
 
@@ -158,7 +175,10 @@ function FullscreenMermaidModalComponent({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     setIsDragging(true);
-    dragStartRef.current = { x: e.clientX - fullscreenPan.x, y: e.clientY - fullscreenPan.y };
+    dragStartRef.current = {
+      x: e.clientX - fullscreenPan.x,
+      y: e.clientY - fullscreenPan.y,
+    };
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -191,7 +211,10 @@ function FullscreenMermaidModalComponent({
         position: "fixed",
         inset: 0,
         zIndex: 99999,
-        background: resolvedTheme === "dark" ? "rgba(9, 9, 11, 0.95)" : "rgba(255, 255, 255, 0.96)",
+        background:
+          resolvedTheme === "dark"
+            ? "rgba(9, 9, 11, 0.95)"
+            : "rgba(255, 255, 255, 0.96)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         display: "flex",
@@ -207,13 +230,22 @@ function FullscreenMermaidModalComponent({
           justifyContent: "space-between",
           padding: "0.75rem 1.5rem",
           borderBottom: "1px solid var(--color-border)",
-          background: resolvedTheme === "dark" ? "rgba(24, 24, 27, 0.8)" : "rgba(241, 245, 249, 0.85)",
+          background:
+            resolvedTheme === "dark"
+              ? "rgba(24, 24, 27, 0.8)"
+              : "rgba(241, 245, 249, 0.85)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <span style={{ fontSize: "1.1rem" }}>{icon}</span>
           <div>
-            <span style={{ fontWeight: 600, fontSize: "0.92rem", color: "var(--color-text)" }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: "0.92rem",
+                color: "var(--color-text)",
+              }}
+            >
               {title}
             </span>
             <span
@@ -245,12 +277,19 @@ function FullscreenMermaidModalComponent({
               type="button"
               onClick={() => setFullscreenZoom((z) => Math.max(z - 0.15, 1.0))}
               disabled={fullscreenZoom <= 1.0}
-              title={fullscreenZoom <= 1.0 ? "Minimum zoom (Fit to Screen)" : "Zoom Out"}
+              title={
+                fullscreenZoom <= 1.0
+                  ? "Minimum zoom (Fit to Screen)"
+                  : "Zoom Out"
+              }
               style={{
                 padding: "0.3rem 0.65rem",
                 background: "transparent",
                 border: "none",
-                color: fullscreenZoom <= 1.0 ? "var(--color-text-muted)" : "var(--color-text)",
+                color:
+                  fullscreenZoom <= 1.0
+                    ? "var(--color-text-muted)"
+                    : "var(--color-text)",
                 cursor: fullscreenZoom <= 1.0 ? "not-allowed" : "pointer",
                 fontSize: "0.85rem",
                 opacity: fullscreenZoom <= 1.0 ? 0.5 : 1,
@@ -390,14 +429,20 @@ function FullscreenMermaidModalComponent({
             display: "flex",
             alignItems: "center",
             gap: "0.4rem",
-            background: resolvedTheme === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.85)",
+            background:
+              resolvedTheme === "dark"
+                ? "rgba(0, 0, 0, 0.7)"
+                : "rgba(255, 255, 255, 0.85)",
             padding: "0.3rem 0.65rem",
             borderRadius: "6px",
             border: "1px solid var(--color-border)",
           }}
         >
           <span>🖐️</span>
-          <span>Drag mouse to pan • Trackpad pinch or Ctrl + Wheel to zoom • Esc to exit</span>
+          <span>
+            Drag mouse to pan • Trackpad pinch or Ctrl + Wheel to zoom • Esc to
+            exit
+          </span>
         </div>
 
         <div

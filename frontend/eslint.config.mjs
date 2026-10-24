@@ -50,5 +50,5 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "no-undef": "off",
     },
-  }
+  },
 );

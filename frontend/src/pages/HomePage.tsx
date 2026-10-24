@@ -23,8 +23,16 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 const SAMPLE_REPOS = [
   { name: "CodeLens-AI", repo: "shenmareparas/CodeLens-AI", tag: ".NET 10" },
   { name: "Chess Flutter", repo: "shenmareparas/Chess", tag: "Flutter" },
-  { name: "Play Store AI", repo: "shenmareparas/play-store-ai-review", tag: "Python" },
-  { name: "Portfolio Next.js", repo: "shenmareparas/Portfolio_NextJS", tag: "Next.js" },
+  {
+    name: "Play Store AI",
+    repo: "shenmareparas/play-store-ai-review",
+    tag: "Python",
+  },
+  {
+    name: "Portfolio Next.js",
+    repo: "shenmareparas/Portfolio_NextJS",
+    tag: "Next.js",
+  },
 ] as const;
 
 const NAV_ITEMS = [
@@ -38,7 +46,9 @@ const NAV_ITEMS = [
 export function HomePage() {
   const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedRepo, setSelectedRepo] = useState<string>("shenmareparas/CodeLens-AI");
+  const [selectedRepo, setSelectedRepo] = useState<string>(
+    "shenmareparas/CodeLens-AI",
+  );
   const [isScrolled, setIsScrolled] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
@@ -57,7 +67,9 @@ export function HomePage() {
       if (isClickScrollingRef.current) return;
 
       const focalPoint = 160;
-      const sectionElements = NAV_ITEMS.map((item) => document.getElementById(item.id));
+      const sectionElements = NAV_ITEMS.map((item) =>
+        document.getElementById(item.id),
+      );
 
       const firstRect = sectionElements[0]?.getBoundingClientRect();
       // If above the first section (in Hero area), no nav item is active
@@ -121,7 +133,9 @@ export function HomePage() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll, { passive: true });
     window.addEventListener("wheel", handleUserInteraction, { passive: true });
-    window.addEventListener("touchmove", handleUserInteraction, { passive: true });
+    window.addEventListener("touchmove", handleUserInteraction, {
+      passive: true,
+    });
 
     updateScrollState();
     const initTimer = setTimeout(updateScrollState, 150);
@@ -164,7 +178,7 @@ export function HomePage() {
                 autoAlpha: 1,
                 y: 0,
                 scale: 1,
-              }
+              },
             );
             return;
           }
@@ -193,7 +207,7 @@ export function HomePage() {
                 y: 35,
                 duration: 0.8,
               },
-              "-=0.2"
+              "-=0.2",
             )
             .from(
               ".hero-subtitle",
@@ -202,7 +216,7 @@ export function HomePage() {
                 y: 20,
                 duration: 0.65,
               },
-              "-=0.5"
+              "-=0.5",
             )
             .from(
               ".hero-samples",
@@ -211,7 +225,7 @@ export function HomePage() {
                 y: 15,
                 duration: 0.55,
               },
-              "-=0.4"
+              "-=0.4",
             )
             .from(
               ".hero-cta",
@@ -221,7 +235,7 @@ export function HomePage() {
                 y: 15,
                 duration: 0.55,
               },
-              "-=0.4"
+              "-=0.4",
             )
             .from(
               ".hero-stats",
@@ -230,7 +244,7 @@ export function HomePage() {
                 y: 25,
                 duration: 0.75,
               },
-              "-=0.3"
+              "-=0.3",
             );
 
           // 3. ScrollTrigger for Mock Preview Window
@@ -315,15 +329,18 @@ export function HomePage() {
             duration: 0.7,
             ease: "power2.out",
           });
-        }
+        },
       );
 
       return () => mm.revert();
     },
-    { scope: containerRef }
+    { scope: containerRef },
   );
 
-  const handleNavScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  const handleNavScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetId: string,
+  ) => {
     e.preventDefault();
     setActiveSection(targetId);
     isClickScrollingRef.current = true;
@@ -334,7 +351,9 @@ export function HomePage() {
 
     const element = document.getElementById(targetId);
     if (element) {
-      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const prefersReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       element.scrollIntoView({
         behavior: prefersReduced ? "auto" : "smooth",
         block: "start",
@@ -353,7 +372,9 @@ export function HomePage() {
         isClickScrollingRef.current = false;
       }, 850);
 
-      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const prefersReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       window.scrollTo({
         top: 0,
         behavior: prefersReduced ? "auto" : "smooth",
@@ -370,7 +391,9 @@ export function HomePage() {
       isClickScrollingRef.current = false;
     }, 850);
 
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     window.scrollTo({
       top: 0,
       behavior: prefersReduced ? "auto" : "smooth",
@@ -382,7 +405,9 @@ export function HomePage() {
     <div ref={containerRef} className={styles.landingContainer}>
       {/* Floating Navigation Bar */}
       <div className={`${styles.navWrapper} landing-nav`}>
-        <header className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
+        <header
+          className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}
+        >
           <Link to="/" className={styles.brandLink} onClick={handleLogoClick}>
             <div className={styles.brandLogo}>
               <BrandLogo size={20} />
@@ -455,7 +480,8 @@ export function HomePage() {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <p className={styles.footerCopy}>
-            &copy; {new Date().getFullYear()} CodeLens AI. Built with .NET 10, React 19, and Google Gemini 3.8 Flash.
+            &copy; {new Date().getFullYear()} CodeLens AI. Built with .NET 10,
+            React 19, and Google Gemini 3.8 Flash.
           </p>
           <div className={styles.footerLinks}>
             <Link to="/auth/signin" className={styles.footerLink}>

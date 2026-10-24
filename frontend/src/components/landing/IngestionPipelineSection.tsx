@@ -132,14 +132,19 @@ const ARCHITECTURE_STAGES: ArchitectureStage[] = [
 
 export function IngestionPipelineSection() {
   return (
-    <section id="pipeline" className={styles.pipelineSection} aria-label="Architecture Pipeline">
+    <section
+      id="pipeline"
+      className={styles.pipelineSection}
+      aria-label="Architecture Pipeline"
+    >
       {/* Section Header */}
       <div className={styles.sectionHeader}>
         <h2 className={`${styles.sectionTitle} pipeline-title`}>
           The Zero-Clone Engine
         </h2>
         <p className={`${styles.sectionDesc} pipeline-desc`}>
-          From raw GitHub repository to complete architectural intelligence in four memory-only phases.
+          From raw GitHub repository to complete architectural intelligence in
+          four memory-only phases.
         </p>
       </div>
 
@@ -153,10 +158,10 @@ export function IngestionPipelineSection() {
             >
               {/* Clean Stage Header */}
               <div className={styles.pipelineCardHeader}>
-                <div className={styles.pipelineIcon}>
-                  {item.renderIcon()}
-                </div>
-                <span className={styles.pipelineRuntimeSpec}>{item.runtimeSpec}</span>
+                <div className={styles.pipelineIcon}>{item.renderIcon()}</div>
+                <span className={styles.pipelineRuntimeSpec}>
+                  {item.runtimeSpec}
+                </span>
               </div>
 
               {/* Stage Title & Description */}

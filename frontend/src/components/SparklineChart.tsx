@@ -63,8 +63,13 @@ export function SparklineChart({
     const maxVal = Math.max(...timelinePoints.map((p) => p.val), 1);
     const minVal = 0;
     return timelinePoints.map((pt, idx) => {
-      const x = paddingLeft + (idx / Math.max(1, timelinePoints.length - 1)) * graphWidth;
-      const y = paddingTop + graphHeight - ((pt.val - minVal) / (maxVal - minVal)) * graphHeight;
+      const x =
+        paddingLeft +
+        (idx / Math.max(1, timelinePoints.length - 1)) * graphWidth;
+      const y =
+        paddingTop +
+        graphHeight -
+        ((pt.val - minVal) / (maxVal - minVal)) * graphHeight;
       return {
         ...pt,
         x,
@@ -75,11 +80,11 @@ export function SparklineChart({
 
   const totalCommits = useMemo(
     () => timelinePoints.reduce((acc, curr) => acc + curr.val, 0),
-    [timelinePoints]
+    [timelinePoints],
   );
   const avgCommits = useMemo(
     () => Math.round(totalCommits / Math.max(1, timelinePoints.length)),
-    [totalCommits, timelinePoints.length]
+    [totalCommits, timelinePoints.length],
   );
 
   // Determine selective X-axis labels (first, middle/quarter, last) to keep it clean
@@ -113,7 +118,10 @@ export function SparklineChart({
 
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - paddingBottom} L ${points[0].x} ${height - paddingBottom} Z`;
 
-  const activePoint = hoveredIdx !== null && hoveredIdx >= 0 && hoveredIdx < points.length ? points[hoveredIdx] : null;
+  const activePoint =
+    hoveredIdx !== null && hoveredIdx >= 0 && hoveredIdx < points.length
+      ? points[hoveredIdx]
+      : null;
 
   // Track cursor across SVG for smooth hovering
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -174,9 +182,25 @@ export function SparklineChart({
               }}
             />
             <div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
-                <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text)" }}>
-                  {activePoint ? activePoint.label : (hasTimeline ? "All-Time Commit History" : "8-Week Commit Activity")}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "0.4rem",
+                }}
+              >
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "0.95rem",
+                    color: "var(--color-text)",
+                  }}
+                >
+                  {activePoint
+                    ? activePoint.label
+                    : hasTimeline
+                      ? "All-Time Commit History"
+                      : "8-Week Commit Activity"}
                 </span>
                 {activePoint ? (
                   <span
@@ -192,17 +216,28 @@ export function SparklineChart({
                     Inspecting
                   </span>
                 ) : (
-                  <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
+                  <span
+                    style={{
+                      fontSize: "0.68rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
                     Hover timeline to inspect
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-muted)",
+                  marginTop: "0.1rem",
+                }}
+              >
                 {activePoint
                   ? `${activePoint.val} commits (${activePoint.dateRange})`
                   : allTimeTotalCommits && allTimeTotalCommits > 0
-                  ? `${allTimeTotalCommits.toLocaleString()} commits across repository lifetime`
-                  : `${totalCommits} commits across time`}
+                    ? `${allTimeTotalCommits.toLocaleString()} commits across repository lifetime`
+                    : `${totalCommits} commits across time`}
               </div>
             </div>
           </div>
@@ -213,22 +248,30 @@ export function SparklineChart({
                 fontSize: "1.3rem",
                 fontWeight: 700,
                 fontFamily: "var(--font-mono)",
-                color: activePoint ? "var(--color-primary-light)" : "var(--color-text)",
+                color: activePoint
+                  ? "var(--color-primary-light)"
+                  : "var(--color-text)",
                 lineHeight: 1,
               }}
             >
               {activePoint
                 ? activePoint.val
                 : allTimeTotalCommits && allTimeTotalCommits > 0
-                ? allTimeTotalCommits.toLocaleString()
-                : totalCommits}
+                  ? allTimeTotalCommits.toLocaleString()
+                  : totalCommits}
             </div>
-            <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+            <div
+              style={{
+                fontSize: "0.68rem",
+                color: "var(--color-text-muted)",
+                marginTop: "0.2rem",
+              }}
+            >
               {activePoint
                 ? "commits in period"
                 : allTimeTotalCommits && allTimeTotalCommits > 0
-                ? "all-time commits"
-                : "recorded commits"}
+                  ? "all-time commits"
+                  : "recorded commits"}
             </div>
           </div>
         </div>
@@ -252,11 +295,21 @@ export function SparklineChart({
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={strokeColor} stopOpacity={isDark ? "0.35" : "0.22"} />
+                <stop
+                  offset="0%"
+                  stopColor={strokeColor}
+                  stopOpacity={isDark ? "0.35" : "0.22"}
+                />
                 <stop offset="100%" stopColor={strokeColor} stopOpacity="0.0" />
               </linearGradient>
 
-              <filter id={`glow-${gradientId}`} x="-20%" y="-20%" width="140%" height="140%">
+              <filter
+                id={`glow-${gradientId}`}
+                x="-20%"
+                y="-20%"
+                width="140%"
+                height="140%"
+              >
                 <feGaussianBlur stdDeviation="3" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
@@ -327,7 +380,7 @@ export function SparklineChart({
                 <g
                   transform={`translate(${Math.min(
                     Math.max(activePoint.x, 60),
-                    width - 60
+                    width - 60,
                   )}, ${Math.max(activePoint.y - 18, 12)})`}
                 >
                   <rect
@@ -361,7 +414,10 @@ export function SparklineChart({
               return (
                 <g
                   key={i}
-                  style={{ cursor: "pointer", transition: "transform 0.15s ease" }}
+                  style={{
+                    cursor: "pointer",
+                    transition: "transform 0.15s ease",
+                  }}
                   onMouseEnter={() => setHoveredIdx(i)}
                 >
                   {/* Larger transparent hit target for easy mouse hover interaction */}
@@ -384,7 +440,9 @@ export function SparklineChart({
                     cy={pt.y}
                     r={isActive ? "5" : "3.5"}
                     fill={isDark ? "#09090b" : "#ffffff"}
-                    stroke={isActive ? "var(--color-primary-light)" : strokeColor}
+                    stroke={
+                      isActive ? "var(--color-primary-light)" : strokeColor
+                    }
                     strokeWidth={isActive ? "2.5" : "2"}
                   />
                 </g>
