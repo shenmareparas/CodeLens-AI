@@ -1,5 +1,3 @@
-"use client";
-
 import type { TelemetryData } from "@/lib/api-client";
 import { SparklineChart } from "./SparklineChart";
 import { HotspotTable } from "./HotspotTable";

@@ -371,7 +371,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         return sb.ToString();
     }
 
-    private static AiInsights ParseGeminiResponse(string rawResponse, string repo, TelemetryData telemetry)
+    private AiInsights ParseGeminiResponse(string rawResponse, string repo, TelemetryData telemetry)
     {
         if (string.IsNullOrWhiteSpace(rawResponse))
         {
@@ -415,15 +415,15 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                 };
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // If strict JSON deserialization fails, continue to fallback
+            _logger.LogDebug(ex, "Strict JSON deserialization of Gemini response failed; falling back to heuristic insights.");
         }
 
         return BuildFallbackInsights(string.Empty, repo, telemetry);
     }
 
-    public static AiInsights BuildFallbackInsights(string owner, string repo, TelemetryData telemetry)
+    internal static AiInsights BuildFallbackInsights(string owner, string repo, TelemetryData telemetry)
     {
         return new AiInsights
         {
@@ -599,7 +599,7 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
         }
     }
 
-    private static int ExtractRetryAfterSeconds(string? errorContent)
+    private int ExtractRetryAfterSeconds(string? errorContent)
     {
         if (string.IsNullOrWhiteSpace(errorContent))
         {
@@ -637,20 +637,20 @@ public sealed partial class GeminiSynthesisService : IGeminiSynthesisService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore parsing errors, return default
+            _logger.LogDebug(ex, "Failed to parse retry delay from Gemini rate limit response; using default fallback window.");
         }
 
         return 60;
     }
+}
 
-    private sealed class GeminiOutputDto
-    {
-        public string? Eli5Summary { get; set; }
-        public string? LicenseVerdict { get; set; }
-        public string? MermaidDiagram { get; set; }
-        public string? CodeSmells { get; set; }
-        public string? OnboardingRunbook { get; set; }
-    }
+file sealed class GeminiOutputDto
+{
+    public string? Eli5Summary { get; set; }
+    public string? LicenseVerdict { get; set; }
+    public string? MermaidDiagram { get; set; }
+    public string? CodeSmells { get; set; }
+    public string? OnboardingRunbook { get; set; }
 }

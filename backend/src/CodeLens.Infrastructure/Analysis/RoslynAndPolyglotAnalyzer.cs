@@ -39,26 +39,49 @@ public sealed partial class RoslynAndPolyglotAnalyzer : ICodeAnalysisService
     [GeneratedRegex(@"\b(if|elif|else\s+if|while|for|case|switch|catch|except)\b|[?][.]|&&|\|\||\?\?|\?[^:]*:", RegexOptions.Compiled)]
     private static partial Regex PolyglotBranchingRegex();
 
-    private static readonly HashSet<string> ExcludedDirectoryPrefixes = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> ExcludedDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "node_modules/",
-        ".git/",
-        "bin/",
-        "obj/",
-        "dist/",
-        ".next/",
-        "vendor/",
-        "build/",
-        ".idea/",
-        ".vscode/",
-        ".vs/",
-        "target/",
-        "out/",
-        "coverage/",
-        ".gradle/",
-        "packages/",
-        ".agents/"
+        "node_modules",
+        ".git",
+        "bin",
+        "obj",
+        "dist",
+        ".next",
+        "vendor",
+        "build",
+        ".idea",
+        ".vscode",
+        ".vs",
+        "target",
+        "out",
+        "coverage",
+        ".gradle",
+        "packages",
+        ".agents"
     };
+
+    private static bool IsExcludedDirectoryPath(string relativePath)
+    {
+        var span = relativePath.AsSpan();
+        while (true)
+        {
+            var slashIdx = span.IndexOf('/');
+            if (slashIdx < 0)
+            {
+                break;
+            }
+
+            var segment = span[..slashIdx];
+            if (ExcludedDirectoryNames.Contains(segment.ToString()))
+            {
+                return true;
+            }
+
+            span = span[(slashIdx + 1)..];
+        }
+
+        return false;
+    }
 
     private static readonly HashSet<string> ExcludedBinaryExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -119,8 +142,7 @@ public sealed partial class RoslynAndPolyglotAnalyzer : ICodeAnalysisService
             }
 
             // Exclude directories
-            if (ExcludedDirectoryPrefixes.Any(p => relativePath.StartsWith(p, StringComparison.OrdinalIgnoreCase) ||
-                                                   relativePath.Contains($"/{p}", StringComparison.OrdinalIgnoreCase)))
+            if (IsExcludedDirectoryPath(relativePath))
             {
                 continue;
             }

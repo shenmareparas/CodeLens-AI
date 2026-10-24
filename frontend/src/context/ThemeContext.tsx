@@ -1,5 +1,3 @@
-"use client";
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark" | "system";
@@ -10,7 +8,6 @@ interface ThemeContextType {
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
-  cycleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -18,7 +15,6 @@ const ThemeContext = createContext<ThemeContextType>({
   resolvedTheme: "dark",
   setTheme: () => {},
   toggleTheme: () => {},
-  cycleTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -91,11 +87,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const cycleTheme = toggleTheme;
-
   const contextValue = React.useMemo(
-    () => ({ theme, resolvedTheme, setTheme, toggleTheme, cycleTheme }),
-    [theme, resolvedTheme, setTheme, toggleTheme, cycleTheme],
+    () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
+    [theme, resolvedTheme, setTheme, toggleTheme],
   );
 
   return (

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from "react";
 import type { HotspotEntry } from "@/lib/api-client";
 

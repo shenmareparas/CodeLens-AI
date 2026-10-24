@@ -38,9 +38,37 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return true;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(""),
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (typeof payload?.exp === "number") {
+      return payload.exp * 1000 < Date.now();
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 function getInitialToken(): string | null {
   try {
-    return localStorage.getItem("codelens-token");
+    const token = localStorage.getItem("codelens-token");
+    if (!token) return null;
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("codelens-token");
+      localStorage.removeItem("codelens-user");
+      return null;
+    }
+    return token;
   } catch {
     return null;
   }
@@ -48,6 +76,8 @@ function getInitialToken(): string | null {
 
 function getInitialUser(): AuthUser | null {
   try {
+    const token = localStorage.getItem("codelens-token");
+    if (!token || isTokenExpired(token)) return null;
     const raw = localStorage.getItem("codelens-user");
     return raw ? JSON.parse(raw) : null;
   } catch {

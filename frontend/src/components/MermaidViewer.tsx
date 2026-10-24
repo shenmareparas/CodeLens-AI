@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import mermaid from "mermaid";
 import { useTheme } from "@/context/ThemeContext";

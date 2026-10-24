@@ -85,18 +85,24 @@ public sealed class CosmosRepository : ICosmosRepository
         }
 
         var deleted = 0;
-        foreach (var id in ids)
+        var parallelOptions = new ParallelOptions
+        {
+            CancellationToken = ct,
+            MaxDegreeOfParallelism = 10
+        };
+
+        await Parallel.ForEachAsync(ids, parallelOptions, async (id, token) =>
         {
             try
             {
-                await container.DeleteItemAsync<UserDocument>(id, new PartitionKey(id), cancellationToken: ct);
-                deleted++;
+                await container.DeleteItemAsync<UserDocument>(id, new PartitionKey(id), cancellationToken: token);
+                Interlocked.Increment(ref deleted);
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 // Already deleted
             }
-        }
+        });
 
         return deleted;
     }

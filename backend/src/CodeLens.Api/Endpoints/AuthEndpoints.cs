@@ -132,16 +132,25 @@ public static class AuthEndpoints
         .WithSummary("Set a local password for the currently authenticated user")
         .RequireAuthorization();
 
-        // ── Delete All Users (Reset / Cleanup) ───────────────────────────────
+        // ── Delete All Users (Reset / Cleanup - Development Only) ───────────
         group.MapDelete("/users", async (
             [FromServices] ICosmosRepository repository,
+            [FromServices] IWebHostEnvironment env,
             CancellationToken ct) =>
         {
+            if (!env.IsDevelopment())
+            {
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Purging all users is restricted to development environment.",
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+
             var count = await repository.DeleteAllUsersAsync(ct);
             return Results.Ok(new { message = "All users deleted successfully.", deletedCount = count });
         })
         .WithName("DeleteAllUsers")
-        .WithSummary("Delete all users from the database")
+        .WithSummary("Delete all users from the database (Development only)")
         .AllowAnonymous();
     }
 

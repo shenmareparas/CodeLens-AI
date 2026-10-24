@@ -13,6 +13,7 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
     private readonly ConcurrentDictionary<string, UserDocument> _usersById = new();
     private readonly ConcurrentDictionary<string, UserDocument> _usersByEmail = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, AuditDocument> _audits = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _auditIdsByUser = new();
     private readonly ConcurrentDictionary<string, List<ChatMessageDocument>> _messagesByAudit = new();
 
     public Task<UserDocument?> GetUserByEmailAsync(string email, CancellationToken ct = default)
@@ -61,16 +62,27 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
     public Task<AuditDocument> UpsertAuditAsync(AuditDocument audit, CancellationToken ct = default)
     {
         _audits[audit.Id] = audit;
+        if (!string.IsNullOrWhiteSpace(audit.UserId))
+        {
+            var userAudits = _auditIdsByUser.GetOrAdd(audit.UserId, _ => new());
+            userAudits[audit.Id] = 0;
+        }
         return Task.FromResult(audit);
     }
 
     public Task<IReadOnlyList<AuditDocument>> GetAuditsByUserAsync(string userId, CancellationToken ct = default)
     {
-        var list = _audits.Values
-            .Where(a => a.UserId == userId)
-            .OrderByDescending(a => a.CreatedAt)
-            .ToList();
-        return Task.FromResult<IReadOnlyList<AuditDocument>>(list.AsReadOnly());
+        if (_auditIdsByUser.TryGetValue(userId, out var auditIds))
+        {
+            var list = auditIds.Keys
+                .Select(id => _audits.TryGetValue(id, out var a) ? a : null)
+                .Where(a => a is not null)
+                .OrderByDescending(a => a!.CreatedAt)
+                .ToList()!;
+            return Task.FromResult<IReadOnlyList<AuditDocument>>(list.AsReadOnly()!);
+        }
+
+        return Task.FromResult<IReadOnlyList<AuditDocument>>([]);
     }
 
     public Task<ChatMessageDocument> SaveMessageAsync(ChatMessageDocument message, CancellationToken ct = default)
@@ -100,12 +112,7 @@ public sealed class InMemoryCosmosRepository : ICosmosRepository
     {
         if (_messagesByAudit.TryRemove(auditId, out var list))
         {
-            lock (list)
-            {
-                var count = list.Count;
-                list.Clear();
-                return Task.FromResult(count);
-            }
+            return Task.FromResult(list.Count);
         }
 
         return Task.FromResult(0);

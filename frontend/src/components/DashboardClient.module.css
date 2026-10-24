@@ -1,0 +1,388 @@
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Hero Ingestion Card ─────────────────────────────────────────────────── */
+.heroSection {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: var(--color-badge-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  margin: 0 0 0.35rem;
+}
+
+.heroDescription {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  max-width: 640px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ── Ingestion Form ──────────────────────────────────────────────────────── */
+.form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.inputWrapper {
+  flex: 1 1 340px;
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.85rem 1rem 0.85rem 2.75rem;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  color: var(--color-input-text);
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 2px rgba(var(--color-primary-rgb), 0.25),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.buttonsGroup {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.submitButton {
+  padding: 0.85rem 1.65rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px rgba(var(--color-primary-rgb), 0.35);
+  transition: all var(--transition-base);
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  background: rgba(var(--color-primary-rgb), 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reanalyzeButton {
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all var(--transition-base);
+}
+
+.reanalyzeButton:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-text-muted);
+}
+
+.reanalyzeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Sample Repositories ─────────────────────────────────────────────────── */
+.sampleReposWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+}
+
+.sampleReposLabel {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.sampleRepoChip {
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-badge-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.sampleRepoChip:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.sampleRepoChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Status & Error Alerts ───────────────────────────────────────────────── */
+.statusMessage {
+  padding: 0.6rem 1rem;
+  background: var(--color-badge-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--color-primary);
+}
+
+.errorMessage {
+  padding: 0.6rem 1rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: #f87171;
+}
+
+/* ── Recent Audits Section & Chips ───────────────────────────────────────── */
+.recentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recentTitle {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.recentChipsList {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.recentChip {
+  padding: 0.4rem 0.85rem;
+  border-radius: 99px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition-fast);
+}
+
+.recentChip:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.recentChipSelected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.recentChipSelected:hover {
+  background: var(--color-primary);
+}
+
+/* ── Skeletons (Item 12) ─────────────────────────────────────────────────── */
+.skeletonChip {
+  width: 140px;
+  height: 32px;
+  border-radius: 99px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.6s infinite ease-in-out;
+  border: 1px solid var(--color-border-subtle);
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Floating Ask AI FAB & Drawer ────────────────────────────────────────── */
+.fabButton {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 10px 25px -5px rgba(var(--color-primary-rgb), 0.45),
+    0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fabButton:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.fabSparkle {
+  font-size: 1.2rem;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(520px, 92vw);
+  height: 100vh;
+  z-index: 50;
+  background: var(--color-drawer-bg);
+  border-left: 1px solid var(--color-drawer-border);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(0, 0, 0, 0.65);
+  border: none;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .heroSection {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .fabButton {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    padding: 0.75rem 1.15rem;
+    font-size: 0.875rem;
+  }
+}

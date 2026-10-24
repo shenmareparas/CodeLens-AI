@@ -3,7 +3,6 @@ namespace CodeLens.Core.Entities;
 /// <summary>Audit status enumeration.</summary>
 public enum AuditStatus
 {
-    Pending,
     Processing,
     Completed,
     Failed,
@@ -21,7 +20,7 @@ public sealed class AuditDocument
     public string UserId { get; set; } = default!;
     public string? CommitSha { get; set; }
     public string? Branch { get; set; }
-    public AuditStatus Status { get; set; } = AuditStatus.Pending;
+    public AuditStatus Status { get; set; } = AuditStatus.Processing;
     public TelemetryData? Telemetry { get; set; }
     public AiInsights? AiInsights { get; set; }
     public string? DossierBlobName { get; set; }

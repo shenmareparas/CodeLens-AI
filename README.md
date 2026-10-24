@@ -36,25 +36,119 @@
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+## 🏗️ Whole Project System Architecture
+
+```mermaid
+flowchart TB
+    %% Client Tier
+    subgraph CLIENT["1. Client Layer (React 19 SPA · Bun Runtime)"]
+        direction TB
+        LANDING["Landing Showcase (GSAP + ScrollTrigger)"]
+        DASHBOARD["Unified Dashboard (Bento Grid · Language Donut · Hotspots)"]
+        MERMAID_UI["Auto-Healing Mermaid Viewer (Pinch-to-Zoom · Pan Clamping)"]
+        CHAT_UI["Repo Copilot Drawer (SSE Streaming · Live Rate-Limit Countdown)"]
+        AUTH_CTX["AuthContext (JWT Bearer Token Management)"]
+        THEME_CTX["ThemeContext (System Default · Dark/Light Binary Toggle)"]
+        LANDING --- DASHBOARD --- MERMAID_UI --- CHAT_UI
+    end
+
+    %% Gateway & API Tier
+    subgraph API_GATEWAY["2. Backend API Gateway (ASP.NET Core .NET 10 · Port 5050)"]
+        direction TB
+        ROUTER["Minimal API Endpoints (/api/auth, /api/audit, /api/chat)"]
+        AUTH_SVC["AuthService (PBKDF2 HMAC-SHA512 + HS256 JWT)"]
+        SCALAR["Scalar OpenAPI Documentation Engine (/scalar/v1)"]
+        CORS["CORS & Security Middleware (Wildcard SWA & Localhost)"]
+        ROUTER --- AUTH_SVC --- SCALAR
+    end
+
+    %% Zero-Disk Ingestion Engine
+    subgraph INGESTION["3. The Zero-Clone Ingestion & Analysis Engine"]
+        direction TB
+        OCTOKIT["GitHub Octokit API (In-Memory Zipball Stream · Rate Budgeting)"]
+        ROSLYN["Roslyn C# AST & Cyclomatic Complexity Engine"]
+        POLYGLOT["Polyglot Manifest Parsers (Bun, Dart, .NET, Python, Go, Rust)"]
+        HOTSPOTS["Hotspot Calculation: Complexity × ln(Churn + 1)"]
+        SECRETS["Zero-Allocation Secret Scanner [GeneratedRegex]"]
+        OCTOKIT --> ROSLYN --> HOTSPOTS
+        OCTOKIT --> POLYGLOT
+        OCTOKIT --> SECRETS
+    end
+
+    %% Gemini AI Core
+    subgraph AI_CORE["4. AI Synthesis & Copilot Core"]
+        direction TB
+        SK["Microsoft Semantic Kernel 1.81.0"]
+        GEMINI["Google Gemini 3.8 Flash (ThinkingLevel: low)"]
+        SANITIZER["Mermaid AST Sanitizer (Auto-Healing Shapes & Delimiters)"]
+        DOSSIER["Markdown Dossier Builder (PROJECT_KNOWLEDGE.md)"]
+        FALLBACK["Deterministic AST Fallback Synthesis Engine"]
+        SK --> GEMINI
+        GEMINI --> SANITIZER
+        GEMINI --> DOSSIER
+        GEMINI -.->|"Load Spikes / Fail-Fast Timeout (30s)"| FALLBACK
+    end
+
+    %% Persistence & Azure Infrastructure
+    subgraph CLOUD["5. Persistence & Azure Cloud Infrastructure ($0/mo Idle)"]
+        direction TB
+        COSMOS["Azure Cosmos DB NoSQL Free Tier (users, audits, messages)"]
+        BLOB["Azure Blob Storage (project-dossiers container + 15m SAS URLs)"]
+        MEM_FALLBACK["Local In-Memory Repository & Blob Storage Fallback"]
+        ACA["Azure Container Apps (ca-codelens-api · Scale-to-Zero Compute)"]
+        SWA["Azure Static Web Apps (swa-codelens-app · Global Edge CDN)"]
+        COSMOS -.->|"Local Development"| MEM_FALLBACK
+    end
+
+    %% End-to-End Interconnections
+    CLIENT -->|"HTTPS REST & Server-Sent Events (SSE)"| ROUTER
+    ROUTER -->|"Trigger Audit / Ingest"| INGESTION
+    INGESTION -->|"AST Symbol Manifest & Telemetry"| SK
+    ROUTER -->|"Stream Copilot Answers"| AI_CORE
+    ROUTER -->|"Read / Write State"| COSMOS
+    DOSSIER -->|"Upload Markdown Dossier"| BLOB
+    SWA -->|"Host Static SPA"| CLIENT
+    ACA -->|"Host API Container (Port 5050)"| API_GATEWAY
+```
 
 ```text
-                              ┌────────────────────────────────────────┐
-                              │    React 19 SPA (Vite / Bun Runtime)   │
-                              │    React Router / Tailwind CSS         │
-                              └──────────────────┬─────────────────────┘
-                                                 │ HTTPS / Bearer JWT / SSE
-                                                 ▼
-                              ┌────────────────────────────────────────┐
-                              │  ASP.NET Core .NET 10 Minimal Web API  │
-                              │          Scalar OpenAPI Docs           │
-                              └───────┬──────────────────────┬─────────┘
-                                      │                      │
-                   ┌──────────────────┴───────────────┐      │
-                   ▼                                  ▼      ▼
-    ┌─────────────────────────────┐    ┌─────────────────────────────┐
-    │  Cosmos DB (Users / Audits) │    │  Azure Blob (Dossier .md)   │
-    └─────────────────────────────┘    └─────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                CLIENT TIER (React 19 + Bun)                           │
+│  ┌──────────────────────┐  ┌───────────────────────┐  ┌─────────────────────────────┐  │
+│  │ GSAP Landing Page    │  │ Unified Dashboard     │  │ Interactive C4 Viewer       │  │
+│  │ (ScrollTrigger/Stage)│  │ (Bento/Donut/Hotspots)│  │ (Pan/Zoom/Clamping/Healing) │  │
+│  └──────────┬───────────┘  └───────────┬───────────┘  └──────────────┬──────────────┘  │
+│             │                          │                             │                 │
+│             └──────────────────────────┼─────────────────────────────┘                 │
+│                                        │ HTTPS Bearer JWT / SSE Token Stream           │
+└────────────────────────────────────────┼───────────────────────────────────────────────┘
+                                         ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        API GATEWAY & ENGINE (ASP.NET Core .NET 10)                     │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ Minimal API Router (/api/auth, /api/audit, /api/chat) & Scalar Docs (/scalar/v1) │  │
+│  └───────┬─────────────────────────────┬────────────────────────────┬───────────────┘  │
+│          │                             │                            │                  │
+│          ▼                             ▼                            ▼                  │
+│  ┌──────────────────────┐   ┌──────────────────────┐   ┌────────────────────────────┐  │
+│  │ Authentication       │   │ Zero-Clone Engine    │   │ AI Synthesis Core          │  │
+│  │ - PBKDF2 HMAC-SHA512 │   │ - In-Memory Zipball  │   │ - Microsoft SK 1.81.0      │  │
+│  │ - 100k Iterations    │   │ - Roslyn Complexity  │   │ - Gemini 3.8 Flash ('low') │  │
+│  │ - HS256 JWT Issuance │   │ - Hotspots Formula   │   │ - Auto-Healing Sanitizer   │  │
+│  │ - Strong Password UX │   │ - Polyglot Manifests │   │ - Heuristic AST Fallback   │  │
+│  └──────────────────────┘   └──────────────────────┘   └────────────────────────────┘  │
+└────────────────────────────────────────┬───────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                       AZURE ZERO-COST CLOUD PERSISTENCE ($0/mo Idle)                   │
+│  ┌─────────────────────────────┐   ┌────────────────────────────┐   ┌───────────────┐  │
+│  │ Azure Cosmos DB (Free Tier) │   │ Azure Blob Storage         │   │ Azure SWA/ACA │  │
+│  │ - Containers: users, audits,│   │ - project-dossiers         │   │ - CDN Edge    │  │
+│  │   messages (ChatSessions)   │   │ - 15-min SAS Token URLs    │   │ - Scale-to-0  │  │
+│  │ - InMemoryCosmos fallback   │   │ - InMemoryBlob fallback    │   │   Containers  │  │
+│  └─────────────────────────────┘   └────────────────────────────┘   └───────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 | Layer                  | Technologies                                        | Details                                                                                             |
@@ -90,6 +184,7 @@ codelens-ai/
 │       ├── vercel-react-best-practices/# Vercel React & Next.js performance optimization skill
 │       └── gsap-*                      # Official GSAP AI skills (core, react, timeline, scrolltrigger, etc.)
 ├── frontend/                           # React 19 SPA (Vite + Bun)
+│   ├── bunfig.toml                     # Bun native formatter config ([fmt])
 │   ├── index.html                      # SPA entry point with anti-flash script & favicon link
 │   ├── vite.config.ts                  # Vite ESM configuration (`import.meta.dirname`) & path aliases
 │   ├── eslint.config.mjs               # ESLint 9 Flat Config (React 19 + TypeScript + React Hooks)
@@ -101,7 +196,7 @@ codelens-ai/
 │   │   ├── main.tsx                    # Root React DOM entrypoint
 │   │   ├── App.tsx                     # React Router routes, ProtectedRoute & NotFoundPage catch-all (code-split)
 │   │   ├── context/
-│   │   │   ├── AuthContext.tsx         # Client JWT authentication provider with memoized callbacks
+│   │   │   ├── AuthContext.tsx         # Client JWT authentication provider with memoized callbacks & expiry check
 │   │   │   └── ThemeContext.tsx        # Pure Light/Dark/System theme provider with system default & instant toggle
 │   │   ├── pages/
 │   │   │   ├── HomePage.tsx            # Modern Product Landing Page with hero, features & CTA
@@ -126,6 +221,10 @@ codelens-ai/
 │   │   │   ├── ThemeToggle.tsx         # Icon-only circular theme toggle with floating accessible tooltip
 │   │   │   ├── ThemeToggle.module.css  # Animated theme toggle & glassmorphic tooltip styles
 │   │   │   ├── DashboardClient.tsx     # Unified Dashboard (Bento Grid, Dossier & Diagram tabs)
+│   │   │   ├── DashboardClient.module.css # Scoped styles & grid layout for DashboardClient
+│   │   │   ├── RepoInputForm.tsx       # Repository URL input form with analyze button & loading states
+│   │   │   ├── RecentAuditChips.tsx    # Recent and sample repository audit chips with selection & delete actions
+│   │   │   ├── ChatDrawer.tsx          # Slide-over chat drawer container with floating launcher trigger
 │   │   │   ├── DashboardHeader.tsx     # Top bar navigation, user profile avatar pill & danger signout button
 │   │   │   ├── DashboardHeader.module.css # Header layout, avatar & signout styles
 │   │   │   ├── ActiveAuditSection.tsx  # Active audit summary, stale banner, lazy-loaded Mermaid & Dossier
@@ -139,7 +238,7 @@ codelens-ai/
 │   │   │   ├── MermaidViewer.tsx       # Client-side Mermaid diagram canvas with pan/zoom/copy, 100% reset & a11y region
 │   │   │   ├── FullscreenMermaidModal.tsx # Immersive fullscreen diagram viewer with touch & pan clamping
 │   │   │   ├── InlineMermaidBlock.tsx  # Flow diagram renderer for AI chat markdown responses
-│   │   │   ├── ThinkingLines.tsx       # Claude-style multi-line animated thinking shimmer state
+│   │   │   ├── ThinkingLines.tsx       # Claude-style multi-line animated thinking shimmer state (--color-primary-rgb)
 │   │   │   ├── DossierViewer.tsx       # Formatted Markdown dossier preview with SAS download
 │   │   │   └── RepoChatSidebar.tsx     # Real-time SSE grounded repo copilot with rate-limit countdown banner & clear chat
 │   │   ├── styles/
@@ -147,11 +246,12 @@ codelens-ai/
 │   │   └── lib/
 │   │       ├── api-client.ts           # Typed API client (sanitized API_BASE) + SSE stream & chat history endpoints
 │   │       └── mermaidUtils.ts         # Client-side Mermaid syntax normalizer & label quoting
-│   └── package.json
+│   ├── package.json                    # Scripts (dev, build, lint, fmt: "bun fmt", fmt:check)
+│   └── bun.lock                        # Bun text lockfile
 └── backend/                            # .NET 10 Solution
     ├── CodeLens.sln
     ├── Dockerfile                      # Multi-stage .NET 10 container image (port 5050)
-    ├── tests/CodeLens.Tests/           # xUnit test suite (31 tests)
+    ├── tests/CodeLens.Tests/           # xUnit test suite (34 tests)
     └── src/
         ├── CodeLens.Core/              # Domain entities, DTOs, and interface contracts (IGeminiSynthesisService)
         ├── CodeLens.Infrastructure/    # Cosmos DB, Blob, Octokit, Roslyn analysis, Secret scanner, Gemini AI Engine
@@ -211,7 +311,11 @@ VITE_APP_URL=http://localhost:5173
 Start the development server:
 
 ```bash
-bun run dev
+bun run dev                               # Start Vite React dev server
+bun run fmt                               # Format with Bun native formatter (bun fmt)
+bun run fmt:check                         # Verify all files are formatted
+bun run lint                              # Run ESLint (0 errors, 0 warnings)
+bun run build                             # Compile static production bundle
 ```
 
 Visit [http://localhost:5173](http://localhost:5173) to view the interactive Product Landing Page, or open [http://localhost:5173/auth/signin](http://localhost:5173/auth/signin) to test the tabbed Sign-In, real-time password strength validation, and registration experience.

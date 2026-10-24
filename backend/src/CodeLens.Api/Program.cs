@@ -29,9 +29,17 @@ builder.Services.AddScoped<IGeminiSynthesisService, GeminiSynthesisService>();
 
 // ── JWT Bearer Authentication ─────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
-var secretKey = string.IsNullOrWhiteSpace(jwtConfig.Secret)
-    ? "codelens-super-secret-key-for-development-purposes-must-be-32-chars-minimum"
-    : jwtConfig.Secret;
+var secretKey = jwtConfig.Secret;
+if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Contains("REPLACE_WITH"))
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "JWT secret key is not configured for production. Set the 'Jwt:Secret' configuration key or 'JWT__SECRET' environment variable with at least 32 characters.");
+    }
+
+    secretKey = "codelens-super-secret-key-for-development-purposes-must-be-32-chars-minimum";
+}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -144,6 +152,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // ── Endpoint registration ─────────────────────────────────────────────────────
+app.MapGet("/healthz", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTimeOffset.UtcNow,
+    environment = app.Environment.EnvironmentName
+}))
+.AllowAnonymous()
+.WithTags("Health")
+.WithName("HealthCheck")
+.WithSummary("API liveness and health check probe");
+
 app.MapAuthEndpoints();
 app.MapAuditEndpoints();
 app.MapChatEndpoints();

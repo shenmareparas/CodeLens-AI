@@ -16,6 +16,7 @@
   --color-text: #f4f5f7;
   --color-text-muted: #9297a0;
   --color-primary: #f59e0b;
+  --color-primary-rgb: 245, 158, 11;
   --color-primary-light: #fbbf24;
   --color-accent: #f59e0b;
   --color-success: #10b981;
@@ -72,6 +73,7 @@
   --color-text: #141210;
   --color-text-muted: #57534e;
   --color-primary: #b45309;
+  --color-primary-rgb: 180, 83, 9;
   --color-primary-light: #92400e;
   --color-accent: #b45309;
   --color-success: #047857;

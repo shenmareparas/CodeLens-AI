@@ -5,7 +5,6 @@
 
 const RAW_API_BASE =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_URL) ||
   "http://localhost:5050";
 
 const API_BASE = RAW_API_BASE.trim().replace(/\/+$/, "");
@@ -33,8 +32,9 @@ async function apiRequest<T>(
       } else if (typeof parsed?.detail === "string") {
         errorMessage = parsed.detail;
       }
-    } catch {
-      // Not JSON, use raw text or fallback
+    } catch (parseErr) {
+      // Non-JSON error payload from backend/proxy
+      console.debug("Failed to parse error response as JSON:", parseErr);
     }
     throw new Error(errorMessage || `Request failed with status ${res.status}`);
   }
@@ -80,23 +80,6 @@ export async function loginWithCredentials(
   });
 }
 
-/**
- * Add or update local password for currently logged in user.
- */
-export async function setAccountPassword(
-  password: string,
-  token: string,
-): Promise<BackendAuthResponse> {
-  return apiRequest<BackendAuthResponse>(
-    "/api/auth/set-password",
-    {
-      method: "POST",
-      body: JSON.stringify({ password }),
-    },
-    token,
-  );
-}
-
 // ── Audits ────────────────────────────────────────────────────────────────────
 
 export interface HotspotEntry {
@@ -137,7 +120,7 @@ export interface TelemetryData {
 
 export interface AuditResponse {
   auditId: string;
-  status: "Pending" | "Processing" | "Completed" | "Failed";
+  status: "Processing" | "Completed" | "Failed";
   repoUrl: string;
   createdAt: string;
   commitSha?: string;

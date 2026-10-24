@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint",
-    "doctor": "npx react-doctor@latest"
+    "fmt": "bun fmt",
+    "fmt:check": "bun fmt --check",
+    "doctor": "bunx react-doctor@latest"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -33,7 +35,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.0"
   },
-  "packageManager": "bun@1.4.3",
+  "packageManager": "bun@1.4.4",
   "ignoreScripts": [
     "sharp",
     "unrs-resolver"

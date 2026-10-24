@@ -1,5 +1,3 @@
-"use client";
-
 import styles from "./SignInPage.module.css";
 
 interface PasswordInputProps {

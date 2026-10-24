@@ -1,5 +1,3 @@
-"use client";
-
 import { useId, useState, useRef, useMemo } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import type { CommitActivityPoint } from "@/lib/api-client";
